@@ -24,8 +24,8 @@ const MASALLAR: Masal[] = [
     karakter: "♟️",
     ozet: "En önde yürüyen, asla geri adım atmayan ve son kareye ulaştığında bir vezire dönüşen cesur piyon.",
     renk: "#f59e0b",
-    youtubeId: https://youtube.com/shorts/1KY3vHScGdg?feature=share
-    videoBaslik: "64 Kare Ülkesi: Minik Piyonların Serüveni",
+    youtubeId: "1KY3vHScGdg", // Doğru format: Sadece 11 haneli video kodu tırnak içinde!
+    videoBaslik: "Minik Piyonun Hareketi ve Macerası",
     hikaye: [
       "Bir zamanlar 64 karelik Büyülü Krallık'ta minik bir piyon yaşarmış. Diğer taşlar ona bazen 'sen küçücüksün, sadece bir adım atabilirsin' derlermiş.",
       "Ama cesur piyonun kocaman bir hayali varmış: Krallığın en son sırasına ulaşıp muhteşem bir Vezir olmak!",
