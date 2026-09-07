@@ -80,7 +80,6 @@ const VARSAYILAN_SORULAR: SoruItem[] = [
 const UPSTASH_URL = process.env.UPSTASH_REDIS_REST_URL;
 const UPSTASH_TOKEN = process.env.UPSTASH_REDIS_REST_TOKEN;
 
-// Sunucu belleği (Yedek tampon)
 const localMemory: Record<string, any> = {};
 
 async function redisGet<T>(key: string, fallback: T): Promise<T> {
@@ -98,9 +97,16 @@ async function redisGet<T>(key: string, fallback: T): Promise<T> {
     if (!res.ok) return fallback;
     const json = await res.json();
     if (json && json.result !== null && json.result !== undefined) {
-      const parsed = typeof json.result === "string" ? JSON.parse(json.result) : json.result;
+      let parsed = json.result;
+      if (typeof parsed === "string") {
+        try {
+          parsed = JSON.parse(parsed);
+        } catch {
+          // parse hatası olursa ham bırak
+        }
+      }
       localMemory[key] = parsed;
-      return parsed;
+      return parsed as T;
     }
     return fallback;
   } catch {
@@ -113,7 +119,6 @@ async function redisSet(key: string, value: any): Promise<void> {
   if (!UPSTASH_URL || !UPSTASH_TOKEN) return;
 
   try {
-    // Upstash REST /set endpoint standardı
     await fetch(`${UPSTASH_URL}/set/${key}`, {
       method: "POST",
       headers: {
@@ -123,7 +128,7 @@ async function redisSet(key: string, value: any): Promise<void> {
       cache: "no-store",
     });
   } catch (e) {
-    console.error("Upstash set error:", e);
+    console.error("Upstash set hatasi:", e);
   }
 }
 
@@ -132,15 +137,22 @@ export async function GET(request: Request) {
     const { searchParams } = new URL(request.url);
     const type = searchParams.get("type");
 
-    const sorular = await redisGet<SoruItem[]>("odev_sorulari", VARSAYILAN_SORULAR);
+    let sorular = await redisGet<SoruItem[]>("odev_sorulari", VARSAYILAN_SORULAR);
+    if (!Array.isArray(sorular)) sorular = VARSAYILAN_SORULAR;
     if (type === "sorular") return NextResponse.json({ success: true, data: sorular });
 
-    const ogrenciler = await redisGet<OgrenciProfil[]>("kayitli_ogrenciler", []);
+    let ogrenciler = await redisGet<OgrenciProfil[]>("kayitli_ogrenciler", []);
+    if (!Array.isArray(ogrenciler)) ogrenciler = [];
     if (type === "ogrenciler") return NextResponse.json({ success: true, data: ogrenciler });
 
-    const ogretmenler = await redisGet<OgretmenProfil[]>("kayitli_ogretmenler", VARSAYILAN_OGRETMENLER);
-    const aktifOdevler = await redisGet<OdevKaydi[]>("aktif_odevler", []);
-    const arsivler = await redisGet<any[]>("arsiv_odevler", []);
+    let ogretmenler = await redisGet<OgretmenProfil[]>("kayitli_ogretmenler", VARSAYILAN_OGRETMENLER);
+    if (!Array.isArray(ogretmenler)) ogretmenler = VARSAYILAN_OGRETMENLER;
+
+    let aktifOdevler = await redisGet<OdevKaydi[]>("aktif_odevler", []);
+    if (!Array.isArray(aktifOdevler)) aktifOdevler = [];
+
+    let arsivler = await redisGet<any[]>("arsiv_odevler", []);
+    if (!Array.isArray(arsivler)) arsivler = [];
 
     return NextResponse.json({
       success: true,
@@ -168,14 +180,17 @@ export async function POST(request: Request) {
 
     const { action } = body;
 
-    // 1. ÖĞRENCİ KAYIT
+    // 1. ÖĞRENCİ KAYIT (Dizi garantili - findIndex hatasını önler)
     if (action === "ogrenciKayit") {
       const { adSoyad, sinifGrup, avatar, pin } = body;
       if (!adSoyad || !String(adSoyad).trim()) {
         return NextResponse.json({ success: false, message: "İsim gereklidir" }, { status: 400 });
       }
 
-      const ogrenciler = await redisGet<OgrenciProfil[]>("kayitli_ogrenciler", []);
+      const hamOgrenciler = await redisGet<any>("kayitli_ogrenciler", []);
+      // Dizi kontrolü: dizi değilse sıfırla
+      const ogrenciler: OgrenciProfil[] = Array.isArray(hamOgrenciler) ? [...hamOgrenciler] : [];
+
       const yeniOgrenci: OgrenciProfil = {
         id: Date.now().toString(),
         adSoyad: String(adSoyad).trim(),
@@ -186,15 +201,15 @@ export async function POST(request: Request) {
       };
 
       const mevcutIdx = ogrenciler.findIndex(
-        (o) => o.adSoyad.toLowerCase() === yeniOgrenci.adSoyad.toLowerCase()
+        (o) => o && o.adSoyad && o.adSoyad.toLowerCase() === yeniOgrenci.adSoyad.toLowerCase()
       );
+
       if (mevcutIdx >= 0) {
         ogrenciler[mevcutIdx] = yeniOgrenci;
       } else {
         ogrenciler.push(yeniOgrenci);
       }
 
-      // Redis hatası olsa bile öğrenciye hata dönmesin
       try {
         await redisSet("kayitli_ogrenciler", ogrenciler);
       } catch (err) {
@@ -207,7 +222,8 @@ export async function POST(request: Request) {
     // 2. ÖĞRETMEN GİRİŞİ
     if (action === "ogretmenGiris") {
       const { sifre } = body;
-      const ogretmenler = await redisGet<OgretmenProfil[]>("kayitli_ogretmenler", VARSAYILAN_OGRETMENLER);
+      const ham = await redisGet<any>("kayitli_ogretmenler", VARSAYILAN_OGRETMENLER);
+      const ogretmenler: OgretmenProfil[] = Array.isArray(ham) ? ham : VARSAYILAN_OGRETMENLER;
       const girilen = String(sifre || "").trim();
       const bulunan = ogretmenler.find((o) => o.sifre === girilen);
 
@@ -223,7 +239,8 @@ export async function POST(request: Request) {
     // 3. ÖĞRETMEN EKLEME
     if (action === "ogretmenEkle") {
       const { adSoyad, unvan, sifre } = body;
-      const ogretmenler = await redisGet<OgretmenProfil[]>("kayitli_ogretmenler", VARSAYILAN_OGRETMENLER);
+      const ham = await redisGet<any>("kayitli_ogretmenler", VARSAYILAN_OGRETMENLER);
+      const ogretmenler: OgretmenProfil[] = Array.isArray(ham) ? [...ham] : [...VARSAYILAN_OGRETMENLER];
       const yeni: OgretmenProfil = {
         id: Date.now().toString(),
         adSoyad: String(adSoyad).trim(),
@@ -241,7 +258,8 @@ export async function POST(request: Request) {
     // 4. ÖĞRETMEN SİLME
     if (action === "ogretmenSil") {
       const { id } = body;
-      let ogretmenler = await redisGet<OgretmenProfil[]>("kayitli_ogretmenler", VARSAYILAN_OGRETMENLER);
+      const ham = await redisGet<any>("kayitli_ogretmenler", VARSAYILAN_OGRETMENLER);
+      let ogretmenler: OgretmenProfil[] = Array.isArray(ham) ? ham : [...VARSAYILAN_OGRETMENLER];
       ogretmenler = ogretmenler.filter((o) => o.id !== id);
       try {
         await redisSet("kayitli_ogretmenler", ogretmenler);
@@ -252,7 +270,8 @@ export async function POST(request: Request) {
     // 5. PIN SIFIRLAMA
     if (action === "pinSifirla") {
       const { ogrenciId, yeniPin } = body;
-      let ogrenciler = await redisGet<OgrenciProfil[]>("kayitli_ogrenciler", []);
+      const ham = await redisGet<any>("kayitli_ogrenciler", []);
+      let ogrenciler: OgrenciProfil[] = Array.isArray(ham) ? ham : [];
       ogrenciler = ogrenciler.map((o) =>
         o.id === ogrenciId ? { ...o, pin: String(yeniPin || "1234") } : o
       );
@@ -265,8 +284,9 @@ export async function POST(request: Request) {
     // 6. ÖĞRENCİ SİLME
     if (action === "ogrenciSil") {
       const { ogrenciId } = body;
-      let ogrenciler = await redisGet<OgrenciProfil[]>("kayitli_ogrenciler", []);
-      ogrenciler = ogrenciler.filter((o) => o.id !== idMatch(o.id, ogrenciId));
+      const ham = await redisGet<any>("kayitli_ogrenciler", []);
+      let ogrenciler: OgrenciProfil[] = Array.isArray(ham) ? ham : [];
+      ogrenciler = ogrenciler.filter((o) => String(o.id) !== String(ogrenciId));
       try {
         await redisSet("kayitli_ogrenciler", ogrenciler);
       } catch {}
@@ -276,7 +296,8 @@ export async function POST(request: Request) {
     // 7. SORU EKLEME / SİLME
     if (action === "soruEkle") {
       const { title, fen, hint } = body;
-      const sorular = await redisGet<SoruItem[]>("odev_sorulari", VARSAYILAN_SORULAR);
+      const ham = await redisGet<any>("odev_sorulari", VARSAYILAN_SORULAR);
+      const sorular: SoruItem[] = Array.isArray(ham) ? [...ham] : [...VARSAYILAN_SORULAR];
       const yeniId = sorular.length > 0 ? Math.max(...sorular.map((s) => s.id)) + 1 : 1;
       sorular.push({ id: yeniId, title: String(title), fen: String(fen), hint: String(hint) });
       try {
@@ -287,7 +308,8 @@ export async function POST(request: Request) {
 
     if (action === "soruSil") {
       const { id } = body;
-      let sorular = await redisGet<SoruItem[]>("odev_sorulari", VARSAYILAN_SORULAR);
+      const ham = await redisGet<any>("odev_sorulari", VARSAYILAN_SORULAR);
+      let sorular: SoruItem[] = Array.isArray(ham) ? ham : [...VARSAYILAN_SORULAR];
       sorular = sorular.filter((s) => s.id !== id);
       try {
         await redisSet("odev_sorulari", sorular);
@@ -297,9 +319,11 @@ export async function POST(request: Request) {
 
     // 8. ARŞİVLEME
     if (action === "haftayiArsivle") {
-      const aktif = await redisGet<OdevKaydi[]>("aktif_odevler", []);
+      const ham = await redisGet<any>("aktif_odevler", []);
+      const aktif: OdevKaydi[] = Array.isArray(ham) ? ham : [];
       if (aktif.length > 0) {
-        const arsiv = await redisGet<any[]>("arsiv_odevler", []);
+        const hamArsiv = await redisGet<any>("arsiv_odevler", []);
+        const arsiv: any[] = Array.isArray(hamArsiv) ? [...hamArsiv] : [];
         arsiv.push({ tarih: new Date().toLocaleString("tr-TR"), kayitlar: aktif });
         try {
           await redisSet("arsiv_odevler", arsiv);
@@ -311,7 +335,8 @@ export async function POST(request: Request) {
 
     // 9. ÖDEV TESLİMİ
     const { ogrenciAdi, sinifGrup, avatar, toplamSoru, dogruSayisi, toplamHata, gecenSureSaniye, soruDetaylari } = body;
-    const aktifOdevler = await redisGet<OdevKaydi[]>("aktif_odevler", []);
+    const hamOdev = await redisGet<any>("aktif_odevler", []);
+    const aktifOdevler: OdevKaydi[] = Array.isArray(hamOdev) ? [...hamOdev] : [];
     const yeniTeslim: OdevKaydi = {
       id: Date.now().toString(),
       ogrenciAdi: String(ogrenciAdi || "İsimsiz").trim(),
@@ -334,8 +359,4 @@ export async function POST(request: Request) {
     console.error("Genel API Hatası:", err);
     return NextResponse.json({ success: false, message: err?.message || "Beklenmeyen hata" }, { status: 500 });
   }
-}
-
-function idMatch(id1: any, id2: any) {
-  return String(id1) === String(id2) ? id1 : null;
 }
