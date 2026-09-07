@@ -4,7 +4,7 @@ import "./globals.css";
 
 export const metadata: Metadata = {
   title: "Çocuklar İçin Sevimli Satranç ♟️",
-  description: "Çocuklar için eğlenceli satranç oyunu, botlar ve taktik bulmacalar.",
+  description: "Çocuklar için eğlenceli satranç oyunu, botlar, iki kişilik mod ve taktik bulmacalar.",
 };
 
 export default function RootLayout({
@@ -30,8 +30,9 @@ export default function RootLayout({
             display: "flex",
             justifyContent: "center",
             alignItems: "center",
-            gap: "12px",
-            padding: "12px 16px",
+            flexWrap: "wrap",
+            gap: "8px",
+            padding: "10px 14px",
             backgroundColor: "#fffbeb",
             borderBottom: "3px solid #fde68a",
             boxShadow: "0 2px 8px rgba(0,0,0,0.05)",
@@ -43,29 +44,45 @@ export default function RootLayout({
           <Link
             href="/"
             style={{
-              padding: "8px 16px",
+              padding: "7px 14px",
               backgroundColor: "#f59e0b",
               color: "#ffffff",
               borderRadius: "14px",
               textDecoration: "none",
               fontWeight: "900",
-              fontSize: "13px",
+              fontSize: "12px",
               boxShadow: "0 2px 4px rgba(0,0,0,0.1)",
             }}
           >
-            🏠 Oyun Alanı
+            🏠 Bot Oyunu
+          </Link>
+
+          <Link
+            href="/arkadasinla-oyna"
+            style={{
+              padding: "7px 14px",
+              backgroundColor: "#3b82f6",
+              color: "#ffffff",
+              borderRadius: "14px",
+              textDecoration: "none",
+              fontWeight: "900",
+              fontSize: "12px",
+              boxShadow: "0 2px 4px rgba(0,0,0,0.1)",
+            }}
+          >
+            👥 2 Kişilik Oyna
           </Link>
 
           <Link
             href="/ogren"
             style={{
-              padding: "8px 16px",
+              padding: "7px 14px",
               backgroundColor: "#10b981",
               color: "#ffffff",
               borderRadius: "14px",
               textDecoration: "none",
               fontWeight: "900",
-              fontSize: "13px",
+              fontSize: "12px",
               boxShadow: "0 2px 4px rgba(0,0,0,0.1)",
             }}
           >
@@ -74,7 +91,7 @@ export default function RootLayout({
         </header>
 
         {/* Ana İçerik */}
-        <main style={{ padding: "16px", display: "flex", justifyContent: "center" }}>
+        <main style={{ padding: "14px", display: "flex", justifyContent: "center" }}>
           {children}
         </main>
       </body>
