@@ -25,7 +25,7 @@ interface KazanimDetay {
 
 const KAZANIMLAR_VERISI: KazanimDetay[] = [
   {
-    kod: "ST.OÖ. 1.1.",
+    kod: "1.1.",
     uniteId: 1,
     uniteBaslik: "1. Satranç Oyunu, Tahtası ve Yönler",
     baslik: "Satranç oyununu ve tahtasını tanır.",
@@ -73,7 +73,7 @@ const KAZANIMLAR_VERISI: KazanimDetay[] = [
     ],
   },
   {
-    kod: "ST.OÖ. 1.2.",
+    kod: "1.2.",
     uniteId: 1,
     uniteBaslik: "1. Satranç Oyunu, Tahtası ve Yönler",
     baslik: "Satranç tahtasında nesneleri yatay ve dikey yönlerde hareket ettirir.",
@@ -123,7 +123,7 @@ const KAZANIMLAR_VERISI: KazanimDetay[] = [
     ],
   },
   {
-    kod: "ST.OÖ. 1.3.",
+    kod: "1.3.",
     uniteId: 1,
     uniteBaslik: "1. Satranç Oyunu, Tahtası ve Yönler",
     baslik: "Satranç tahtasında nesneleri çapraz yönlerde hareket ettirir.",
@@ -173,7 +173,7 @@ const KAZANIMLAR_VERISI: KazanimDetay[] = [
     ],
   },
   {
-    kod: "ST.OÖ. 2.1.",
+    kod: "2.1.",
     uniteId: 2,
     uniteBaslik: "2. Taşlar ve Özellikleri",
     baslik: "Kale taşının hareketini uygular.",
@@ -222,7 +222,7 @@ const KAZANIMLAR_VERISI: KazanimDetay[] = [
     ],
   },
   {
-    kod: "ST.OÖ. 2.2.",
+    kod: "2.2.",
     uniteId: 2,
     uniteBaslik: "2. Taşlar ve Özellikleri",
     baslik: "Fil taşının hareketini uygular.",
@@ -271,7 +271,7 @@ const KAZANIMLAR_VERISI: KazanimDetay[] = [
     ],
   },
   {
-    kod: "ST.OÖ. 2.3.",
+    kod: "2.3.",
     uniteId: 2,
     uniteBaslik: "2. Taşlar ve Özellikleri",
     baslik: "Vezir taşının hareketini uygular.",
@@ -320,7 +320,7 @@ const KAZANIMLAR_VERISI: KazanimDetay[] = [
     ],
   },
   {
-    kod: "ST.OÖ. 2.4.",
+    kod: "2.4.",
     uniteId: 2,
     uniteBaslik: "2. Taşlar ve Özellikleri",
     baslik: "Şah taşının hareketini uygular.",
@@ -369,7 +369,7 @@ const KAZANIMLAR_VERISI: KazanimDetay[] = [
     ],
   },
   {
-    kod: "ST.OÖ. 2.5.",
+    kod: "2.5.",
     uniteId: 2,
     uniteBaslik: "2. Taşlar ve Özellikleri",
     baslik: "At taşının hareketini uygular.",
@@ -418,7 +418,7 @@ const KAZANIMLAR_VERISI: KazanimDetay[] = [
     ],
   },
   {
-    kod: "ST.OÖ. 2.6.",
+    kod: "2.6.",
     uniteId: 2,
     uniteBaslik: "2. Taşlar ve Özellikleri",
     baslik: "Piyon taşının hareketini uygular.",
@@ -466,7 +466,7 @@ const KAZANIMLAR_VERISI: KazanimDetay[] = [
     ],
   },
   {
-    kod: "ST.OÖ. 2.7.",
+    kod: "2.7.",
     uniteId: 2,
     uniteBaslik: "2. Taşlar ve Özellikleri",
     baslik: "Piyon terfisini uygular.",
@@ -514,7 +514,7 @@ const KAZANIMLAR_VERISI: KazanimDetay[] = [
     ],
   },
   {
-    kod: "ST.OÖ. 2.8.",
+    kod: "2.8.",
     uniteId: 2,
     uniteBaslik: "2. Taşlar ve Özellikleri",
     baslik: "Satrançtaki başlangıç konumunu dizer.",
@@ -562,7 +562,7 @@ const KAZANIMLAR_VERISI: KazanimDetay[] = [
     ],
   },
   {
-    kod: "ST.OÖ. 2.9.",
+    kod: "2.9.",
     uniteId: 2,
     uniteBaslik: "2. Taşlar ve Özellikleri",
     baslik: "Taşların puan değerlerini kavrar.",
@@ -610,7 +610,7 @@ const KAZANIMLAR_VERISI: KazanimDetay[] = [
     ],
   },
   {
-    kod: "ST.OÖ. 2.10.",
+    kod: "2.10.",
     uniteId: 2,
     uniteBaslik: "2. Taşlar ve Özellikleri",
     baslik: "Satrançta taş almayı bilir.",
@@ -658,7 +658,7 @@ const KAZANIMLAR_VERISI: KazanimDetay[] = [
     ],
   },
   {
-    kod: "ST.OÖ. 2.11.",
+    kod: "2.11.",
     uniteId: 2,
     uniteBaslik: "2. Taşlar ve Özellikleri",
     baslik: "Satrançta saldırı altındaki taşın koruması kavramını açıklar.",
@@ -706,7 +706,7 @@ const KAZANIMLAR_VERISI: KazanimDetay[] = [
     ],
   },
   {
-    kod: "ST.OÖ. 3.1.",
+    kod: "3.1.",
     uniteId: 3,
     uniteBaslik: "3. Satrançta Şah Tehdidi ve Mat",
     baslik: "Şahın, oyun için önemini açıklar.",
@@ -754,7 +754,7 @@ const KAZANIMLAR_VERISI: KazanimDetay[] = [
     ],
   },
   {
-    kod: "ST.OÖ. 3.2.",
+    kod: "3.2.",
     uniteId: 3,
     uniteBaslik: "3. Satrançta Şah Tehdidi ve Mat",
     baslik: "Şah çeker.",
@@ -802,7 +802,7 @@ const KAZANIMLAR_VERISI: KazanimDetay[] = [
     ],
   },
   {
-    kod: "ST.OÖ. 3.3.",
+    kod: "3.3.",
     uniteId: 3,
     uniteBaslik: "3. Satrançta Şah Tehdidi ve Mat",
     baslik: "Şah tehdidinden çeşitli teknikleri uygulayarak kurtulur.",
@@ -850,7 +850,7 @@ const KAZANIMLAR_VERISI: KazanimDetay[] = [
     ],
   },
   {
-    kod: "ST.OÖ. 3.4.",
+    kod: "3.4.",
     uniteId: 3,
     uniteBaslik: "3. Satrançta Şah Tehdidi ve Mat",
     baslik: "Şahın diğer taşlar gibi alınamayacağını kavrar.",
@@ -898,7 +898,7 @@ const KAZANIMLAR_VERISI: KazanimDetay[] = [
     ],
   },
   {
-    kod: "ST.OÖ. 3.5.",
+    kod: "3.5.",
     uniteId: 3,
     uniteBaslik: "3. Satrançta Şah Tehdidi ve Mat",
     baslik: "Mat etmeyi açıklar.",
@@ -946,7 +946,7 @@ const KAZANIMLAR_VERISI: KazanimDetay[] = [
     ],
   },
   {
-    kod: "ST.OÖ. 3.6.",
+    kod: "3.6.",
     uniteId: 3,
     uniteBaslik: "3. Satrançta Şah Tehdidi ve Mat",
     baslik: "Tek hamlelik mat alıştırmalarını yapar.",
@@ -994,7 +994,7 @@ const KAZANIMLAR_VERISI: KazanimDetay[] = [
     ],
   },
   {
-    kod: "ST.OÖ. 3.7.",
+    kod: "3.7.",
     uniteId: 3,
     uniteBaslik: "3. Satrançta Şah Tehdidi ve Mat",
     baslik: "Pat durumunu bilir.",
@@ -1042,7 +1042,7 @@ const KAZANIMLAR_VERISI: KazanimDetay[] = [
     ],
   },
   {
-    kod: "ST.OÖ. 3.8.",
+    kod: "3.8.",
     uniteId: 3,
     uniteBaslik: "3. Satrançta Şah Tehdidi ve Mat",
     baslik: "Berabere kalmanın ne olduğunu bilir.",
@@ -1090,7 +1090,7 @@ const KAZANIMLAR_VERISI: KazanimDetay[] = [
     ],
   },
   {
-    kod: "ST.OÖ. 3.9.",
+    kod: "3.9.",
     uniteId: 3,
     uniteBaslik: "3. Satrançta Şah Tehdidi ve Mat",
     baslik: "Mat ile pat konumlarını ayırt eder.",
@@ -1138,7 +1138,7 @@ const KAZANIMLAR_VERISI: KazanimDetay[] = [
     ],
   },
   {
-    kod: "ST.OÖ. 4.1.",
+    kod: "4.1.",
     uniteId: 4,
     uniteBaslik: "4. Satrançta Tehdit ve Savunma",
     baslik: "Satrançta tehdit durumlarını fark eder.",
@@ -1186,7 +1186,7 @@ const KAZANIMLAR_VERISI: KazanimDetay[] = [
     ],
   },
   {
-    kod: "ST.OÖ. 4.2.",
+    kod: "4.2.",
     uniteId: 4,
     uniteBaslik: "4. Satrançta Tehdit ve Savunma",
     baslik: "Taşının önüne perdeleme yapar.",
@@ -1234,7 +1234,7 @@ const KAZANIMLAR_VERISI: KazanimDetay[] = [
     ],
   },
   {
-    kod: "ST.OÖ. 4.3.",
+    kod: "4.3.",
     uniteId: 4,
     uniteBaslik: "4. Satrançta Tehdit ve Savunma",
     baslik: "Satrançta güvenli kareleri ayırt eder.",
@@ -1282,7 +1282,7 @@ const KAZANIMLAR_VERISI: KazanimDetay[] = [
     ],
   },
   {
-    kod: "ST.OÖ. 4.4.",
+    kod: "4.4.",
     uniteId: 4,
     uniteBaslik: "4. Satrançta Tehdit ve Savunma",
     baslik: "Taşını korur.",
@@ -1330,7 +1330,7 @@ const KAZANIMLAR_VERISI: KazanimDetay[] = [
     ],
   },
   {
-    kod: "ST.OÖ. 4.5.",
+    kod: "4.5.",
     uniteId: 4,
     uniteBaslik: "4. Satrançta Tehdit ve Savunma",
     baslik: "Satrançta taş alır.",
@@ -1378,7 +1378,7 @@ const KAZANIMLAR_VERISI: KazanimDetay[] = [
     ],
   },
   {
-    kod: "ST.OÖ. 5.1.",
+    kod: "5.1.",
     uniteId: 5,
     uniteBaslik: "5. Satrancın Özel Kuralları",
     baslik: "Rok hamlesini uygular.",
@@ -1426,7 +1426,7 @@ const KAZANIMLAR_VERISI: KazanimDetay[] = [
     ],
   },
   {
-    kod: "ST.OÖ. 5.2.",
+    kod: "5.2.",
     uniteId: 5,
     uniteBaslik: "5. Satrancın Özel Kuralları",
     baslik: "Piyonun geçerken alma hamlesini kavrar.",
@@ -1474,7 +1474,7 @@ const KAZANIMLAR_VERISI: KazanimDetay[] = [
     ],
   },
   {
-    kod: "ST.OÖ. 6.1.",
+    kod: "6.1.",
     uniteId: 6,
     uniteBaslik: "6. Satranç Oynuyorum",
     baslik: "Karşılıklı satranç oynar.",
@@ -1522,7 +1522,7 @@ const KAZANIMLAR_VERISI: KazanimDetay[] = [
     ],
   },
   {
-    kod: "ST.OÖ. 6.2.",
+    kod: "6.2.",
     uniteId: 6,
     uniteBaslik: "6. Satranç Oynuyorum",
     baslik: "Oyun esnasında yardım ister.",
@@ -1570,7 +1570,7 @@ const KAZANIMLAR_VERISI: KazanimDetay[] = [
     ],
   },
   {
-    kod: "ST.OÖ. 6.3.",
+    kod: "6.3.",
     uniteId: 6,
     uniteBaslik: "6. Satranç Oynuyorum",
     baslik: "Oyun bitişini açıklar.",
@@ -1618,7 +1618,7 @@ const KAZANIMLAR_VERISI: KazanimDetay[] = [
     ],
   },
   {
-    kod: "ST.OÖ. 6.4.",
+    kod: "6.4.",
     uniteId: 6,
     uniteBaslik: "6. Satranç Oynuyorum",
     baslik: "Satrancın etik kurallarının farkına varır.",
@@ -1773,7 +1773,7 @@ function SatrançTahtasiGorseli({ tip }: { tip: string }) {
 }
 
 export default function DerslerPage() {
-  const [seciliKod, setSeciliKod] = useState<string>("ST.OÖ. 1.1.");
+  const [seciliKod, setSeciliKod] = useState<string>("1.1.");
   const [tamamlananKazanimlar, setTamamlananKazanimlar] = useState<string[]>([]);
   const [ornekCevaplari, setOrnekCevaplari] = useState<Record<number, string>>({});
 
