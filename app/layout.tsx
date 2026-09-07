@@ -4,7 +4,7 @@ import "./globals.css";
 
 export const metadata: Metadata = {
   title: "Çocuklar İçin Sevimli Satranç ♟️",
-  description: "Çocuklar için eğlenceli satranç oyunu, botlar, ödevler, masallar ve taktik bulmacalar.",
+  description: "Çocuklar için eğlenceli satranç oyunu, dersler, botlar, ödevler, masallar ve taktik bulmacalar.",
 };
 
 export default function RootLayout({
@@ -53,6 +53,21 @@ export default function RootLayout({
             }}
           >
             🏠 Bot Oyunu
+          </Link>
+
+          <Link
+            href="/dersler"
+            style={{
+              padding: "7px 12px",
+              backgroundColor: "#0284c7",
+              color: "#ffffff",
+              borderRadius: "14px",
+              textDecoration: "none",
+              fontWeight: "900",
+              fontSize: "12px",
+            }}
+          >
+            🎓 Derslerim
           </Link>
 
           <Link
@@ -113,21 +128,6 @@ export default function RootLayout({
             }}
           >
             👥 2 Kişilik Oyna
-          </Link>
-
-          <Link
-            href="/ogren"
-            style={{
-              padding: "7px 12px",
-              backgroundColor: "#10b981",
-              color: "#ffffff",
-              borderRadius: "14px",
-              textDecoration: "none",
-              fontWeight: "900",
-              fontSize: "12px",
-            }}
-          >
-            📖 Taşları Öğren
           </Link>
         </header>
 
