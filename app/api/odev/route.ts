@@ -1,5 +1,9 @@
 import { NextResponse } from "next/server";
 
+// Next.js build hatasını önleyen en kritik ayar:
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
 export interface OgrenciProfil {
   id: string;
   adSoyad: string;
@@ -68,31 +72,66 @@ const VARSAYILAN_SORULAR: SoruItem[] = [
   },
 ];
 
-const globalStorage = globalThis as any;
-if (!globalStorage.__odevSorulari) globalStorage.__odevSorulari = [...VARSAYILAN_SORULAR];
-if (!globalStorage.__aktifOdevler) globalStorage.__aktifOdevler = [];
-if (!globalStorage.__arsivlenmisOdevler) globalStorage.__arsivlenmisOdevler = [];
-if (!globalStorage.__kayitliOgrenciler) globalStorage.__kayitliOgrenciler = [];
+const UPSTASH_URL = process.env.UPSTASH_REDIS_REST_URL;
+const UPSTASH_TOKEN = process.env.UPSTASH_REDIS_REST_TOKEN;
+
+async function redisGet<T>(key: string, fallback: T): Promise<T> {
+  if (!UPSTASH_URL || !UPSTASH_TOKEN) return fallback;
+  try {
+    const res = await fetch(`${UPSTASH_URL}/get/${key}`, {
+      headers: { Authorization: `Bearer ${UPSTASH_TOKEN}` },
+      cache: "no-store",
+    });
+    const json = await res.json();
+    if (json && json.result) {
+      return typeof json.result === "string" ? JSON.parse(json.result) : json.result;
+    }
+    return fallback;
+  } catch {
+    return fallback;
+  }
+}
+
+async function redisSet(key: string, value: any): Promise<void> {
+  if (!UPSTASH_URL || !UPSTASH_TOKEN) return;
+  try {
+    await fetch(`${UPSTASH_URL}/set/${key}`, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${UPSTASH_TOKEN}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(JSON.stringify(value)),
+      cache: "no-store",
+    });
+  } catch {}
+}
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const type = searchParams.get("type");
 
+  const sorular = await redisGet<SoruItem[]>("odev_sorulari", VARSAYILAN_SORULAR);
+
   if (type === "sorular") {
-    return NextResponse.json({ success: true, data: globalStorage.__odevSorulari });
+    return NextResponse.json({ success: true, data: sorular });
   }
 
+  const ogrenciler = await redisGet<OgrenciProfil[]>("kayitli_ogrenciler", []);
   if (type === "ogrenciler") {
-    return NextResponse.json({ success: true, data: globalStorage.__kayitliOgrenciler });
+    return NextResponse.json({ success: true, data: ogrenciler });
   }
+
+  const aktifOdevler = await redisGet<OdevKaydi[]>("aktif_odevler", []);
+  const arsivler = await redisGet<any[]>("arsiv_odevler", []);
 
   return NextResponse.json({
     success: true,
     data: {
-      sorular: globalStorage.__odevSorulari,
-      aktifOdevler: globalStorage.__aktifOdevler,
-      arsivSayisi: globalStorage.__arsivlenmisOdevler.length,
-      ogrenciler: globalStorage.__kayitliOgrenciler,
+      sorular,
+      aktifOdevler,
+      arsivSayisi: arsivler.length,
+      ogrenciler,
     },
   });
 }
@@ -102,88 +141,97 @@ export async function POST(request: Request) {
     const body = await request.json();
     const { action } = body;
 
-    // ÖĞRENCİ KAYIT
+    // 1. ÖĞRENCİ KAYIT
     if (action === "ogrenciKayit") {
       const { adSoyad, sinifGrup, avatar, pin } = body;
-      if (!adSoyad || !adSoyad.trim()) {
+      if (!adSoyad || !String(adSoyad).trim()) {
         return NextResponse.json({ success: false, message: "İsim gereklidir" }, { status: 400 });
       }
 
+      const ogrenciler = await redisGet<OgrenciProfil[]>("kayitli_ogrenciler", []);
       const yeniOgrenci: OgrenciProfil = {
         id: Date.now().toString(),
-        adSoyad: adSoyad.trim(),
-        sinifGrup: (sinifGrup || "Genel").trim(),
-        avatar: avatar || "🦁",
-        pin: pin || "1234",
+        adSoyad: String(adSoyad).trim(),
+        sinifGrup: String(sinifGrup || "Genel").trim(),
+        avatar: String(avatar || "🦁"),
+        pin: String(pin || "1234"),
         kayitTarihi: new Date().toLocaleDateString("tr-TR"),
       };
 
-      // Varsa güncelle, yoksa ekle
-      const mevcutIndex = globalStorage.__kayitliOgrenciler.findIndex(
-        (o: OgrenciProfil) => o.adSoyad.toLowerCase() === yeniOgrenci.adSoyad.toLowerCase()
+      const mevcutIdx = ogrenciler.findIndex(
+        (o) => o.adSoyad.toLowerCase() === yeniOgrenci.adSoyad.toLowerCase()
       );
-      if (mevcutIndex >= 0) {
-        globalStorage.__kayitliOgrenciler[mevcutIndex] = yeniOgrenci;
+      if (mevcutIdx >= 0) {
+        ogrenciler[mevcutIdx] = yeniOgrenci;
       } else {
-        globalStorage.__kayitliOgrenciler.push(yeniOgrenci);
+        ogrenciler.push(yeniOgrenci);
       }
 
+      await redisSet("kayitli_ogrenciler", ogrenciler);
       return NextResponse.json({ success: true, data: yeniOgrenci });
     }
 
-    // YENİ SORU EKLEME
+    // 2. YENİ SORU EKLEME
     if (action === "soruEkle") {
       const { title, fen, hint } = body;
-      const yeniId = globalStorage.__odevSorulari.length > 0
-        ? Math.max(...globalStorage.__odevSorulari.map((s: SoruItem) => s.id)) + 1
-        : 1;
+      const sorular = await redisGet<SoruItem[]>("odev_sorulari", VARSAYILAN_SORULAR);
+      const yeniId = sorular.length > 0 ? Math.max(...sorular.map((s) => s.id)) + 1 : 1;
 
       const yeniSoru: SoruItem = {
         id: yeniId,
-        title: title.trim(),
-        fen: fen.trim(),
-        hint: (hint || "").trim(),
+        title: String(title || "").trim(),
+        fen: String(fen || "").trim(),
+        hint: String(hint || "").trim(),
       };
-      globalStorage.__odevSorulari.push(yeniSoru);
-      return NextResponse.json({ success: true, data: globalStorage.__odevSorulari });
+      sorular.push(yeniSoru);
+      await redisSet("odev_sorulari", sorular);
+      return NextResponse.json({ success: true, data: sorular });
     }
 
-    // SORU SİLME
+    // 3. SORU SİLME
     if (action === "soruSil") {
       const { id } = body;
-      globalStorage.__odevSorulari = globalStorage.__odevSorulari.filter((s: SoruItem) => s.id !== id);
-      return NextResponse.json({ success: true, data: globalStorage.__odevSorulari });
+      let sorular = await redisGet<SoruItem[]>("odev_sorulari", VARSAYILAN_SORULAR);
+      sorular = sorular.filter((s) => s.id !== id);
+      await redisSet("odev_sorulari", sorular);
+      return NextResponse.json({ success: true, data: sorular });
     }
 
-    // HAFTAYI ARŞİVLE
+    // 4. HAFTAYI ARŞİVLE
     if (action === "haftayiArsivle") {
-      if (globalStorage.__aktifOdevler.length > 0) {
-        globalStorage.__arsivlenmisOdevler.push({
+      const aktifOdevler = await redisGet<OdevKaydi[]>("aktif_odevler", []);
+      if (aktifOdevler.length > 0) {
+        const arsivler = await redisGet<any[]>("arsiv_odevler", []);
+        arsivler.push({
           arsivTarihi: new Date().toLocaleString("tr-TR"),
-          kayitlar: [...globalStorage.__aktifOdevler],
+          kayitlar: aktifOdevler,
         });
-        globalStorage.__aktifOdevler = [];
+        await redisSet("arsiv_odevler", arsivler);
+        await redisSet("aktif_odevler", []);
       }
       return NextResponse.json({ success: true, message: "Hafta arşivlendi!" });
     }
 
-    // ÖDEV TESLİMİ
+    // 5. ÖDEV TESLİMİ
     const { ogrenciAdi, sinifGrup, avatar, toplamSoru, dogruSayisi, toplamHata, gecenSureSaniye, soruDetaylari } = body;
 
+    const aktifOdevler = await redisGet<OdevKaydi[]>("aktif_odevler", []);
     const yeniTeslim: OdevKaydi = {
       id: Date.now().toString(),
-      ogrenciAdi: (ogrenciAdi || "İsimsiz").trim(),
-      sinifGrup: sinifGrup || "Genel",
-      avatar: avatar || "🦁",
-      toplamSoru: toplamSoru || 0,
-      dogruSayisi: dogruSayisi || 0,
-      toplamHata: toplamHata || 0,
-      gecenSureSaniye: gecenSureSaniye || 0,
+      ogrenciAdi: String(ogrenciAdi || "İsimsiz").trim(),
+      sinifGrup: String(sinifGrup || "Genel"),
+      avatar: String(avatar || "🦁"),
+      toplamSoru: Number(toplamSoru) || 0,
+      dogruSayisi: Number(dogruSayisi) || 0,
+      toplamHata: Number(toplamHata) || 0,
+      gecenSureSaniye: Number(gecenSureSaniye) || 0,
       tamamlanmaTarihi: new Date().toLocaleString("tr-TR"),
-      soruDetaylari: soruDetaylari || [],
+      soruDetaylari: Array.isArray(soruDetaylari) ? soruDetaylari : [],
     };
 
-    globalStorage.__aktifOdevler.unshift(yeniTeslim);
+    aktifOdevler.unshift(yeniTeslim);
+    await redisSet("aktif_odevler", aktifOdevler);
+
     return NextResponse.json({ success: true, data: yeniTeslim });
   } catch {
     return NextResponse.json({ success: false, message: "Sunucu hatası" }, { status: 500 });
