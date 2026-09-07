@@ -8,7 +8,9 @@ interface InteraktifOrnek {
   karakter: string;
   karakterAdi: string;
   soruMetni: string;
-  hedefSekil: string;
+  // Tahta görselleştirme türü ve oklar
+  tahtaTipi: "baslangic" | "kaleYolu" | "filCapraz" | "atL" | "sahAdim" | "piyonIleri" | "matVurusu";
+  okYonu?: "duz" | "capraz" | "lSekli" | "etraf";
   secenekler: { id: string; sembol: string; aciklama: string; dogru: boolean }[];
   dogruMesaj: string;
 }
@@ -23,37 +25,35 @@ interface KazanimDetay {
 }
 
 const KAZANIMLAR_VERISI: KazanimDetay[] = [
-  // 1. ÜNİTE
   {
     kod: "ST.OÖ. 1.1.",
     uniteId: 1,
     uniteBaslik: "1. Satranç Oyunu, Tahtası ve Yönler",
     baslik: "Satranç oyununu ve tahtasını tanır.",
-    resmiAciklama:
-      "Satranç tahtasının kare şekli, yatay, dikey, çapraz hatları ve açık-koyu kareleri incelenir. Yatay ve dikeyde sekize kadar sayma etkinlikleri yapılır.",
+    resmiAciklama: "Satranç tahtasının kare şekli, yatay, dikey, çapraz hatları ve açık-koyu kareleri incelenir.",
     ornekler: [
       {
         id: 1,
         karakter: "🦁",
         karakterAdi: "Aslan Şakir",
-        soruMetni: "Aslan Şakir masaya oturdu ve tahtayı kuracak. Sağ alt köşesinde parıldayan BEYAZ KARE'yi bulup tıkla!",
-        hedefSekil: "Beyaz Kare ⬜",
+        soruMetni: "Aslan Şakir tahtayı masaya koydu. Sağ alt köşedeki doğru karenin rengi hangisidir?",
+        tahtaTipi: "baslangic",
         secenekler: [
           { id: "a", sembol: "⬛", aciklama: "Koyu Kare", dogru: false },
           { id: "b", sembol: "⬜", aciklama: "Açık (Beyaz) Kare", dogru: true },
           { id: "c", sembol: "🔺", aciklama: "Üçgen", dogru: false },
         ],
-        dogruMesaj: "Harikasın! 'Beyaz sağda' kuralını Aslan Şakir asla unutmayacak!",
+        dogruMesaj: "Harikasın! 'Beyaz sağda' kuralını tahtada başarıyla buldun!",
       },
       {
         id: 2,
         karakter: "🐰",
         karakterAdi: "Tavşan Pamuk",
-        soruMetni: "Pamuk tahtanın tam 64 kareden oluştuğunu öğrendi. Satranç tahtasının asıl şekli olan KARE kutucuğa bas!",
-        hedefSekil: "Kare ⏹️",
+        soruMetni: "Pamuk 64 karelik satranç tahtasının şeklini inceliyor. Tahtanın geometri şekli nedir?",
+        tahtaTipi: "baslangic",
         secenekler: [
           { id: "a", sembol: "⚪", aciklama: "Daire", dogru: false },
-          { id: "b", sembol: "⏹️", aciklama: "Dört Köşeli Kare", dogru: true },
+          { id: "b", sembol: "⏹️", aciklama: "Kare Şekli", dogru: true },
           { id: "c", sembol: "⭐", aciklama: "Yıldız", dogru: false },
         ],
         dogruMesaj: "Süper! Satranç tahtası 64 eşit kareden oluşan dev bir karedir!",
@@ -62,14 +62,14 @@ const KAZANIMLAR_VERISI: KazanimDetay[] = [
         id: 3,
         karakter: "🦊",
         karakterAdi: "Dedektif Tilki",
-        soruMetni: "Dedektif Tilki gizli bir ipucu arıyor. Açık renkli karelerin yanındaki IŞILDAYAN YILDIZA bas!",
-        hedefSekil: "Işıltılı Yıldız ⭐",
+        soruMetni: "Tahtanın köşesindeki ilk karede hangi renk zemin var?",
+        tahtaTipi: "baslangic",
         secenekler: [
-          { id: "a", sembol: "⭐", aciklama: "Parlayan Yıldız", dogru: true },
-          { id: "b", sembol: "🍎", aciklama: "Elma", dogru: false },
-          { id: "c", sembol: "🌑", aciklama: "Karanlık Taş", dogru: false },
+          { id: "a", sembol: "⬜", aciklama: "Açık Renk", dogru: true },
+          { id: "b", sembol: "🟨", aciklama: "Sarı", dogru: false },
+          { id: "c", sembol: "🟦", aciklama: "Mavi", dogru: false },
         ],
-        dogruMesaj: "İpuçlarını topladın! Açık ve koyu kareler yan yana gelir.",
+        dogruMesaj: "İpuçlarını topladın! Köşeler her zaman açık renkle başlar.",
       },
     ],
   },
@@ -78,47 +78,48 @@ const KAZANIMLAR_VERISI: KazanimDetay[] = [
     uniteId: 1,
     uniteBaslik: "1. Satranç Oyunu, Tahtası ve Yönler",
     baslik: "Satranç tahtasında nesneleri yatay ve dikey yönlerde hareket ettirir.",
-    resmiAciklama:
-      "Karelerden oluşan zeminde, bedenin veya nesnelerin yatay (yana) ve dikey (ileri-geri) yönlerde hareket ettirilmesi sağlanır.",
+    resmiAciklama: "Karelerden oluşan zeminde dikey (ileri-geri) ve yatay (yana) yön hareketleri yapılır.",
     ornekler: [
       {
         id: 1,
         karakter: "🚗",
         karakterAdi: "Şimşek Araba",
-        soruMetni: "Şimşek Araba dümdüz ileriye (dikey yola) gaz basmak istiyor. İLERİ OK simgesine dokun!",
-        hedefSekil: "Yukarı Ok ⬆️",
+        soruMetni: "Araba tahta üzerinde dikey caddede ileri sürülecek. Hangi ok yönünü göstermelidir?",
+        tahtaTipi: "kaleYolu",
+        okYonu: "duz",
         secenekler: [
-          { id: "a", sembol: "⬆️", aciklama: "Dikey İleri", dogru: true },
-          { id: "b", sembol: "🔄", aciklama: "Dönemeç", dogru: false },
-          { id: "c", sembol: "↗️", aciklama: "Çapraz", dogru: false },
+          { id: "a", sembol: "⬆️", aciklama: "Dikey İleri Oku", dogru: true },
+          { id: "b", sembol: "↗️", aciklama: "Çapraz Ok", dogru: false },
+          { id: "c", sembol: "🔄", aciklama: "Dönemeç", dogru: false },
         ],
-        dogruMesaj: "Vınnn! Dikey hat üzerinde ileriye doğru hızla ilerledin!",
+        dogruMesaj: "Vınnn! Dikey hat üzerinde ileriye doğru hareket ettin!",
       },
       {
         id: 2,
         karakter: "🐼",
         karakterAdi: "Panda Po",
-        soruMetni: "Panda Po sağa doğru yan yan (yatay) yürümek istiyor. YANA OK işaretine bas!",
-        hedefSekil: "Sağa Ok ➡️",
+        soruMetni: "Panda yatay (yana) yönde adım atıyor. Doğru yatay ok hangisidir?",
+        tahtaTipi: "kaleYolu",
+        okYonu: "duz",
         secenekler: [
-          { id: "a", sembol: "⬇️", aciklama: "Aşağı", dogru: false },
-          { id: "b", sembol: "➡️", aciklama: "Yatay Sağa", dogru: true },
+          { id: "a", sembol: "➡️", aciklama: "Yatay Sağa Ok", dogru: true },
+          { id: "b", sembol: "⬇️", aciklama: "Aşağı", dogru: false },
           { id: "c", sembol: "⚡", aciklama: "Şimşek", dogru: false },
         ],
-        dogruMesaj: "Harika adımlar! Yatay yollarda sağa ve sola dümdüz kayabilirsin!",
+        dogruMesaj: "Harika adımlar! Yatay yollarda sağa ve sola kayabilirsin!",
       },
       {
         id: 3,
         karakter: "🐻",
         karakterAdi: "Ayıcık Bobo",
-        soruMetni: "Bobo düz caddelerin ortasındaki TATLI BAL KAVANOZU'nu bulmak istiyor. Bal sembolüne tıkla!",
-        hedefSekil: "Bal 🍯",
+        soruMetni: "Düz caddeler boyunca ilerleyen taşın takip ettiği hat ne ad alır?",
+        tahtaTipi: "kaleYolu",
         secenekler: [
-          { id: "a", sembol: "🍯", aciklama: "Tatlı Bal", dogru: true },
-          { id: "b", sembol: "🍄", aciklama: "Mantar", dogru: false },
-          { id: "c", sembol: "🌵", aciklama: "Diken", dogru: false },
+          { id: "a", sembol: "➕", aciklama: "Düz / Yatay-Dikey Hat", dogru: true },
+          { id: "b", sembol: "✖️", aciklama: "Sadece Çapraz", dogru: false },
+          { id: "c", sembol: "🕳️", aciklama: "Çukur", dogru: false },
         ],
-        dogruMesaj: "Nefis! Bobo düz caddeden yürüyüp balını afiyetle aldı!",
+        dogruMesaj: "Nefis! Düz hatlar yatay ve dikey yollardır.",
       },
     ],
   },
@@ -127,98 +128,97 @@ const KAZANIMLAR_VERISI: KazanimDetay[] = [
     uniteId: 1,
     uniteBaslik: "1. Satranç Oyunu, Tahtası ve Yönler",
     baslik: "Satranç tahtasında nesneleri çapraz yönlerde hareket ettirir.",
-    resmiAciklama:
-      "Çapraz yön kavramı uygulamalı olarak nesnelerle gösterilir ve kareler üzerinde pekiştirilir.",
+    resmiAciklama: "Çapraz yön kavramı tahta üzerinde çizilen çizgilerle pekiştirilir.",
     ornekler: [
       {
         id: 1,
         karakter: "🚀",
         karakterAdi: "Roket Ali",
-        soruMetni: "Roket Ali gökyüzüne doğru çapraz süzülmek istiyor. ÇAPRAZ OK sembolünü bul ve ateşle!",
-        hedefSekil: "Çapraz Ok ↗️",
+        soruMetni: "Tahtada iki köşe arasında X harfi gibi uzanan yönün adı nedir?",
+        tahtaTipi: "filCapraz",
+        okYonu: "capraz",
         secenekler: [
-          { id: "a", sembol: "➡️", aciklama: "Düz Yatay", dogru: false },
-          { id: "b", sembol: "↗️", aciklama: "Çapraz Uçuş", dogru: true },
-          { id: "c", sembol: "⬇️", aciklama: "Düz Aşağı", dogru: false },
+          { id: "a", sembol: "↗️", aciklama: "Çapraz Hat", dogru: true },
+          { id: "b", sembol: "⬆️", aciklama: "Düz Hat", dogru: false },
+          { id: "c", sembol: "⏹️", aciklama: "Kare", dogru: false },
         ],
-        dogruMesaj: "3, 2, 1... Ateş! Çapraz patikada gökyüzüne uçtun!",
+        dogruMesaj: "Ateş! Çapraz patikada köşeden köşeye süzüldün!",
       },
       {
         id: 2,
         karakter: "🦜",
         karakterAdi: "Papağan Riki",
-        soruMetni: "Riki aynı renkteki çapraz kareler boyunca uçuyor. Çapraz patikanın sonundaki RENKLİ TÜY'e bas!",
-        hedefSekil: "Tüy 🪶",
+        soruMetni: "Çapraz hareket eden bir nesne tahtada hangi şekli çizer?",
+        tahtaTipi: "filCapraz",
         secenekler: [
-          { id: "a", sembol: "🪨", aciklama: "Kaya", dogru: false },
-          { id: "b", sembol: "🪶", aciklama: "Sihirli Tüy", dogru: true },
-          { id: "c", sembol: "🧱", aciklama: "Duvar", dogru: false },
+          { id: "a", sembol: "❌", aciklama: "Çarpı (X) Şekli", dogru: true },
+          { id: "b", sembol: "➕", aciklama: "Artı Şekli", dogru: false },
+          { id: "c", sembol: "⭕", aciklama: "Daire", dogru: false },
         ],
-        dogruMesaj: "Riki çaprazdan süzülüp sihirli tüyünü yakaladı!",
+        dogruMesaj: "Riki çapraz patikadan uçarak tahtayı geçti!",
       },
       {
         id: 3,
         karakter: "🐱",
         karakterAdi: "Yavru Kedi Mırmır",
-        soruMetni: "Mırmır çapraz köşedeki KIRMIZI KALP'e koşmak istiyor. Kırmızı Kalbe basarak ona yolu göster!",
-        hedefSekil: "Kırmızı Kalp ❤️",
+        soruMetni: "Çapraz yönlü ok işaretine tıklayarak kedinin yolunu göster!",
+        tahtaTipi: "filCapraz",
+        okYonu: "capraz",
         secenekler: [
-          { id: "a", sembol: "❤️", aciklama: "Sevgi Kalbi", dogru: true },
-          { id: "b", sembol: "⚽", aciklama: "Top", dogru: false },
-          { id: "c", sembol: "🚗", aciklama: "Araba", dogru: false },
+          { id: "a", sembol: "↗️", aciklama: "Çapraz Ok", dogru: true },
+          { id: "b", sembol: "➡️", aciklama: "Düz Ok", dogru: false },
+          { id: "c", sembol: "⬇️", aciklama: "Aşağı Ok", dogru: false },
         ],
-        dogruMesaj: "Miyav! Mırmır çapraz patikadan sevgi kalbine ulaştı!",
+        dogruMesaj: "Miyav! Mırmır çapraz patikadan hedefine ulaştı!",
       },
     ],
   },
-
-  // 2. ÜNİTE
   {
     kod: "ST.OÖ. 2.1.",
     uniteId: 2,
     uniteBaslik: "2. Taşlar ve Özellikleri",
     baslik: "Kale taşının hareketini uygular.",
-    resmiAciklama:
-      "Kale taşı tanıtılır, dümdüz ileri, geri ve yanlara hareket ettiği gösterilir ve denettirilir.",
+    resmiAciklama: "Kale taşı tanıtılır, dümdüz ileri, geri ve yanlara hareket ettiği gösterilir.",
     ornekler: [
       {
         id: 1,
         karakter: "🏰",
         karakterAdi: "Muhafız Kale",
-        soruMetni: "Kaya gibi sağlam Kale dümdüz ileriye fırlamak istiyor. DÜZ ARTI İŞARETİNE dokun!",
-        hedefSekil: "Artı ➕",
+        soruMetni: "Tahta üzerinde kalenin gidebileceği yolları gösteren ok şekli hangisidir?",
+        tahtaTipi: "kaleYolu",
+        okYonu: "duz",
         secenekler: [
-          { id: "a", sembol: "❌", aciklama: "Çarpı", dogru: false },
-          { id: "b", sembol: "➕", aciklama: "Düz Hatlar (+)", dogru: true },
-          { id: "c", sembol: "🌀", aciklama: "Girdap", dogru: false },
+          { id: "a", sembol: "➕", aciklama: "Artı Şeklinde Düz Oklar", dogru: true },
+          { id: "b", sembol: "❌", aciklama: "Sadece Çapraz", dogru: false },
+          { id: "c", sembol: "🔀", aciklama: "Zikzak", dogru: false },
         ],
-        dogruMesaj: "Harika! Kaleler sadece artı (+) gibi düz caddelerde kayar!",
+        dogruMesaj: "Harika! Kaleler artı biçiminde düz caddelerde kayar!",
       },
       {
         id: 2,
         karakter: "🤖",
         karakterAdi: "Demir Robot",
-        soruMetni: "Robot Kale yolundaki engellerin üzerinden atlayamaz. Yolu açmak için YEŞİL ANAHTAR'a bas!",
-        hedefSekil: "Yeşil Anahtar 🗝️",
+        soruMetni: "Kale yolundaki başka bir taşın üzerinden atlayabilir mi?",
+        tahtaTipi: "kaleYolu",
         secenekler: [
-          { id: "a", sembol: "🗝️", aciklama: "Yolu Açan Anahtar", dogru: true },
-          { id: "b", sembol: "💣", aciklama: "Engel", dogru: false },
-          { id: "c", sembol: "🧱", aciklama: "Tuğla", dogru: false },
+          { id: "a", sembol: "❌", aciklama: "Hayır, Atlayamaz!", dogru: true },
+          { id: "b", sembol: "✅", aciklama: "Evet, Atlar", dogru: false },
+          { id: "c", sembol: "🛸", ap: "Uçar", aciklama: "Uçar", dogru: false },
         ],
-        dogruMesaj: "Yol temizlendi! Kale dümdüz koridordan hedefe vardı!",
+        dogruMesaj: "Doğru! Kale önü kapalıysa durmak zorundadır.",
       },
       {
         id: 3,
         karakter: "🦁",
         karakterAdi: "Cesur Aslan",
-        soruMetni: "Aslan köşedeki Kaleyi koruyor. Kalenin değerini simgeleyen 5 ALTIN YILDIZ'a tıkla!",
-        hedefSekil: "Altın Yıldız 🌟",
+        soruMetni: "Sağlam kalenin puan değeri kaç puandır?",
+        tahtaTipi: "baslangic",
         secenekler: [
-          { id: "a", sembol: "🌟", aciklama: "5 Puanlık Güç", dogru: true },
-          { id: "b", sembol: "🍂", aciklama: "1 Puan", dogru: false },
-          { id: "c", sembol: "💧", aciklama: "Su Damlası", dogru: false },
+          { id: "a", sembol: "🌟🌟🌟🌟🌟", aciklama: "5 Puan", dogru: true },
+          { id: "b", sembol: "🌟", aciklama: "1 Puan", dogru: false },
+          { id: "c", sembol: "🌟🌟🌟🌟🌟🌟🌟🌟🌟", aciklama: "9 Puan", dogru: false },
         ],
-        dogruMesaj: "Bravo! Kale 5 puan gücünde sağlam bir taştır!",
+        dogruMesaj: "Bravo! Kale tam 5 puan gücündedir!",
       },
     ],
   },
@@ -227,47 +227,47 @@ const KAZANIMLAR_VERISI: KazanimDetay[] = [
     uniteId: 2,
     uniteBaslik: "2. Taşlar ve Özellikleri",
     baslik: "Fil taşının hareketini uygular.",
-    resmiAciklama:
-      "Fil taşının çapraz hareketleri ve doğduğu karenin renginde kalma kuralı pekiştirilir.",
+    resmiAciklama: "Fil taşının çapraz hareketleri tahta üzerinde gösterilir.",
     ornekler: [
       {
         id: 1,
         karakter: "🐘",
         karakterAdi: "Uçan Fil Dumbo",
-        soruMetni: "Beyaz karede başlayan Fil sadece beyaz çapraz patikada koşar. ÇARPI İŞARETİNE (X) bas!",
-        hedefSekil: "Çarpı ❌",
+        soruMetni: "Fil tahtada hangi yönde hareket eder?",
+        tahtaTipi: "filCapraz",
+        okYonu: "capraz",
         secenekler: [
-          { id: "a", sembol: "➕", aciklama: "Düz Hat", dogru: false },
-          { id: "b", sembol: "❌", aciklama: "Çapraz Hat (X)", dogru: true },
-          { id: "c", sembol: "⭕", aciklama: "Çember", dogru: false },
+          { id: "a", sembol: "❌", aciklama: "Çarpı (Çapraz) Yönde", dogru: true },
+          { id: "b", sembol: "➕", aciklama: "Düz Artı Yönde", dogru: false },
+          { id: "c", sembol: "⭕", aciklama: "Daire", dogru: false },
         ],
-        dogruMesaj: "Mükemmel! Filler tahtada bir 'X' çizer gibi çapraz uçar!",
+        dogruMesaj: "Mükemmel! Filler tahtada çapraz süzülür.",
       },
       {
         id: 2,
         karakter: "🧙‍♂️",
         karakterAdi: "Sihirbaz Fil",
-        soruMetni: "Filimiz beyaz patikadaki SİHİRLİ ELMAS'a ulaşmak istiyor. Mavi Elmasa dokun!",
-        hedefSekil: "Mavi Elmas 💎",
+        soruMetni: "Beyaz karede başlayan bir fil oyun boyunca hangi renk karelerde kalır?",
+        tahtaTipi: "filCapraz",
         secenekler: [
-          { id: "a", sembol: "💎", aciklama: "Sihirli Elmas", dogru: true },
-          { id: "b", sembol: "🪵", aciklama: "Kuru Odun", dogru: false },
-          { id: "c", sembol: "🕸️", aciklama: "Örümcek Ağı", dogru: false },
+          { id: "a", sembol: "⬜", aciklama: "Sadece Beyaz Karelerde", dogru: true },
+          { id: "b", sembol: "⬛", aciklama: "Siyah Kareye Geçer", dogru: false },
+          { id: "c", sembol: "🌈", aciklama: "Tüm Renkler", dogru: false },
         ],
-        dogruMesaj: "Sihirli elmas parıldadı! Fil renginden asla ayrılmadı!",
+        dogruMesaj: "Sihirli kural! Fil başladığı rengi asla değiştirmez.",
       },
       {
         id: 3,
         karakter: "🦄",
         karakterAdi: "Tekboynuz Filo",
-        soruMetni: "Filin 3 puan değerindeki sihirli gücünü uyandırmak için PEMBE KALP'e bas!",
-        hedefSekil: "Pembe Kalp 💖",
+        soruMetni: "Filin puan değeri kaç puandır?",
+        tahtaTipi: "baslangic",
         secenekler: [
-          { id: "a", sembol: "💖", aciklama: "3 Puanlık Sevgi", dogru: true },
-          { id: "b", sembol: "⛈️", aciklama: "Fırtına", dogru: false },
-          { id: "c", sembol: "🕳️", aciklama: "Çukur", dogru: false },
+          { id: "a", sembol: "🪙🪙🪙", aciklama: "3 Puan", dogru: true },
+          { id: "b", sembol: "🪙🪙🪙🪙🪙", aciklama: "5 Puan", dogru: false },
+          { id: "c", sembol: "🪙", aciklama: "1 Puan", dogru: false },
         ],
-        dogruMesaj: "Çapraz patikalar sevgiyle doldu! Fil 3 puan kazandı!",
+        dogruMesaj: "Harika! Fil 3 puan değerinde hafif bir taştır.",
       },
     ],
   },
@@ -276,47 +276,47 @@ const KAZANIMLAR_VERISI: KazanimDetay[] = [
     uniteId: 2,
     uniteBaslik: "2. Taşlar ve Özellikleri",
     baslik: "Vezir taşının hareketini uygular.",
-    resmiAciklama:
-      "Vezirin hem kale gibi düz hem fil gibi çapraz hareket ettiği ve gücü gösterilir.",
+    resmiAciklama: "Vezirin hem kale hem fil gibi her yöne gidebildiği tahta üzerinde gösterilir.",
     ornekler: [
       {
         id: 1,
         karakter: "👸",
         karakterAdi: "Süper Prenses Vezir",
-        soruMetni: "Vezir tahtanın en güçlü kahramanıdır. Başındaki PARLAK KRALİYET TACI'na tıkla!",
-        hedefSekil: "Taç 👑",
+        soruMetni: "Vezir tahtada hangi yönlere gidebilir?",
+        tahtaTipi: "baslangic",
+        okYonu: "etraf",
         secenekler: [
-          { id: "a", sembol: "👑", aciklama: "Işıltılı Taç", dogru: true },
-          { id: "b", sembol: "🧢", aciklama: "Şapka", dogru: false },
-          { id: "c", sembol: "👒", aciklama: "Hasır Şapka", dogru: false },
+          { id: "a", sembol: "🌟", aciklama: "Düz ve Çapraz (Her Yöne)", dogru: true },
+          { id: "b", sembol: "➕", aciklama: "Sadece Düz", dogru: false },
+          { id: "c", sembol: "❌", aciklama: "Sadece Çapraz", dogru: false },
         ],
-        dogruMesaj: "Taç parıldıyor! Vezir hem düz hem çapraz her yere gidebilir!",
+        dogruMesaj: "Süper güç! Vezir hem düz hem çapraz her yere gidebilir!",
       },
       {
         id: 2,
         karakter: "🦸‍♀️",
         karakterAdi: "Kahraman Vezir",
-        soruMetni: "Kahraman Vezir 9 puanlık süper gücünü kullanmak için ŞİMŞEK İŞARETİ'ne basmak istiyor!",
-        hedefSekil: "Şimşek ⚡",
+        soruMetni: "Vezirin puan değeri kaç puandır?",
+        tahtaTipi: "baslangic",
         secenekler: [
-          { id: "a", sembol: "🐢", aciklama: "Kaplumbağa", dogru: false },
-          { id: "b", sembol: "⚡", aciklama: "Süper Güç Şimşeği", dogru: true },
-          { id: "c", sembol: "🐌", aciklama: "Salyangoz", dogru: false },
+          { id: "a", sembol: "👑👑👑👑👑👑👑👑👑", aciklama: "9 Puan (En Güçlü)", dogru: true },
+          { id: "b", sembol: "👑👑👑", aciklama: "3 Puan", dogru: false },
+          { id: "c", sembol: "👑", aciklama: "1 Puan", dogru: false },
         ],
-        dogruMesaj: "Vooov! Vezir 9 piyon gücünde şimşek gibi hızlandı!",
+        dogruMesaj: "Vooov! Vezir 9 piyon gücünde devasa bir güce sahiptir!",
       },
       {
         id: 3,
         karakter: "🧚‍♀️",
         karakterAdi: "Orman Perisi Vezir",
-        soruMetni: "Vezir krallığı korumak için SİHİRLİ DEĞNEK sembolünü arıyor. Sihirli değneğe dokun!",
-        hedefSekil: "Değnek 🪄",
+        soruMetni: "Tahtanın ortasında duran vezir aynı anda kaç farklı yöne bakabilir?",
+        tahtaTipi: "baslangic",
         secenekler: [
-          { id: "a", sembol: "🪄", aciklama: "Sihirli Değnek", dogru: true },
-          { id: "b", sembol: "🥄", aciklama: "Kaşık", dogru: false },
-          { id: "c", sembol: "🧹", aciklama: "Süpürge", dogru: false },
+          { id: "a", sembol: "8️⃣", aciklama: "8 Farklı Yöne", dogru: true },
+          { id: "b", sembol: "2️⃣", aciklama: "2 Yöne", dogru: false },
+          { id: "c", sembol: "1️⃣", aciklama: "Tek Yön", dogru: false },
         ],
-        dogruMesaj: "Tüm tahta koruma altında! Vezir tek başına ordu gibi!",
+        dogruMesaj: "Mükemmel! Vezir tahtanın tüm kollarına hakimdir.",
       },
     ],
   },
@@ -325,47 +325,47 @@ const KAZANIMLAR_VERISI: KazanimDetay[] = [
     uniteId: 2,
     uniteBaslik: "2. Taşlar ve Özellikleri",
     baslik: "Şah taşının hareketini uygular.",
-    resmiAciklama:
-      "Şahın her yöne sadece 1 adım gidebildiği ve oyunun kalbi olduğu benimsetilir.",
+    resmiAciklama: "Şahın her yöne sadece 1 adım gidebildiği tahta üzerinde gösterilir.",
     ornekler: [
       {
         id: 1,
         karakter: "🤴",
         karakterAdi: "Bilge Şah",
-        soruMetni: "Bilge Şah ağırbaşlıdır ve her defasında sadece 1 ADIM atar. 1 RAKAMI kutusuna bas!",
-        hedefSekil: "1 Rakamı 1️⃣",
+        soruMetni: "Şah tahtada bir kareden komşu kareye kaç adım atabilir?",
+        tahtaTipi: "sahAdim",
+        okYonu: "etraf",
         secenekler: [
-          { id: "a", sembol: "1️⃣", aciklama: "Tek 1 Adım", dogru: true },
-          { id: "b", sembol: "5️⃣", aciklama: "Beş Adım", dogru: false },
-          { id: "c", sembol: "🔟", aciklama: "On Adım", dogru: false },
+          { id: "a", sembol: "1️⃣", aciklama: "Sadece 1 Adım", dogru: true },
+          { id: "b", sembol: "5️⃣", aciklama: "5 Adım", dogru: false },
+          { id: "c", sembol: "🔟", aciklama: "Sınırsız", dogru: false },
         ],
-        dogruMesaj: "Çok doğru! Şah her yöne ama sadece bir adım ilerler!",
+        dogruMesaj: "Çok doğru! Şah her yöne ama yalnızca 1 adım atar.",
       },
       {
         id: 2,
         karakter: "🦉",
         karakterAdi: "Bilge Baykuş",
-        soruMetni: "Şah asla tehlikeli kareye basamaz. Onu koruyan GÜVENLİ KALKAN sembolüne dokun!",
-        hedefSekil: "Kalkan 🛡️",
+        soruMetni: "Şah tehlike altındaki bir kareye (rakibin vurduğu yere) basabilir mi?",
+        tahtaTipi: "sahAdim",
         secenekler: [
-          { id: "a", sembol: "🛡️", aciklama: "Güvenli Kalkan", dogru: true },
-          { id: "b", sembol: "🔥", aciklama: "Ateş Çukuru", dogru: false },
-          { id: "c", sembol: "🪤", aciklama: "Tuzak", dogru: false },
+          { id: "a", sembol: "❌", aciklama: "Asla Basamaz!", dogru: true },
+          { id: "b", sembol: "✅", aciklama: "Basabilir", dogru: false },
+          { id: "c", sembol: "🤾", aciklama: "Atlar", dogru: false },
         ],
-        dogruMesaj: "Kalkan hazır! Bilge Şah güvenli karesinde dinleniyor!",
+        dogruMesaj: "Akıllıca! Şah asla tehlikeli kareye adım atmaz.",
       },
       {
         id: 3,
         karakter: "🦁",
-        karakterAdi: "Aslan Kral Şah",
-        soruMetni: "Kral Şah'ın gücü paha biçilemez ve sınırsızdır. SONSUZLUK İŞARETİNE dokun!",
-        hedefSekil: "Sonsuzluk ♾️",
+        karakterAdi: "Aslan Kral",
+        soruMetni: "Şahın oyundaki puan değeri nedir?",
+        tahtaTipi: "baslangic",
         secenekler: [
-          { id: "a", sembol: "♾️", aciklama: "Sonsuz Puan", dogru: true },
-          { id: "b", sembol: "0️⃣", aciklama: "Sıfır", dogru: false },
-          { id: "c", sembol: "❌", aciklama: "Yok", dogru: false },
+          { id: "a", sembol: "♾️", aciklama: "Ölçülemez / Sonsuz (Oyunun Kalbi)", dogru: true },
+          { id: "b", sembol: "1️⃣", aciklama: "1 Puan", dogru: false },
+          { id: "c", sembol: "0️⃣", aciklama: "0 Puan", dogru: false },
         ],
-        dogruMesaj: "Harika! Şahın puanı ölçülemez, o yakalanırsa oyun biter!",
+        dogruMesaj: "Harika! Şah paha biçilemezdir, o mat olursa oyun biter.",
       },
     ],
   },
@@ -374,47 +374,47 @@ const KAZANIMLAR_VERISI: KazanimDetay[] = [
     uniteId: 2,
     uniteBaslik: "2. Taşlar ve Özellikleri",
     baslik: "At taşının hareketini uygular.",
-    resmiAciklama:
-      "Atın taşların üzerinden atlayabilen tek taş olduğu ve 'L' harfi şeklinde yürüdüğü kavratılır.",
+    resmiAciklama: "Atın L harfi şeklindeki zıplaması tahta üzerinde gösterilir.",
     ornekler: [
       {
         id: 1,
         karakter: "🐴",
         karakterAdi: "Sevimli Tay Pony",
-        soruMetni: "Pony dans ederken 'L' harfi çiziyor! İki adım ileri, bir adım yana: L HARFİNE bas!",
-        hedefSekil: "L Harfi 🇱",
+        soruMetni: "At tahtada hangi harf biçiminde zıplayarak dans eder?",
+        tahtaTipi: "atL",
+        okYonu: "lSekli",
         secenekler: [
-          { id: "a", sembol: "🇴", aciklama: "O Harfi", dogru: false },
-          { id: "b", sembol: "🇱", aciklama: "L Dansı", dogru: true },
-          { id: "c", sembol: "🇿", aciklama: "Z Harfi", dogru: false },
+          { id: "a", sembol: "🇱", aciklama: "'L' Harfi Şeklinde", dogru: true },
+          { id: "b", sembol: "➕", aciklama: "Artı Şeklinde", dogru: false },
+          { id: "c", sembol: "❌", aciklama: "Çarpı Şeklinde", dogru: false },
         ],
-        dogruMesaj: "Dıgıdık dıgıdık! Pony tam bir 'L' çizerek neşeyle zıpladı!",
+        dogruMesaj: "Dıgıdık dıgıdık! At daima 'L' çizer.",
       },
       {
         id: 2,
         karakter: "🦘",
         karakterAdi: "Kanguru Zıpzıp",
-        soruMetni: "Taşların üzerinden hop diye atlayan tek dostumuz kimdir? UÇAN AT NALI sembolüne dokun!",
-        hedefSekil: "At Nalı 🧲",
+        soruMetni: "Satranç tahtasında diğer taşların üzerinden atlayabilen TEK taş hangisidir?",
+        tahtaTipi: "atL",
         secenekler: [
-          { id: "a", sembol: "🧲", aciklama: "Sihirli At Nalı", dogru: true },
-          { id: "b", sembol: "🐢", aciklama: "Ağır Kaplumbağa", dogru: false },
-          { id: "c", sembol: "⚓", aciklama: "Ağır Çapa", dogru: false },
+          { id: "a", sembol: "♞", aciklama: "Sevimli At", dogru: true },
+          { id: "b", sembol: "♜", aciklama: "Kale", dogru: false },
+          { id: "c", sembol: "♝", aciklama: "Fil", dogru: false },
         ],
-        dogruMesaj: "Hop! Engellerin üzerinden tek hamlede zıplayıp geçti!",
+        dogruMesaj: "Hop! At, önü dolu olsa bile üzerinden zıplayabilir.",
       },
       {
         id: 3,
         karakter: "🎠",
         karakterAdi: "Lunapark Atı",
-        soruMetni: "At 3 puan gücündedir. Lunaparktaki SEVİMLİ HAVUÇ ödülünü ata yedirmek için havuca tıkla!",
-        hedefSekil: "Taze Havuç 🥕",
+        soruMetni: "Atın puan değeri kaç puandır?",
+        tahtaTipi: "baslangic",
         secenekler: [
-          { id: "a", sembol: "🥕", aciklama: "Taze Havuç", dogru: true },
-          { id: "b", sembol: "🌶️", aciklama: "Acı Biber", dogru: false },
-          { id: "c", sembol: "🍋", aciklama: "Ekşi Limon", dogru: false },
+          { id: "a", sembol: "🪙🪙🪙", aciklama: "3 Puan", dogru: true },
+          { id: "b", sembol: "🪙🪙🪙🪙🪙", aciklama: "5 Puan", dogru: false },
+          { id: "c", sembol: "🪙", aciklama: "1 Puan", dogru: false },
         ],
-        dogruMesaj: "Kütür kütür! At havucu yedi ve tahtanın merkezine zıpladı!",
+        dogruMesaj: "Tebrikler! At 3 puan değerinde çevik bir taştır.",
       },
     ],
   },
@@ -423,47 +423,46 @@ const KAZANIMLAR_VERISI: KazanimDetay[] = [
     uniteId: 2,
     uniteBaslik: "2. Taşlar ve Özellikleri",
     baslik: "Piyon taşının hareketini uygular.",
-    resmiAciklama:
-      "Piyonun ileriye düz yürüdüğü, başlangıçta 2 adım atabildiği ve çapraz taş aldığı gösterilir.",
+    resmiAciklama: "Piyonun düz ileri yürüyüşü ve çapraz taş alışı tahta üzerinde gösterilir.",
     ornekler: [
       {
         id: 1,
         karakter: "🐜",
-        karakterAdi: "Cesur Karınca Piyon",
-        soruMetni: "Piyonlar asla geri adım atmaz! Cesur karıncanın İLERİ ADIM OKU'na tıkla!",
-        hedefSekil: "Düz İleri ⬆️",
+        karakterAdi: "Cesur Karınca",
+        soruMetni: "Piyon tahtada yürürken arkasına bakabilir mi (geri yürüyebilir mi)?",
+        tahtaTipi: "piyonIleri",
         secenekler: [
-          { id: "a", sembol: "⬇️", aciklama: "Geriye Adım (Yasak)", dogru: false },
-          { id: "b", sembol: "⬆️", aciklama: "Sadece İleriye", dogru: true },
-          { id: "c", sembol: "↩️", aciklama: "Geri Dönüş", dogru: false },
+          { id: "a", sembol: "❌", aciklama: "Asla Geri Yürüyemez!", dogru: true },
+          { id: "b", sembol: "✅", aciklama: "Geri Yürür", dogru: false },
+          { id: "c", sembol: "🔄", aciklama: "Döner", dogru: false },
         ],
-        dogruMesaj: "Bravo! Piyonlar daima ileriye yürür, arkalarına hiç bakmaz!",
+        dogruMesaj: "Doğru! Piyonlar sadece ileriye yürür.",
       },
       {
         id: 2,
         karakter: "🐣",
         karakterAdi: "Minik Civciv",
-        soruMetni: "Civciv başlangıç yuvasındayken enerjisi bol! İsterse kaç adım fırlayabilir? 2 ADIM kutusuna bas!",
-        hedefSekil: "2 Adım 2️⃣",
+        soruMetni: "Piyon başlangıç çizgisindeyken tek seferde kaç kare ileri fırlayabilir?",
+        tahtaTipi: "piyonIleri",
         secenekler: [
-          { id: "a", sembol: "5️⃣", aciklama: "5 Adım", dogru: false },
-          { id: "b", sembol: "2️⃣", aciklama: "2 Adım Zıplama", dogru: true },
-          { id: "c", sembol: "8️⃣", aciklama: "8 Adım", dogru: false },
+          { id: "a", sembol: "2️⃣", aciklama: "İsterse 2 Kare", dogru: true },
+          { id: "b", sembol: "5️⃣", aciklama: "5 Kare", dogru: false },
+          { id: "c", sembol: "8️⃣", aciklama: "8 Kare", dogru: false },
         ],
-        dogruMesaj: "Harikasın! Piyon başlangıç çizgisinden 2 adım fırlayabilir!",
+        dogruMesaj: "Harika! Başlangıçta 1 veya 2 adım atabilir.",
       },
       {
         id: 3,
         karakter: "🐱",
         karakterAdi: "Akıllı Kedi",
-        soruMetni: "Piyon düz yürür ama taşları ÇAPRAZ alır! Çaprazdaki KIRMIZI ELMA'ya basıp taşı al!",
-        hedefSekil: "Kırmızı Elma 🍎",
+        soruMetni: "Piyon düz yürür ama rakip taşı hangi yönde alır?",
+        tahtaTipi: "piyonIleri",
         secenekler: [
-          { id: "a", sembol: "🍎", aciklama: "Çaprazdaki Elma", dogru: true },
-          { id: "b", sembol: "🥥", aciklama: "Öndeki Engel", dogru: false },
-          { id: "c", sembol: "📦", aciklama: "Kutu", dogru: false },
+          { id: "a", sembol: "❌", aciklama: "Çapraz Yönde", dogru: true },
+          { id: "b", sembol: "➕", aciklama: "Düz Yönde", dogru: false },
+          { id: "c", sembol: "🔙", aciklama: "Geriye Doğru", dogru: false },
         ],
-        dogruMesaj: "Ham! Piyon çaprazındaki elmayı afiyetle aldı!",
+        dogruMesaj: "Mükemmel! Piyon düz yürür, çapraz yer!",
       },
     ],
   },
@@ -472,47 +471,46 @@ const KAZANIMLAR_VERISI: KazanimDetay[] = [
     uniteId: 2,
     uniteBaslik: "2. Taşlar ve Özellikleri",
     baslik: "Piyon terfisini uygular.",
-    resmiAciklama:
-      "En son sıraya ulaşan piyonun vezir, kale, fil veya ata dönüşmesi kuralı işlenir.",
+    resmiAciklama: "En son sıraya varan piyonun vezir veya başka bir taşa dönüşmesi gösterilir.",
     ornekler: [
       {
         id: 1,
         karakter: "🐛",
         karakterAdi: "Tırtıl Piyon",
-        soruMetni: "Son sıraya varan piyon kelebek gibi terfi eder ve Vezir olur! VEZİR TACI'na basarak terfi et!",
-        hedefSekil: "Taç 👑",
+        soruMetni: "Tahtanın en son (karşı) sırasına ulaşan piyon neye dönüşür?",
+        tahtaTipi: "baslangic",
         secenekler: [
-          { id: "a", sembol: "👑", aciklama: "Vezir Terfisi", dogru: true },
-          { id: "b", sembol: "🪨", aciklama: "Taş Olarak Kal", dogru: false },
-          { id: "c", sembol: "💤", aciklama: "Uyu", dogru: false },
+          { id: "a", sembol: "👑", aciklama: "Vezir (Terfi Eder)", dogru: true },
+          { id: "b", sembol: "🗑️", aciklama: "Oyundan Çıkar", dogru: false },
+          { id: "c", sembol: "📦", aciklama: "Kutuya Girer", dogru: false },
         ],
-        dogruMesaj: "Tebrikler! Minik piyon tahtanın en güçlü Veziri'ne dönüştü!",
+        dogruMesaj: "Muazzam! Piyon en son karede taç giyip vezir olur.",
       },
       {
         id: 2,
         karakter: "✨",
         karakterAdi: "Sihirli Yıldız",
-        soruMetni: "Piyon son kareye ulaştığında hangisine DÖNÜŞEMEZ? ŞAH simgesine bas (Şah asla alınamaz veya terfi edilemez)!",
-        hedefSekil: "Şah 🤴",
+        soruMetni: "Terfi eden piyon hangi taşa DÖNÜŞEMEZ?",
+        tahtaTipi: "baslangic",
         secenekler: [
-          { id: "a", sembol: "♛", aciklama: "Vezir Olabilir", dogru: false },
-          { id: "b", sembol: "🤴", aciklama: "İkinci Bir Şah Olamaz", dogru: true },
+          { id: "a", sembol: "🤴", aciklama: "İkinci Bir Şah Olamaz", dogru: true },
+          { id: "b", sembol: "♛", aciklama: "Vezir Olabilir", dogru: false },
           { id: "c", sembol: "♜", aciklama: "Kale Olabilir", dogru: false },
         ],
-        dogruMesaj: "Çok akıllıca! Piyon vezir, kale, fil, at olabilir ama şah olamaz!",
+        dogruMesaj: "Çok akıllıca! Piyon şah olamaz.",
       },
       {
         id: 3,
         karakter: "🏅",
-        karakterAdi: "Şampiyon Çocuk",
-        soruMetni: "8. yataydaki altın madalyaya ulaşan piyon terfi kutlaması yapıyor. ALTIN KUPA'ya tıkla!",
-        hedefSekil: "Kupa 🏆",
+        karakterAdi: "Şampiyon",
+        soruMetni: "Piyon terfisi tahtanın kaçıncı yatay sırasında gerçekleşir?",
+        tahtaTipi: "baslangic",
         secenekler: [
-          { id: "a", sembol: "🏆", aciklama: "Terfi Kupası", dogru: true },
-          { id: "b", sembol: "🧯", aciklama: "Tüp", dogru: false },
-          { id: "c", sembol: "🗑️", aciklama: "Kova", dogru: false },
+          { id: "a", sembol: "8️⃣", aciklama: "En Son (8.) Sıra", dogru: true },
+          { id: "b", sembol: "1️⃣", aciklama: "1. Sıra", dogru: false },
+          { id: "c", sembol: "4️⃣", aciklama: "Orta Sıra", dogru: false },
         ],
-        dogruMesaj: "Kupa senin! Piyonun büyük rüyası gerçek oldu!",
+        dogruMesaj: "Tebrikler! Karşı sınıra ulaşan piyon terfi eder.",
       },
     ],
   },
@@ -521,47 +519,46 @@ const KAZANIMLAR_VERISI: KazanimDetay[] = [
     uniteId: 2,
     uniteBaslik: "2. Taşlar ve Özellikleri",
     baslik: "Satrançtaki başlangıç konumunu dizer.",
-    resmiAciklama:
-      "Sağ alt köşe beyaz kuralı, vezirin rengi ve tüm taşların başlangıç karelerine dizilimi öğretilir.",
+    resmiAciklama: "Taşların tahtaya doğru yerleştirilmesi kuralı işlenir.",
     ornekler: [
       {
         id: 1,
         karakter: "👗",
         karakterAdi: "Modacı Prenses",
-        soruMetni: "'Beyaz vezir beyaz elbiseyi, siyah vezir siyah elbiseyi sever!' BEYAZ ELBİSE'ye dokun!",
-        hedefSekil: "Beyaz Elbise 🤍",
+        soruMetni: "Vezir hangi renge ait karede oyuna başlar?",
+        tahtaTipi: "baslangic",
         secenekler: [
-          { id: "a", sembol: "🤍", aciklama: "Beyaz Vezir Beyaz Kareye", dogru: true },
-          { id: "b", sembol: "🖤", aciklama: "Ters Renk", dogru: false },
-          { id: "c", sembol: "🟣", aciklama: "Mor Kare", dogru: false },
+          { id: "a", sembol: "🎨", aciklama: "Kendi Rengindeki Karede", dogru: true },
+          { id: "b", sembol: "🌈", aciklama: "Fark Etmez", dogru: false },
+          { id: "c", sembol: "⬛", aciklama: "Sadece Siyah", dogru: false },
         ],
-        dogruMesaj: "Harika! Beyaz vezir kendi rengi olan d1 beyaz karesine oturdu!",
+        dogruMesaj: "Harika! Vezir elbisesinin rengini sever.",
       },
       {
         id: 2,
         karakter: "🏰",
         karakterAdi: "Saray Bekçisi",
-        soruMetni: "Tahtanın 4 en uç köşesine hangi güçlü nöbetçiler oturur? KALE KULESİ'ne tıkla!",
-        hedefSekil: "Kale ♜",
+        soruMetni: "Tahtanın 4 köşesinde hangi taşlar durur?",
+        tahtaTipi: "baslangic",
         secenekler: [
-          { id: "a", sembol: "♜", aciklama: "Köşelerdeki Kaleler", dogru: true },
-          { id: "b", sembol: "♟️", aciklama: "Piyon", dogru: false },
-          { id: "c", sembol: "♚", aciklama: "Şah", dogru: false },
+          { id: "a", sembol: "♜", aciklama: "Kaleler", dogru: true },
+          { id: "b", sembol: "♟️", aciklama: "Piyonlar", dogru: false },
+          { id: "c", sembol: "♞", aciklama: "Atlar", dogru: false },
         ],
-        dogruMesaj: "Köşeler güvende! 4 köşede 4 sağlam Kale nöbette!",
+        dogruMesaj: "Köşeler güvende! 4 köşede kaleler yer alır.",
       },
       {
         id: 3,
         karakter: "💂‍♂️",
-        karakterAdi: "Muhafız Alayı",
-        soruMetni: "Ön sırayı boydan boya kaplayan 8 tane cesur askere ne denir? PİYON simgesine bas!",
-        hedefSekil: "Piyon Asker ♟️",
+        karakterAdi: "Muhafız",
+        soruMetni: "Ön sırayı dolduran 8 asker hangi taştır?",
+        tahtaTipi: "baslangic",
         secenekler: [
-          { id: "a", sembol: "♟️", aciklama: "8 Küçük Piyon", dogru: true },
-          { id: "b", sembol: "🚀", aciklama: "Roket", dogru: false },
-          { id: "c", sembol: "🛸", aciklama: "Ufo", dogru: false },
+          { id: "a", sembol: "♟️", aciklama: "Piyonlar", dogru: true },
+          { id: "b", sembol: "♝", aciklama: "Filler", dogru: false },
+          { id: "c", sembol: "♚", aciklama: "Şahlar", dogru: false },
         ],
-        dogruMesaj: "Duvar örüldü! Piyon ordusu ikinci sıraya dizildi!",
+        dogruMesaj: "Piyon duvarı ikinci sırayı baştan sona kaplar.",
       },
     ],
   },
@@ -570,47 +567,46 @@ const KAZANIMLAR_VERISI: KazanimDetay[] = [
     uniteId: 2,
     uniteBaslik: "2. Taşlar ve Özellikleri",
     baslik: "Taşların puan değerlerini kavrar.",
-    resmiAciklama:
-      "Piyon (1), At (3), Fil (3), Kale (5), Vezir (9) ve Şahın sonsuz değeri karşılaştırılır.",
+    resmiAciklama: "Taşların puanları kıyaslanır.",
     ornekler: [
       {
         id: 1,
         karakter: "⚖️",
-        karakterAdi: "Adalet Terazisi",
-        soruMetni: "9 Puanlık devasa gücüyle tahtanın en değerli taşı kimdir? SÜPER VEZİR'e bas!",
-        hedefSekil: "Vezir ♛",
+        karakterAdi: "Terazi",
+        soruMetni: "Tahtadaki en yüksek puanlı normal taş hangisidir?",
+        tahtaTipi: "baslangic",
         secenekler: [
-          { id: "a", sembol: "♟️", aciklama: "Piyon (1)", dogru: false },
-          { id: "b", sembol: "♛", aciklama: "Vezir (9 Puan)", dogru: true },
-          { id: "c", sembol: "♞", aciklama: "At (3 Puan)", dogru: false },
+          { id: "a", sembol: "👑 (9 Puan)", aciklama: "Vezir", dogru: true },
+          { id: "b", sembol: "♜ (5 Puan)", aciklama: "Kale", dogru: false },
+          { id: "c", sembol: "♞ (3 Puan)", aciklama: "At", dogru: false },
         ],
-        dogruMesaj: "Doğru! Vezir tam 9 piyon değerindedir!",
+        dogruMesaj: "Doğru! Vezir 9 puanla en güçlü taştır.",
       },
       {
         id: 2,
         karakter: "🎯",
-        karakterAdi: "Puan Avcısı",
-        soruMetni: "Kale kaç piyon değerindedir? 5 RAKAMI kutusuna dokun!",
-        hedefSekil: "5 Rakamı 5️⃣",
+        karakterAdi: "Avcı",
+        soruMetni: "Piyonun puan değeri kaçtır?",
+        tahtaTipi: "baslangic",
         secenekler: [
-          { id: "a", sembol: "1️⃣", aciklama: "1 Puan", dogru: false },
-          { id: "b", sembol: "5️⃣", aciklama: "5 Puan", dogru: true },
-          { id: "c", sembol: "9️⃣", aciklama: "9 Puan", dogru: false },
+          { id: "a", sembol: "1️⃣", aciklama: "1 Puan", dogru: true },
+          { id: "b", sembol: "3️⃣", aciklama: "3 Puan", dogru: false },
+          { id: "c", sembol: "5️⃣", aciklama: "5 Puan", dogru: false },
         ],
-        dogruMesaj: "Bravo! Kale tam 5 puan gücündedir!",
+        dogruMesaj: "Harika! Piyon 1 puandır.",
       },
       {
         id: 3,
         karakter: "💎",
-        karakterAdi: "Hazine Sandığı",
-        soruMetni: "At ve Fil kardeşlerin puanı eşittir (3 puan). 3 ALTIN SİMGESİ'ne tıkla!",
-        hedefSekil: "3 Altın 🪙",
+        karakterAdi: "Elmas",
+        soruMetni: "At ile Filin puanları birbiriyle nasıl ilişkilidir?",
+        tahtaTipi: "baslangic",
         secenekler: [
-          { id: "a", sembol: "🪙", aciklama: "3 Puanlık Hafif Taşlar", dogru: true },
-          { id: "b", sembol: "🍂", aciklama: "Değersiz Yaprak", dogru: false },
-          { id: "c", sembol: "🪵", aciklama: "Odun", dogru: false },
+          { id: "a", sembol: "🟰", aciklama: "İkisi de Eşittir (3'er Puan)", dogru: true },
+          { id: "b", sembol: "➕", aciklama: "Biri 9 Puandır", dogru: false },
+          { id: "c", sembol: "➖", aciklama: "Biri 0 Puandır", dogru: false },
         ],
-        dogruMesaj: "Harika hesap! At da Fil de 3'er puandır!",
+        dogruMesaj: "Çok iyi! At ve fil eşit güçtedir.",
       },
     ],
   },
@@ -619,47 +615,46 @@ const KAZANIMLAR_VERISI: KazanimDetay[] = [
     uniteId: 2,
     uniteBaslik: "2. Taşlar ve Özellikleri",
     baslik: "Satrançta taş almayı bilir.",
-    resmiAciklama:
-      "İyi taş alışı, kötü taş alışı ve taş değişimleri puan değerleri kıyaslanarak incelenir.",
+    resmiAciklama: "Taş alışverişi ve karlı değişimler incelenir.",
     ornekler: [
       {
         id: 1,
         karakter: "🦊",
-        karakterAdi: "Kurnaz Tilki",
-        soruMetni: "1 puanlık piyonumuzla rakibin 9 puanlık Vezirini alırsak bu harika bir alış mıdır? YEŞİL TİK'e bas!",
-        hedefSekil: "Yeşil Tik ✅",
+        karakterAdi: "Tilki",
+        soruMetni: "1 puanlık piyon verip 9 puanlık vezir almak karlı bir alış mıdır?",
+        tahtaTipi: "baslangic",
         secenekler: [
-          { id: "a", sembol: "✅", aciklama: "Çok Karlı İyi Alış!", dogru: true },
-          { id: "b", sembol: "❌", aciklama: "Kötü Alış", dogru: false },
-          { id: "c", sembol: "⚠️", aciklama: "Tehlikeli", dogru: false },
+          { id: "a", sembol: " ✅ ", aciklama: "Evet, Çok Karlı Alış!", dogru: true },
+          { id: "b", sembol: " ❌ ", aciklama: "Kötü Alış", dogru: false },
+          { id: "c", sembol: " ⚠️ ", aciklama: "Zararlı", dogru: false },
         ],
-        dogruMesaj: "Muazzam kazanç! 1 puana karşılık 9 puanlık dev bir vezir kazandın!",
+        dogruMesaj: "Muazzam kazanç! Az puan verip çok puan aldın.",
       },
       {
         id: 2,
         karakter: "🐻",
-        karakterAdi: "Dalgın Ayı",
-        soruMetni: "5 puanlık Kalemizle korunan 1 puanlık piyonu alıp kaleyi feda etmek iyi midir? KIRMIZI ÇARPI'ya bas!",
-        hedefSekil: "Kırmızı Çarpı ❌",
+        karakterAdi: "Ayı",
+        soruMetni: "5 puanlık kaleyi korumasız bırakıp kaptırmak iyi bir şey midir?",
+        tahtaTipi: "baslangic",
         secenekler: [
-          { id: "a", sembol: "❌", aciklama: "Zararlı Kötü Alış!", dogru: true },
-          { id: "b", sembol: "✅", aciklama: "İyi Alış", dogru: false },
-          { id: "c", sembol: "🎉", aciklama: "Kutlama", dogru: false },
+          { id: "a", sembol: " ❌ ", aciklama: "Hayır, Büyük Hata!", dogru: true },
+          { id: "b", sembol: " ✅ ", aciklama: "Çok İyi", dogru: false },
+          { id: "c", sembol: " 🎉 ", aciklama: "Harika", dogru: false },
         ],
-        dogruMesaj: "Bravo! Değerli taşları ucuz taşlar için feda etmemeliyiz!",
+        dogruMesaj: "Doğru! Değerli taşlarımızı korumalıyız.",
       },
       {
         id: 3,
         karakter: "🤝",
-        karakterAdi: "Dost Filo",
-        soruMetni: "Filimizle rakibin Filini aldığımızda buna 'Eşit Taş Değişimi' denir. EŞİTTİR İŞARETİ'ne bas!",
-        hedefSekil: "Eşittir 🟰",
+        karakterAdi: "Dost",
+        soruMetni: "3 puanlık file karşılık rakibin 3 puanlık filini almak nasıl bir değişimdir?",
+        tahtaTipi: "baslangic",
         secenekler: [
-          { id: "a", sembol: "🟰", aciklama: "3 Puana 3 Puan Eşit", dogru: true },
-          { id: "b", sembol: "➕", aciklama: "Artı", dogru: false },
-          { id: "c", sembol: "➖", aciklama: "Eksi", dogru: false },
+          { id: "a", sembol: " 🟰 ", aciklama: "Eşit Değişim", dogru: true },
+          { id: "b", sembol: " 🚀 ", aciklama: "Uçurur", dogru: false },
+          { id: "c", sembol: " 📉 ", aciklama: "Zarar", dogru: false },
         ],
-        dogruMesaj: "Harika! İki taraf da eşit güçte taş değişmiş oldu!",
+        dogruMesaj: "Eşit güçte karşılıklı değişim!",
       },
     ],
   },
@@ -668,98 +663,94 @@ const KAZANIMLAR_VERISI: KazanimDetay[] = [
     uniteId: 2,
     uniteBaslik: "2. Taşlar ve Özellikleri",
     baslik: "Satrançta saldırı altındaki taşın koruması kavramını açıklar.",
-    resmiAciklama:
-      "Korumalı ve korumasız taş ayrımı yapılır; taşların birbirine destek olması öğretilir.",
+    resmiAciklama: "Korumalı ve korumasız taşlar incelenir.",
     ornekler: [
       {
         id: 1,
         karakter: "🛡️",
-        karakterAdi: "Kalkan Kardeşliği",
-        soruMetni: "Arkadaşı piyon tarafından korunan bir At güvendedir! GÜVENLİ MAVİ KALKAN'a tıkla!",
-        hedefSekil: "Kalkan 🛡️",
+        karakterAdi: "Kalkan",
+        soruMetni: "Başka bir taş tarafından korunan taşlara ne denir?",
+        tahtaTipi: "baslangic",
         secenekler: [
           { id: "a", sembol: "🛡️", aciklama: "Korumalı Güvenli Taş", dogru: true },
-          { id: "b", sembol: "🕳️", aciklama: "Sahipsiz Kuyu", dogru: false },
-          { id: "c", sembol: "🍂", aciklama: "Korumasız Yaprak", dogru: false },
+          { id: "b", sembol: "🍂", aciklama: "Sahipsiz", dogru: false },
+          { id: "c", sembol: "🕳️", aciklama: "Kuyu", dogru: false },
         ],
-        dogruMesaj: "Koruma devrede! Rakip bu atı alırsa biz de onun taşını alırız!",
+        dogruMesaj: "Koruma devrede! Taşımız güvende.",
       },
       {
         id: 2,
         karakter: "👀",
-        karakterAdi: "Dikkatli Gözler",
-        soruMetni: "Tahtada tek başına kalmış, hiçbir taşın korumadığı taşa ne denir? SAHİPSİZ YILDIZ'a tıkla!",
-        hedefSekil: "Sahipsiz Yıldız 💫",
+        karakterAdi: "Göz",
+        soruMetni: "Hiçbir taşın korumadığı boşta kalan taşa ne denir?",
+        tahtaTipi: "baslangic",
         secenekler: [
           { id: "a", sembol: "💫", aciklama: "Korumasız (Boşta) Taş", dogru: true },
-          { id: "b", sembol: "🏰", aciklama: "Sağlam Şato", dogru: false },
+          { id: "b", sembol: "🏰", aciklama: "Kale", dogru: false },
           { id: "c", sembol: "🧱", aciklama: "Duvar", dogru: false },
         ],
-        dogruMesaj: "Gözünden kaçmadı! Korumasız taşlar kolay hedef olur!",
+        dogruMesaj: "Dikkat! Korumasız taşlar kolay av olur.",
       },
       {
         id: 3,
         karakter: "🐾",
-        karakterAdi: "Yardımsever Pati",
-        soruMetni: "Boştaki piyonumuza destek olmak için arkasından Kalemizi yaklaştırdık. YARDIM ELİ simgesine bas!",
-        hedefSekil: "Yardım Eli 🤝",
+        karakterAdi: "Pati",
+        soruMetni: "Tehlikedeki taşımıza yardım etmek için ne yaparız?",
+        tahtaTipi: "baslangic",
         secenekler: [
-          { id: "a", sembol: "🤝", aciklama: "Taşı Korumaya Al", dogru: true },
-          { id: "b", sembol: "💤", aciklama: "Boşver", dogru: false },
-          { id: "c", sembol: "🏃", aciklama: "Kaç", dogru: false },
+          { id: "a", sembol: "🤝", aciklama: "Destek Taş Getirip Koruruz", dogru: true },
+          { id: "b", sembol: "💤", aciklama: "Uyuruz", dogru: false },
+          { id: "c", sembol: "🏃", aciklama: "Kaçarız", dogru: false },
         ],
-        dogruMesaj: "Dayanışma kazandı! Artık piyonumuz koruma altında!",
+        dogruMesaj: "Dayanışma ile taşımızı koruma altına alırız!",
       },
     ],
   },
-
-  // 3. ÜNİTE
   {
     kod: "ST.OÖ. 3.1.",
     uniteId: 3,
     uniteBaslik: "3. Satrançta Şah Tehdidi ve Mat",
     baslik: "Şahın, oyun için önemini açıklar.",
-    resmiAciklama:
-      "Satranç oyununun nihai amacının rakip şahı köşeye sıkıştırmak olduğu kavratılır.",
+    resmiAciklama: "Şahın oyunun kalbi olduğu vurgulanır.",
     ornekler: [
       {
         id: 1,
         karakter: "🎯",
-        karakterAdi: "Hedef Dedektifi",
-        soruMetni: "Satrançta bütün taşların asıl hedefi hangi taştır? BİLGE ŞAH'a dokun!",
-        hedefSekil: "Şah ♚",
+        karakterAdi: "Hedef",
+        soruMetni: "Satranç oyununda asıl ele geçirilmek istenen hedef kimdir?",
+        tahtaTipi: "baslangic",
         secenekler: [
-          { id: "a", sembol: "♚", aciklama: "Hedef Şahtır", dogru: true },
+          { id: "a", sembol: "🤴", aciklama: "Bilge Şah", dogru: true },
           { id: "b", sembol: "♟️", aciklama: "Piyon", dogru: false },
           { id: "c", sembol: "♝", aciklama: "Fil", dogru: false },
         ],
-        dogruMesaj: "Tam isabet! Satranç şahı ele geçirme ve koruma oyunudur!",
+        dogruMesaj: "Tam isabet! Satranç şahı koruma ve mat etme oyunudur.",
       },
       {
         id: 2,
         karakter: "🛑",
-        karakterAdi: "Hakem Düdüğü",
-        soruMetni: "Şah kaçamayacak şekilde sıkışırsa (Mat olursa) maç biter mi? BİTİŞ BAYRAĞI'na bas!",
-        hedefSekil: "Damalı Bayrak 🏁",
+        karakterAdi: "Dur",
+        soruMetni: "Şah mat olduğunda oyun biter mi?",
+        tahtaTipi: "baslangic",
         secenekler: [
-          { id: "a", sembol: "🏁", aciklama: "Oyun Sona Erer", dogru: true },
-          { id: "b", sembol: "⏳", aciklama: "Sonsuza Dek Sürer", dogru: false },
+          { id: "a", sembol: "🏁", aciklama: "Evet, Oyun Sona Erer", dogru: true },
+          { id: "b", sembol: "⏳", aciklama: "Sonsuza Kadar Sürer", dogru: false },
           { id: "c", sembol: "🔁", aciklama: "Başa Döner", dogru: false },
         ],
-        dogruMesaj: "Bayrak sallandı! Şah mat olunca maç tamamlanır!",
+        dogruMesaj: "Bayrak sallandı! Şah mat olunca maç biter.",
       },
       {
         id: 3,
         karakter: "👑",
-        karakterAdi: "Saray Muhafızı",
-        soruMetni: "Krallığın kalbi olan ŞAH'ı korumak için sevimli KALP simgesine bas!",
-        hedefSekil: "Kırmızı Kalp ❤️",
+        karakterAdi: "Kral",
+        soruMetni: "Şahı korumak satrançta neden en önemli kuraldır?",
+        tahtaTipi: "baslangic",
         secenekler: [
-          { id: "a", sembol: "❤️", aciklama: "Şahı Kalbimiz Gibi Koruruz", dogru: true },
-          { id: "b", sembol: "🗑️", aciklama: "Unuturuz", dogru: false },
-          { id: "c", sembol: "⚡", aciklama: "Tehlikeye Atarız", dogru: false },
+          { id: "a", sembol: "❤️", aciklama: "Çünkü O Oyunun Kalbidir", dogru: true },
+          { id: "b", sembol: "🗑️", aciklama: "Değersizdir", dogru: false },
+          { id: "c", sembol: "🎈", aciklama: "Süs gibidir", dogru: false },
         ],
-        dogruMesaj: "Şah güven altına alındı, krallık huzurla doldu!",
+        dogruMesaj: "Kesinlikle! Şah düşerse krallık düşer.",
       },
     ],
   },
@@ -768,47 +759,46 @@ const KAZANIMLAR_VERISI: KazanimDetay[] = [
     uniteId: 3,
     uniteBaslik: "3. Satrançta Şah Tehdidi ve Mat",
     baslik: "Şah çeker.",
-    resmiAciklama:
-      "Bir veya daha fazla taşın karşı şaha doğrudan saldırması durumu (şah çekmek) uygulatılır.",
+    resmiAciklama: "Rakip şaha saldırı durumu işlenir.",
     ornekler: [
       {
         id: 1,
         karakter: "📢",
-        karakterAdi: "Haberci Kuş",
-        soruMetni: "Taşımız şaha doğrudan saldırdığında ne deriz? 'ŞAH!' UYARI KORNASI'na tıkla!",
-        hedefSekil: "Korna 📣",
+        karakterAdi: "Haberci",
+        soruMetni: "Taşımız doğrudan rakip şaha saldırdığında ne bağırırız?",
+        tahtaTipi: "baslangic",
         secenekler: [
-          { id: "a", sembol: "📣", aciklama: "'ŞAH!' Uyarısı", dogru: true },
+          { id: "a", sembol: "📣", aciklama: "'ŞAH!'", dogru: true },
           { id: "b", sembol: "🤫", aciklama: "Sessizlik", dogru: false },
           { id: "c", sembol: "😴", aciklama: "Uyku", dogru: false },
         ],
-        dogruMesaj: "ŞAH! Rakip hemen şahını kurtarmak zorundadır!",
+        dogruMesaj: "ŞAH! Rakip hemen önlem almak zorundadır.",
       },
       {
         id: 2,
         karakter: "🏹",
-        karakterAdi: "Okçu Fil",
-        soruMetni: "Çaprazdan şaha bakan Fil şah çekiyor. Filin HEDEF OKU'na bas!",
-        hedefSekil: "Ok 🏹",
+        karakterAdi: "Okçu",
+        soruMetni: "Şah çekilen bir şah tehlike altında mıdır?",
+        tahtaTipi: "baslangic",
         secenekler: [
-          { id: "a", sembol: "🏹", aciklama: "Şaha Çapraz Tehdit", dogru: true },
-          { id: "b", sembol: "🪃", aciklama: "Bumerang", dogru: false },
-          { id: "c", sembol: "🪂", aciklama: "Paraşüt", dogru: false },
+          { id: "a", sembol: "⚠️", aciklama: "Evet, Tehdit Altındadır", dogru: true },
+          { id: "b", sembol: "🏖️", aciklama: "Tatildedir", dogru: false },
+          { id: "c", sembol: "🎉", aciklama: "Güvendedir", dogru: false },
         ],
-        dogruMesaj: "Hedef şah! Fil şah çekişini başarıyla yaptı!",
+        dogruMesaj: "Tehlike sinyali! Şah çekildiyse korunmalıdır.",
       },
       {
         id: 3,
         karakter: "⚡",
-        karakterAdi: "Şimşek Kale",
-        soruMetni: "Düz caddeden şaha doğru kayıp şah çeken Kalenin YILDIRIM simgesine bas!",
-        hedefSekil: "Yıldırım ⚡",
+        karakterAdi: "Şimşek",
+        soruMetni: "Şah çeken taş rakip tarafından alınabilir mi?",
+        tahtaTipi: "baslangic",
         secenekler: [
-          { id: "a", sembol: "⚡", aciklama: "Düz Hattan Şah Çekiş", dogru: true },
-          { id: "b", sembol: "💧", aciklama: "Su Damlası", dogru: false },
-          { id: "c", sembol: "🌾", aciklama: "Buğday", dogru: false },
+          { id: "a", sembol: "⚔️", aciklama: "Uygunsa Alınabilir", dogru: true },
+          { id: "b", sembol: "❌", ad: "Asla", aciklama: "Asla Alınamaz", dogru: false },
+          { id: "c", sembol: "🔒", aciklama: "Kilitlenir", dogru: false },
         ],
-        dogruMesaj: "Göz açıp kapayıncaya kadar şah çekildi!",
+        dogruMesaj: "Evet! Tehdit eden taş vurularak şah kurtarılabilir.",
       },
     ],
   },
@@ -817,47 +807,46 @@ const KAZANIMLAR_VERISI: KazanimDetay[] = [
     uniteId: 3,
     uniteBaslik: "3. Satrançta Şah Tehdidi ve Mat",
     baslik: "Şah tehdidinden çeşitli teknikleri uygulayarak kurtulur.",
-    resmiAciklama:
-      "Şah tehdidinden 3 kurtulma yolu öğretilir: 1. Kaçmak, 2. Tehdit eden taşı almak, 3. Araya taş koymak (Perdeleme).",
+    resmiAciklama: "Şahın kaçma, alma ve perdeleme yolları öğretilir.",
     ornekler: [
       {
         id: 1,
         karakter: "🏃‍♂️",
-        karakterAdi: "Hızlı Ayaklar",
-        soruMetni: "1. Kurtuluş Yolu: Şahı güvenli ve boş bir kareye KAÇIRMAK! KAÇAN AYAKKABI'ya bas!",
-        hedefSekil: "Ayakkabı 👟",
+        karakterAdi: "Koşucu",
+        soruMetni: "Şah çekildiğinde ilk kurtulma yolu nedir?",
+        tahtaTipi: "baslangic",
         secenekler: [
-          { id: "a", sembol: "👟", aciklama: "Güvenli Kareye Kaç", dogru: true },
-          { id: "b", sembol: "🛑", aciklama: "Olduğun Yerde Dur (Yasak)", dogru: false },
-          { id: "c", sembol: "🛋️", aciklama: "Koltukta Otur", dogru: false },
+          { id: "a", sembol: "👟", aciklama: "Güvenli Kareye Kaçmak", dogru: true },
+          { id: "b", sembol: "🛑", aciklama: "Olduğun Yerde Kal", dogru: false },
+          { id: "c", sembol: "🪑", aciklama: "Oturmak", dogru: false },
         ],
-        dogruMesaj: "Tıkır tıkır! Şah güvenli komşu kareye kaçarak kurtuldu!",
+        dogruMesaj: "Tıkır tıkır! Güvenli komşu kareye kaçılır.",
       },
       {
         id: 2,
         karakter: "⚔️",
-        karakterAdi: "Cesur Şövalye",
-        soruMetni: "2. Kurtuluş Yolu: Bize şah çeken rakip taşı ALMAK! KILIÇ KALKAN simgesine bas!",
-        hedefSekil: "Kılıçlar ⚔️",
+        karakterAdi: "Savaşçı",
+        soruMetni: "Şaha saldıran taşı kendi taşımızla vurmaya ne denir?",
+        tahtaTipi: "baslangic",
         secenekler: [
-          { id: "a", sembol: "⚔️", aciklama: "Tehdit Eden Taşı Al", dogru: true },
-          { id: "b", sembol: "🏳️", aciklama: "Teslim Ol", dogru: false },
-          { id: "c", sembol: "🎈", aciklama: "Balon Uçur", dogru: false },
+          { id: "a", sembol: "⚔️", aciklama: "Tehdit Eden Taşı Almak", dogru: true },
+          { id: "b", sembol: "🏳️", aciklama: "Teslim olmak", dogru: false },
+          { id: "c", sembol: "🎈", aciklama: "Uçurmak", dogru: false },
         ],
-        dogruMesaj: "Harika savunma! Tehdit eden taş tahtadan alındı ve şah rahatladı!",
+        dogruMesaj: "Saldırgan taş tahtadan temizlendi!",
       },
       {
         id: 3,
         karakter: "🧱",
-        karakterAdi: "Kalkan Duvarı",
-        soruMetni: "3. Kurtuluş Yolu: Araya dost bir taş koyup perdeleme yapmak! TUĞLA DUVAR'a tıkla!",
-        hedefSekil: "Duvar 🧱",
+        karakterAdi: "Duvar",
+        soruMetni: "Saldıran taş ile şah arasına dost taş koyup siper etmeye ne denir?",
+        tahtaTipi: "baslangic",
         secenekler: [
-          { id: "a", sembol: "🧱", aciklama: "Araya Perde Çek", dogru: true },
-          { id: "b", sembol: "🪟", aciklama: "Açık Pencere", dogru: false },
-          { id: "c", sembol: "🚪", aciklama: "Açık Kapı", dogru: false },
+          { id: "a", sembol: "🧱", aciklama: "Perdeleme Yapmak", dogru: true },
+          { id: "b", sembol: "🪟", aciklama: "Pencere", dogru: false },
+          { id: "c", sembol: "🚪", aciklama: "Kapı", dogru: false },
         ],
-        dogruMesaj: "Duvar örüldü! Araya giren taş şahın önüne siper oldu!",
+        dogruMesaj: "Harika! Araya taş koyarak perdeleme yapıldı.",
       },
     ],
   },
@@ -866,47 +855,46 @@ const KAZANIMLAR_VERISI: KazanimDetay[] = [
     uniteId: 3,
     uniteBaslik: "3. Satrançta Şah Tehdidi ve Mat",
     baslik: "Şahın diğer taşlar gibi alınamayacağını kavrar.",
-    resmiAciklama:
-      "Satrançta şah asla tahtadan dışarı çıkarılamaz ve yenilemez. Şahı yemek kural dışı hamledir.",
+    resmiAciklama: "Şahın tahtadan yenerek çıkarılamayacağı benimsetilir.",
     ornekler: [
       {
         id: 1,
         karakter: "⛔",
-        karakterAdi: "Trafik Polisi",
-        soruMetni: "Satrançta şah tahtadan alınıp kenara koyulabilir mi? 'DUR' İŞARETİ'ne bas!",
-        hedefSekil: "Dur İşareti 🛑",
+        karakterAdi: "Dur",
+        soruMetni: "Şah tahtadan yenilip dışarı atılabilir mi?",
+        tahtaTipi: "baslangic",
         secenekler: [
           { id: "a", sembol: "🛑", aciklama: "HAYIR! Şah Asla Alınamaz", dogru: true },
           { id: "b", sembol: "🟢", aciklama: "Evet Alınır", dogru: false },
           { id: "c", sembol: "🟡", aciklama: "Bazen", dogru: false },
         ],
-        dogruMesaj: "DUR! Satrançta şah asla yenmez ve tahtadan çıkarılmaz!",
+        dogruMesaj: "Kesinlikle yasak! Şah yenmez, sadece mat edilir.",
       },
       {
         id: 2,
         karakter: "⚖️",
-        karakterAdi: "Baş Hakem",
-        soruMetni: "Şahı yemek isteyen bir oyuncuya hakem ne der? KURAL DIŞI DÜDÜK'e dokun!",
-        hedefSekil: "Düdük 🎷",
+        karakterAdi: "Hakem",
+        soruMetni: "Şahı almaya kalkışmak hangi kural ihlalidir?",
+        tahtaTipi: "baslangic",
         secenekler: [
-          { id: "a", sembol: "🎷", aciklama: "Kural Dışı Hamle Uyarısı!", dogru: true },
-          { id: "b", sembol: "👏", aciklama: "Alkışlar", dogru: false },
-          { id: "c", sembol: "🎁", aciklama: "Ödül Verir", dogru: false },
+          { id: "a", sembol: "🎷", aciklama: "Kural Dışı Hamle", dogru: true },
+          { id: "b", sembol: "👏", aciklama: "Ödül", dogru: false },
+          { id: "c", sembol: "🎁", aciklama: "Hediye", dogru: false },
         ],
-        dogruMesaj: "Düüüt! Şah alınmaz, sadece mat edilir!",
+        dogruMesaj: "Düüüt! Kural dışı hamledir.",
       },
       {
         id: 3,
         karakter: "🏰",
-        karakterAdi: "Kutsal Saray",
-        soruMetni: "Şah oyunun son saniyesine kadar tahtada kalır. KORUNAN SARAY simgesine bas!",
-        hedefSekil: "Saray 🏯",
+        karakterAdi: "Saray",
+        soruMetni: "Şah oyun boyunca nerede kalır?",
+        tahtaTipi: "baslangic",
         secenekler: [
-          { id: "a", sembol: "🏯", aciklama: "Şah Tahtada Yaşar", dogru: true },
-          { id: "b", sembol: "🗑️", aciklama: "Kutuya Atılır", dogru: false },
-          { id: "c", sembol: "📦", aciklama: "Paketlenir", dogru: false },
+          { id: "a", sembol: "🏯", aciklama: "Tahtada Güvende Yaşar", dogru: true },
+          { id: "b", sembol: "🗑️", aciklama: "Kutuda", dogru: false },
+          { id: "c", sembol: "📦", aciklama: "Pakette", dogru: false },
         ],
-        dogruMesaj: "Mükemmel! Şah oyun bitene kadar tahtanın kralıdır!",
+        dogruMesaj: "Şah oyun sonuna kadar tahtayı terk etmez.",
       },
     ],
   },
@@ -915,47 +903,46 @@ const KAZANIMLAR_VERISI: KazanimDetay[] = [
     uniteId: 3,
     uniteBaslik: "3. Satrançta Şah Tehdidi ve Mat",
     baslik: "Mat etmeyi açıklar.",
-    resmiAciklama:
-      "Şah tehdit altındayken kaçamıyor, tehdit edeni alamıyor ve perdeleme yapamıyorsa mat olur.",
+    resmiAciklama: "Mat durumu ve oyunun sonu açıklanır.",
     ornekler: [
       {
         id: 1,
         karakter: "🎉",
-        karakterAdi: "Kutlama Perisi",
-        soruMetni: "Şah tehdit altında ve hiçbir yere kaçamıyor! Oyun MAT oldu! KONFETİ simgesine tıkla!",
-        hedefSekil: "Konfeti 🎊",
+        karakterAdi: "Kutlama",
+        soruMetni: "Şah tehdit altında ve kurtuluş yolu kalmadıysa ne olur?",
+        tahtaTipi: "baslangic",
         secenekler: [
           { id: "a", sembol: "🎊", aciklama: "ŞAH VE MAT!", dogru: true },
-          { id: "b", sembol: "💤", aciklama: "Mola", dogru: false },
+          { id: "b", sembol: "💤", aciklama: "Uyku", dogru: false },
           { id: "c", sembol: "🌧️", aciklama: "Yağmur", dogru: false },
         ],
-        dogruMesaj: "ŞAH VE MAT! Muhteşem bir stratejiyle oyunu kazandın!",
+        dogruMesaj: "ŞAH VE MAT! Stratejik zafer!",
       },
       {
         id: 2,
         karakter: "🔒",
-        karakterAdi: "Kilit Ustası",
-        soruMetni: "Kaçacak hiçbir güvenli kare kalmadığında kilit kapanır. ALTIN KİLİT simgesine bas!",
-        hedefSekil: "Kilit 🔒",
+        karakterAdi: "Kilit",
+        soruMetni: "Mat olunca şahın kaçacak karesi var mıdır?",
+        tahtaTipi: "baslangic",
         secenekler: [
-          { id: "a", sembol: "🔒", aciklama: "Tüm Yollar Kapalı", dogru: true },
-          { id: "b", sembol: "🔓", aciklama: "Açık Kapı Var", dogru: false },
-          { id: "c", sembol: "🚪", aciklama: "Aralık Kapı", dogru: false },
+          { id: "a", sembol: "🔒", aciklama: "Hiçbir Yeri Kalmamıştır", dogru: true },
+          { id: "b", sembol: "🔓", aciklama: "Çok Yeri Var", dogru: false },
+          { id: "c", sembol: "🚪", aciklama: "Kapı Açık", dogru: false },
         ],
-        dogruMesaj: "Kilit kapandı! Şah hiçbir güvenli yere kaçamıyor, bu bir MAT!",
+        dogruMesaj: "Kilit kapandı! Kaçış yolu yoktur.",
       },
       {
         id: 3,
         karakter: "🏆",
-        karakterAdi: "Kupa Canavarı",
-        soruMetni: "Mat eden oyuncu maçı kazanır. ŞAMPİYONLUK KUPASI'na basarak zaferini kutla!",
-        hedefSekil: "Kupa 🏆",
+        karakterAdi: "Kupa",
+        soruMetni: "Mat eden oyuncu ne kazanır?",
+        tahtaTipi: "baslangic",
         secenekler: [
-          { id: "a", sembol: "🏆", aciklama: "Zafer Kupası", dogru: true },
-          { id: "b", sembol: "🩹", aciklama: "Yara Bandı", dogru: false },
-          { id: "c", sembol: "🧹", aciklama: "Fırça", dogru: false },
+          { id: "a", sembol: "🏆", aciklama: "Maçın Galibiyeti (Kupa)", dogru: true },
+          { id: "b", sembol: "🩹", aciklama: "Ceza", dogru: false },
+          { id: "c", sembol: "🧹", aciklama: "Temizlik", dogru: false },
         ],
-        dogruMesaj: "Şampiyonsun! Mat hamlesini başarıyla kavradın!",
+        dogruMesaj: "Şampiyonluk kupası senin!",
       },
     ],
   },
@@ -964,47 +951,46 @@ const KAZANIMLAR_VERISI: KazanimDetay[] = [
     uniteId: 3,
     uniteBaslik: "3. Satrançta Şah Tehdidi ve Mat",
     baslik: "Tek hamlelik mat alıştırmalarını yapar.",
-    resmiAciklama:
-      "Basit konumlarda son vuruşu yapan ve tek hamlede mat eden taş hareketi bulunur.",
+    resmiAciklama: "Basit konumda tek hamlede mat bulma.",
     ornekler: [
       {
         id: 1,
         karakter: "🎯",
-        karakterAdi: "Hedefçi Vezir",
-        soruMetni: "Vezirimiz şahın dibine (f7 karesine) inip mat yapacak. HEDEF TAHTASI simgesine bas!",
-        hedefSekil: "Hedef 🎯",
+        karakterAdi: "Nişan",
+        soruMetni: "Tek hamlede şahı sıkıştıran son vuruşa ne denir?",
+        tahtaTipi: "matVurusu",
         secenekler: [
-          { id: "a", sembol: "🎯", aciklama: "f7'den Çoban Matı Vuruşu", dogru: true },
-          { id: "b", sembol: "🏖️", aciklama: "Kumsala Git", dogru: false },
-          { id: "c", sembol: "🎪", aciklama: "Sirke Git", dogru: false },
+          { id: "a", sembol: "🎯", aciklama: "Mat Hamlesi", dogru: true },
+          { id: "b", sembol: "🚗", aciklama: "Sürüş", dogru: false },
+          { id: "c", sembol: "🎈", aciklama: "Uçurma", dogru: false },
         ],
-        dogruMesaj: "Güm! Vezir şahın dibine kondu ve arkasındaki fil korumasıyla mat etti!",
+        dogruMesaj: "Tam isabet! Mat hamlesi tamamlandı.",
       },
       {
         id: 2,
         karakter: "🏰",
-        karakterAdi: "Nöbetçi Kale",
-        soruMetni: "Kale son sıraya (8. yataya) inip arka sıra matı yapıyor. İNEN ASANSÖR OKU'na bas!",
-        hedefSekil: "Aşağı Ok ⬇️",
+        karakterAdi: "Kale",
+        soruMetni: "Arka sırada şahı koridorda sıkıştırıp yapılan mata ne denir?",
+        tahtaTipi: "matVurusu",
         secenekler: [
-          { id: "a", sembol: "⬇️", aciklama: "Son Sıraya Kale İnişi", dogru: true },
-          { id: "b", sembol: "🔄", aciklama: "Dönme Dolap", dogru: false },
-          { id: "c", sembol: "⬅️", aciklama: "Yana Kay", dogru: false },
+          { id: "a", sembol: "🚪", aciklama: "Koridor Matı", dogru: true },
+          { id: "b", sembol: "🛟", aciklama: "Simit", dogru: false },
+          { id: "c", sembol: "🏖️", aciklama: "Plaj", dogru: false },
         ],
-        dogruMesaj: "Koridor matı! Kale son yataya indi ve kaçacak hava deliği yok!",
+        dogruMesaj: "Harika! Koridor matı başarıyla uygulandı.",
       },
       {
         id: 3,
-        karakter: "⚡",
-        karakterAdi: "Taktik Ustası",
-        soruMetni: "Tek hamlelik matı bulmak için gözlerini dört aç! IŞILDAYAN AMPUL simgesine dokun!",
-        hedefSekil: "Ampul 💡",
+        karakter: "💡",
+        karakterAdi: "Ampul",
+        soruMetni: "Mat bulmacasını çözerken zihnimizde ne parıldar?",
+        tahtaTipi: "matVurusu",
         secenekler: [
-          { id: "a", sembol: "💡", aciklama: "İşte Mat Hamlesi!", dogru: true },
-          { id: "b", sembol: "🕯️", aciklama: "Sönük Mum", dogru: false },
-          { id: "c", sembol: "🔦", aciklama: "Pili Biten Fener", dogru: false },
+          { id: "a", sembol: "💡", aciklama: "Harika Bir Fikir / Mat", dogru: true },
+          { id: "b", sembol: "🌑", aciklama: "Karanlık", dogru: false },
+          { id: "c", sembol: "🔌", aciklama: "Kablo", dogru: false },
         ],
-        dogruMesaj: "Fikir parıldadı! Tek hamlelik mat başarıyla bulundu!",
+        dogruMesaj: "Fikir parıldadı! Mat hamlesi bulundu.",
       },
     ],
   },
@@ -1013,47 +999,46 @@ const KAZANIMLAR_VERISI: KazanimDetay[] = [
     uniteId: 3,
     uniteBaslik: "3. Satrançta Şah Tehdidi ve Mat",
     baslik: "Pat durumunu bilir.",
-    resmiAciklama:
-      "Şah tehdit altında değilken yapacak hiçbir yasal hamle kalmamışsa oyunun berabere (pat) bittiği öğretilir.",
+    resmiAciklama: "Tehdit yokken hamle kalmama durumu (beraberlik).",
     ornekler: [
       {
         id: 1,
         karakter: "🧊",
-        karakterAdi: "Buzdan Heykel",
-        soruMetni: "Şaha 'ŞAH' denmedi ama kımıldayacak tek bir karesi bile yok, dondu kaldı! BUZ simgesine bas!",
-        hedefSekil: "Buz Küpü 🧊",
+        karakterAdi: "Buz",
+        soruMetni: "Şaha saldırı yok ama oynayacak hiç yasal hamle kalmadıysa bu nedir?",
+        tahtaTipi: "baslangic",
         secenekler: [
-          { id: "a", sembol: "🧊", aciklama: "Dondu Kaldı: PAT!", dogru: true },
-          { id: "b", sembol: "🔥", aciklama: "Erime", dogru: false },
-          { id: "c", sembol: "🌊", aciklama: "Dalga", dogru: false },
+          { id: "a", sembol: "🧊", aciklama: "PAT (Beraberlik)", dogru: true },
+          { id: "b", sembol: "👑", aciklama: "Mat", dogru: false },
+          { id: "c", sembol: "🔥", aciklama: "Savaş", dogru: false },
         ],
-        dogruMesaj: "Dondu kaldı! Şah tehdit altında değil ama oynayamaz, oyun PAT (Berabere)!",
+        dogruMesaj: "Dondu kaldı! Oyun pat oldu ve berabere bitti.",
       },
       {
         id: 2,
-        karakter: "🤝",
-        karakterAdi: "Barışçıl Panda",
-        soruMetni: "Pat olunca kimse kaybetmez, maç yarım puanla dostça biter. BARIŞ GÜVERCİNİ'ne tıkla!",
-        hedefSekil: "Güvercin 🕊️",
+        karakter: "🕊️",
+        karakterAdi: "Güvercin",
+        soruMetni: "Pat olunca maç nasıl biter?",
+        tahtaTipi: "baslangic",
         secenekler: [
-          { id: "a", sembol: "🕊️", aciklama: "Dostça Beraberlik (½ - ½)", dogru: true },
-          { id: "b", sembol: "🥊", aciklama: "Kavga", dogru: false },
-          { id: "c", sembol: "⚡", aciklama: "Öfke", dogru: false },
+          { id: "a", sembol: "🟰", aciklama: "Berabere (Yarımşar Puan)", dogru: true },
+          { id: "b", sembol: "🥇", aciklama: "Tek Kazanan", dogru: false },
+          { id: "c", sembol: "🥊", aciklama: "Kavga", dogru: false },
         ],
-        dogruMesaj: "Güvercin uçtu! Pat durumunda maç berabere tamamlanır!",
+        dogruMesaj: "Barışçıl beraberlik!",
       },
       {
         id: 3,
         karakter: "⚖️",
-        karakterAdi: "Adalet Terazisi",
-        soruMetni: "Pat durumunda skor tabelasında ne yazar? YARIM PUAN simgesine dokun!",
-        hedefSekil: "Terazi ⚖️",
+        karakterAdi: "Terazi",
+        soruMetni: "Pat pozisyonunda şah tehdit altında mıdır?",
+        tahtaTipi: "baslangic",
         secenekler: [
-          { id: "a", sembol: "⚖️", aciklama: "Eşit Puan Paylaşımı", dogru: true },
-          { id: "b", sembol: "0️⃣", aciklama: "Sıfır Puan", dogru: false },
-          { id: "c", sembol: "❌", aciklama: "İptal", dogru: false },
+          { id: "a", sembol: "❌", aciklama: "Hayır, Tehdit Altında Değildir", dogru: true },
+          { id: "b", sembol: "⚠️", aciklama: "Evet, Şah Altındadır", dogru: false },
+          { id: "c", sembol: "💥", aciklama: "Saldırı Var", dogru: false },
         ],
-        dogruMesaj: "Hakça paylaşıldı! Yarımşar puanla el sıkışıldı!",
+        dogruMesaj: "Çok doğru! Tehdit yok ama hamle yapacak taş yok.",
       },
     ],
   },
@@ -1062,47 +1047,46 @@ const KAZANIMLAR_VERISI: KazanimDetay[] = [
     uniteId: 3,
     uniteBaslik: "3. Satrançta Şah Tehdidi ve Mat",
     baslik: "Berabere kalmanın ne olduğunu bilir.",
-    resmiAciklama:
-      "Taş yetmezliği (sadece iki şah kalması), 50 hamle kuralı ve anlaşmalı beraberlik durumları aktarılır.",
+    resmiAciklama: "Yetersiz güç ve anlaşmalı beraberlikler.",
     ornekler: [
       {
         id: 1,
         karakter: "🏜️",
-        karakterAdi: "Issız Çöl",
-        soruMetni: "Tahtada sadece İKİ ŞAH kaldı, mat yapacak başka taş yok! İKİ ŞAHIN DOSTLUĞU kalbine bas!",
-        hedefSekil: "Dostluk Kalbi 💛",
+        karakterAdi: "Çöl",
+        soruMetni: "Tahtada sadece iki şah kaldığında ne olur?",
+        tahtaTipi: "baslangic",
         secenekler: [
-          { id: "a", sembol: "💛", aciklama: "Yetersiz Güçle Beraberlik", dogru: true },
-          { id: "b", sembol: "⚔️", aciklama: "Savaş Devam Eder", dogru: false },
+          { id: "a", sembol: "💛", aciklama: "Taş Yetmezliği ile Beraberlik", dogru: true },
+          { id: "b", sembol: "⚔️", aciklama: "Savaş Sürüyor", dogru: false },
           { id: "c", sembol: "🧨", aciklama: "Patlama", dogru: false },
         ],
-        dogruMesaj: "İki şah birbirini mat edemez! Yetersiz güç nedeniyle maç berabere biter!",
+        dogruMesaj: "İki şah birbirini mat edemez, berabere biter.",
       },
       {
         id: 2,
         karakter: "🤝",
-        karakterAdi: "Centilmen Çocuk",
-        soruMetni: "İki oyuncu da kazanmanın imkansız olduğunu görüp el sıkışır. EL SIKIŞMA simgesine tıkla!",
-        hedefSekil: "El Sıkışma 🤝",
+        karakterAdi: "Tokalaşma",
+        soruMetni: "İki oyuncu anlaşarak maçı bitirirse buna ne denir?",
+        tahtaTipi: "baslangic",
         secenekler: [
           { id: "a", sembol: "🤝", aciklama: "Anlaşmalı Beraberlik", dogru: true },
-          { id: "b", sembol: "🏃", aciklama: "Masadan Kaçış", dogru: false },
+          { id: "b", sembol: "🏃", aciklama: "Kaçış", dogru: false },
           { id: "c", sembol: "😭", aciklama: "Ağlama", dogru: false },
         ],
-        dogruMesaj: "Centilmence el sıkışıldı! Bu sporun en güzel anlarından biridir!",
+        dogruMesaj: "Centilmence anlaşarak berabere bitti.",
       },
       {
         id: 3,
         karakter: "⏳",
-        karakterAdi: "Zaman Kum Saati",
-        soruMetni: "Uzun süre hiçbir taş alınmaz ve piyon oynanmazsa 50 hamlede beraberlik olur. KUM SAATİ'ne bas!",
-        hedefSekil: "Kum Saati ⏳",
+        karakterAdi: "Saat",
+        soruMetni: "50 hamle boyunca hiç taş alınmazsa kural gereği ne ilan edilir?",
+        tahtaTipi: "baslangic",
         secenekler: [
-          { id: "a", sembol: "⏳", aciklama: "50 Hamle Kuralı Beraberliği", dogru: true },
-          { id: "b", sembol: "⏰", aciklama: "Alarm", dogru: false },
-          { id: "c", sembol: "🧭", aciklama: "Pusula", dogru: false },
+          { id: "a", sembol: "⚖️", aciklama: "Beraberlik", dogru: true },
+          { id: "b", sembol: "🏆", aciklama: "Galibiyet", dogru: false },
+          { id: "c", sembol: "❌", aciklama: "İptal", dogru: false },
         ],
-        dogruMesaj: "Süre doldu! Satranç kuralları gereği oyun berabere sayıldı!",
+        dogruMesaj: "Süre ve hamle kuralı gereği berabere ilan edilir.",
       },
     ],
   },
@@ -1111,98 +1095,94 @@ const KAZANIMLAR_VERISI: KazanimDetay[] = [
     uniteId: 3,
     uniteBaslik: "3. Satrançta Şah Tehdidi ve Mat",
     baslik: "Mat ile pat konumlarını ayırt eder.",
-    resmiAciklama:
-      "Mat (şah tehdit altında + kaçış yok) ile Pat (şah tehdit altında değil + hamle yok) arasındaki fark pekiştirilir.",
+    resmiAciklama: "Mat ve pat farkının pekiştirilmesi.",
     ornekler: [
       {
         id: 1,
         karakter: "🔍",
-        karakterAdi: "Dedektif Büyüteç",
-        soruMetni: "Şaha 'ŞAH!' çekiliyor mu? Eğer şah tehdit altındaysa ve kaçış yoksa bu MAT'tır! KAZANAN TACA bas!",
-        hedefSekil: "Mat Tacı 👑",
+        karakterAdi: "Büyüteç",
+        soruMetni: "Şah saldırı altındaysa ve kaçamıyorsa bu nedir?",
+        tahtaTipi: "baslangic",
         secenekler: [
-          { id: "a", sembol: "👑", aciklama: "Şah Tehdidi Var = MAT", dogru: true },
+          { id: "a", sembol: "👑", aciklama: "MAT", dogru: true },
           { id: "b", sembol: "🧊", aciklama: "PAT", dogru: false },
-          { id: "c", sembol: "❓", aciklama: "Bilinmiyor", dogru: false },
+          { id: "c", sembol: "🌈", aciklama: "Tatil", dogru: false },
         ],
-        dogruMesaj: "Harika ayrım! Şah tehdit altındaysa bu kesinlikle MAT'tır!",
+        dogruMesaj: "Saldırı varsa MAT'tır!",
       },
       {
         id: 2,
         karakter: "🕊️",
-        karakterAdi: "Barışçıl Kuş",
-        soruMetni: "Şaha KİMSE SALDIRMIYOR ama yapacak hiçbir hamlesi yok! Bu PAT'tır! BARIŞ ÇİÇEĞİ'ne bas!",
-        hedefSekil: "Barış Çiçeği 🌸",
+        karakterAdi: "Kuş",
+        soruMetni: "Şaha saldıran yok ama hamle yapacak yer yoksa bu nedir?",
+        tahtaTipi: "baslangic",
         secenekler: [
-          { id: "a", sembol: "🌸", aciklama: "Tehdit Yok = PAT (Berabere)", dogru: true },
-          { id: "b", sembol: "👑", aciklama: "MAT", dogru: false },
-          { id: "c", sembol: "🏆", aciklama: "Galibiyet", dogru: false },
+          { id: "a", sembol: "🌸", aciklama: "PAT (Beraberlik)", dogru: true },
+          { id: "b", sembol: "👑", aciklama: "Mat", dogru: false },
+          { id: "c", sembol: "🏆", aciklama: "Kupa", dogru: false },
         ],
-        dogruMesaj: "Muazzam! Şaha tehdit yokken kilitlenirse oyun PAT olur!",
+        dogruMesaj: "Saldırı yoksa PAT'tır!",
       },
       {
         id: 3,
         karakter: "💡",
-        karakterAdi: "Zeka Işığı",
-        soruMetni: "Mat ve pat farkını çözen süper beynin parlayan IŞIĞINA dokun!",
-        hedefSekil: "Zeka Işığı 💡",
+        karakterAdi: "Akıl",
+        soruMetni: "Mat ve pat farkını öğrendin mi?",
+        tahtaTipi: "baslangic",
         secenekler: [
-          { id: "a", sembol: "💡", aciklama: "Farkı Öğrendim!", dogru: true },
-          { id: "b", sembol: "💤", aciklama: "Kafam Karıştı", dogru: false },
-          { id: "c", sembol: "❌", aciklama: "Unuttum", dogru: false },
+          { id: "a", sembol: "💡", aciklama: "Evet, Artık Biliyorum!", dogru: true },
+          { id: "b", sembol: "💤", aciklama: "Bilmiyorum", dogru: false },
+          { id: "c", sembol: "❌", aciklama: "Karıştırdım", dogru: false },
         ],
-        dogruMesaj: "Harikasın! Artık hiçbir tuzak seni yanıltamaz!",
+        dogruMesaj: "Harika! Artık ikisini karıştırmazsın.",
       },
     ],
   },
-
-  // 4. ÜNİTE
   {
     kod: "ST.OÖ. 4.1.",
     uniteId: 4,
     uniteBaslik: "4. Satrançta Tehdit ve Savunma",
     baslik: "Satrançta tehdit durumlarını fark eder.",
-    resmiAciklama:
-      "Rakibin bir sonraki hamlede taşımızı almak istediği durumlar önceden sezdirilir.",
+    resmiAciklama: "Tehdit altındaki taşları önceden sezme.",
     ornekler: [
       {
         id: 1,
         karakter: "🚨",
-        karakterAdi: "Kırmızı Alarm",
-        soruMetni: "Rakip Fil gözünü Kalemize dikmiş! Tehlikeyi haber veren KIRMIZI ALARM lambasına bas!",
-        hedefSekil: "Alarm Lambası 🚨",
+        karakterAdi: "Alarm",
+        soruMetni: "Rakip taş taşımıza saldırınca ne çalışır?",
+        tahtaTipi: "baslangic",
         secenekler: [
-          { id: "a", sembol: "🚨", aciklama: "Tehdidi Fark Ettim!", dogru: true },
-          { id: "b", sembol: "😴", aciklama: "Fark Etmedim", dogru: false },
-          { id: "c", sembol: "🎈", aciklama: "Balon", dogru: false },
+          { id: "a", sembol: "🚨", aciklama: "Tehlike Alarmı", dogru: true },
+          { id: "b", sembol: "🎵", aciklama: "Şarkı", dogru: false },
+          { id: "c", sembol: "🎈", aciklama: "Eğlence", dogru: false },
         ],
-        dogruMesaj: "Ciiiyuuuv! Alarm çaldı, hemen savunma planı yapmalıyız!",
+        dogruMesaj: "Tehlike alarmı çalındı!",
       },
       {
         id: 2,
         karakter: "🦊",
-        karakterAdi: "Uyanık Tilki",
-        soruMetni: "Rakip piyon atımıza doğru yaklaşıyor. UYANIK TİLKİ GÖZÜ'ne basarak taşını koru!",
-        hedefSekil: "Göz 👀",
+        karakterAdi: "Tilki",
+        soruMetni: "Tehditleri önceden görmek oyuncuya ne kazandırır?",
+        tahtaTipi: "baslangic",
         secenekler: [
-          { id: "a", sembol: "👀", aciklama: "Gözlerim Tahtada!", dogru: true },
-          { id: "b", sembol: "🙈", aciklama: "Gözümü Kapattım", dogru: false },
-          { id: "c", sembol: "🕶️", aciklama: "Güneş Gözlüğü", dogru: false },
+          { id: "a", sembol: "🛡️", aciklama: "Taşımızı Kurtarma Şansı", dogru: true },
+          { id: "b", sembol: "😴", aciklama: "Uyku", dogru: false },
+          { id: "c", sembol: "💤", sd: "Hiç", aciklama: "Hiç", dogru: false },
         ],
-        dogruMesaj: "Harika dikkat! Rakibin hamle niyetini anında çözdün!",
+        dogruMesaj: "Zamanında savunma yapmanı sağlar.",
       },
       {
         id: 3,
-        karakter: "🛡️",
-        karakterAdi: "Güvenlik Robotu",
-        soruMetni: "Tehdit altındaki taşlarımızı kurtarmak için SİHİRLİ KALKAN simgesine bas!",
-        hedefSekil: "Kalkan 🛡️",
+        karakter: "👀",
+        karakterAdi: "Göz",
+        soruMetni: "Gözlerimizi tahtada nerede tutmalıyız?",
+        tahtaTipi: "baslangic",
         secenekler: [
-          { id: "a", sembol: "🛡️", aciklama: "Savunmaya Geç", dogru: true },
-          { id: "b", sembol: "💤", aciklama: "Uyuya Kal", dogru: false },
-          { id: "c", sembol: "🍂", aciklama: "Taşı Bırak", dogru: false },
+          { id: "a", sembol: "👁️‍🗨️", aciklama: "Tüm Tahtada ve Tehditlerde", dogru: true },
+          { id: "b", sembol: "🥾", aciklama: "Yerde", dogru: false },
+          { id: "c", sembol: "☁️", aciklama: "Bulutta", dogru: false },
         ],
-        dogruMesaj: "Kalkan kuruldu! Tehdit bertaraf edildi!",
+        dogruMesaj: "Gözler daima tahtada olmalıdır.",
       },
     ],
   },
@@ -1211,47 +1191,46 @@ const KAZANIMLAR_VERISI: KazanimDetay[] = [
     uniteId: 4,
     uniteBaslik: "4. Satrançta Tehdit ve Savunma",
     baslik: "Taşının önüne perdeleme yapar.",
-    resmiAciklama:
-      "Saldıran taş ile hedef taş arasına uygun bir taş sürerek saldırı hattının kesilmesi öğretilir.",
+    resmiAciklama: "Araya taş koyarak saldırıyı engelleme.",
     ornekler: [
       {
         id: 1,
         karakter: "🎭",
-        karakterAdi: "Tiyatro Perdesi",
-        soruMetni: "Vezir kalemize saldırıyor! Araya piyonumuzu sürerek perde çekelim. SAHNE PERDESİ'ne tıkla!",
-        hedefSekil: "Perde 🎪",
+        karakterAdi: "Perde",
+        soruMetni: "Saldıran taş ile hedef taş arasına başka taş koymaya ne denir?",
+        tahtaTipi: "baslangic",
         secenekler: [
-          { id: "a", sembol: "🎪", aciklama: "Araya Perde Koy", dogru: true },
-          { id: "b", sembol: "🕳️", aciklama: "Açık Bırak", dogru: false },
-          { id: "c", sembol: "💨", aciklama: "Rüzgar", dogru: false },
+          { id: "a", sembol: "🎭", aciklama: "Perdeleme Yapmak", dogru: true },
+          { id: "b", sembol: "🏃", aciklama: "Kaçmak", dogru: false },
+          { id: "c", sembol: "🥊", aciklama: "Vurmak", dogru: false },
         ],
-        dogruMesaj: "Perde indi! Vezirin görüş açısı tamamen kapandı!",
+        dogruMesaj: "Araya perde çekilerek yol kapatıldı.",
       },
       {
         id: 2,
         karakter: "🧱",
-        karakterAdi: "Usta Duvarcı",
-        soruMetni: "Filin saldırı yoluna dost bir atımızı koyarak duvar ördük. SAĞLAM DUVAR simgesine bas!",
-        hedefSekil: "Duvar 🧱",
+        karakterAdi: "Duvar",
+        soruMetni: "Perdeleme hangi taşların saldırısını durdurmak için etkilidir?",
+        tahtaTipi: "baslangic",
         secenekler: [
-          { id: "a", sembol: "🧱", aciklama: "Yolu Kapat", dogru: true },
-          { id: "b", sembol: "🚪", aciklama: "Kapıyı Aç", dogru: false },
-          { id: "c", sembol: "🪟", aciklama: "Pencere Aç", dogru: false },
+          { id: "a", sembol: "♜♝♛", aciklama: "Kale, Fil ve Vezir", dogru: true },
+          { id: "b", sembol: "♞", aciklama: "At", dogru: false },
+          { id: "c", sembol: "♟️", aciklama: "Piyon", dogru: false },
         ],
-        dogruMesaj: "Duvar sağlam! Filin çapraz oku taşa çarptı ve durdu!",
+        dogruMesaj: "Uzaktan saldıran taşlara karşı perdeleme işe yarar.",
       },
       {
         id: 3,
         karakter: "☂️",
-        karakterAdi: "Koruyucu Şemsiye",
-        soruMetni: "Yağan saldırı yağmuruna karşı şemsiyeyi açtık. ŞEMSİYE simgesine tıkla!",
-        hedefSekil: "Şemsiye ☂️",
+        karakterAdi: "Şemsiye",
+        soruMetni: "Perdeleme taşı ne görevi görür?",
+        tahtaTipi: "baslangic",
         secenekler: [
-          { id: "a", sembol: "☂️", aciklama: "Perdeleme Şemsiyesi", dogru: true },
-          { id: "b", sembol: "🌧️", aciklama: "Yağmur", dogru: false },
-          { id: "c", sembol: "⚡", aciklama: "Şimşek", dogru: false },
+          { id: "a", sembol: "🛡️", aciklama: "Siper / Kalkan Görevi", dogru: true },
+          { id: "b", sembol: "🎈", aciklama: "Süs", dogru: false },
+          { id: "c", sembol: "📦", aciklama: "Kutu", dogru: false },
         ],
-        dogruMesaj: "Kupkuru ve güvendeyiz! Perdeleme başarıyla tamamlandı!",
+        dogruMesaj: "Güvenli bir siper oluşturur.",
       },
     ],
   },
@@ -1260,47 +1239,46 @@ const KAZANIMLAR_VERISI: KazanimDetay[] = [
     uniteId: 4,
     uniteBaslik: "4. Satrançta Tehdit ve Savunma",
     baslik: "Satrançta güvenli kareleri ayırt eder.",
-    resmiAciklama:
-      "Rakip taşların vurmadığı güvenli liman kareler ile tehlikeli kareler ayırt ettirilir.",
+    resmiAciklama: "Güvenli ve tehlikeli karelerin ayrımı.",
     ornekler: [
       {
         id: 1,
         karakter: "🏝️",
-        karakterAdi: "Güvenli Ada",
-        soruMetni: "Atımız tehdit altında! Rakip taşların saldırmadığı GÜVENLİ YEŞİL ADA'ya zıpla!",
-        hedefSekil: "Yeşil Ada 🏝️",
+        karakterAdi: "Ada",
+        soruMetni: "Rakibin saldırı altında tutmadığı karelere ne denir?",
+        tahtaTipi: "baslangic",
         secenekler: [
-          { id: "a", sembol: "🏝️", aciklama: "Tehlikesiz Güvenli Kare", dogru: true },
-          { id: "b", sembol: "🌋", aciklama: "Lav Çukuru (Tehlikeli)", dogru: false },
-          { id: "c", sembol: "🦈", aciklama: "Köpekbalığı", dogru: false },
+          { id: "a", sembol: "🏝️", aciklama: "Güvenli Kare", dogru: true },
+          { id: "b", sembol: "🌋", aciklama: "Tehlike Çukuru", dogru: false },
+          { id: "c", sembol: "🕳️", aciklama: "Tuzak", dogru: false },
         ],
-        dogruMesaj: "Oh be! Atımız güvenli yeşil adaya kondu, hiç kimse ona dokunamaz!",
+        dogruMesaj: "Güvenli kareler taşlarımız için limandır.",
       },
       {
         id: 2,
         karakter: "🚦",
-        karakterAdi: "Trafik Işığı",
-        soruMetni: "Güvenli kareye gitmek için hangi ışık yanar? YEŞİL IŞIK kutusuna bas!",
-        hedefSekil: "Yeşil Işık 🟢",
+        karakterAdi: "Trafik",
+        soruMetni: "Tehlikeli kareye taş koymak neye yol açar?",
+        tahtaTipi: "baslangic",
         secenekler: [
-          { id: "a", sembol: "🔴", aciklama: "Kırmızı Işık (Tehlike)", dogru: false },
-          { id: "b", sembol: "🟢", aciklama: "Yeşil Işık (Güvenli Yol)", dogru: true },
-          { id: "c", sembol: "⛔", aciklama: "Girilmez", dogru: false },
+          { id: "a", sembol: "❌", aciklama: "Taşımızı Kaybetmemize", dogru: true },
+          { id: "b", sembol: "🏆", aciklama: "Kazanmaya", dogru: false },
+          { id: "c", sembol: "🎉", aciklama: "Ödüle", dogru: false },
         ],
-        dogruMesaj: "Yeşil yandı! Güvenli kareye adımını attın!",
+        dogruMesaj: "Tehlikeli karede taşlarımızı kaybederiz.",
       },
       {
         id: 3,
         karakter: "⚓",
-        karakterAdi: "Kaptan Penguen",
-        soruMetni: "Fırtınadan kaçıp güvenli limana demir atan Kalenin GEMİ ÇAPASI'na dokun!",
-        hedefSekil: "Çapa ⚓",
+        karakterAdi: "Çapa",
+        soruMetni: "Taşımızı nereye oynamalıyız?",
+        tahtaTipi: "baslangic",
         secenekler: [
-          { id: "a", sembol: "⚓", aciklama: "Güvenli Liman", dogru: true },
-          { id: "b", sembol: "🌪️", aciklama: "Hortum", dogru: false },
-          { id: "c", sembol: "🌊", aciklama: "Büyük Dalga", dogru: false },
+          { id: "a", sembol: "🟢", aciklama: "Güvenli Karelere", dogru: true },
+          { id: "b", sembol: "🔴", aciklama: "Tehlikeli Yerlere", dogru: false },
+          { id: "c", sembol: "🗑️", aciklama: "Çöpe", dogru: false },
         ],
-        dogruMesaj: "Liman sakin! Taşımız güvende!",
+        dogruMesaj: "Daima güvenli kareleri tercih ederiz.",
       },
     ],
   },
@@ -1309,47 +1287,46 @@ const KAZANIMLAR_VERISI: KazanimDetay[] = [
     uniteId: 4,
     uniteBaslik: "4. Satrançta Tehdit ve Savunma",
     baslik: "Taşını korur.",
-    resmiAciklama:
-      "Saldırıya uğrayan taşa başka bir taşla koruma sağlama veya güvenli yere çekme alıştırmaları yapılır.",
+    resmiAciklama: "Saldırı altındaki taşı koruma veya kaçırma.",
     ornekler: [
       {
         id: 1,
         karakter: "🦸‍♂️",
-        karakterAdi: "Süper Koruyucu",
-        soruMetni: "Piyonumuz tehdit altında, arkasından Kalemizi getirip koruyalım. SÜPER KORUMA KALKANINA bas!",
-        hedefSekil: "Kalkan 🛡️",
+        karakterAdi: "Kahraman",
+        soruMetni: "Tehdit altındaki taşımızı korumanın yolları nelerdir?",
+        tahtaTipi: "baslangic",
         secenekler: [
-          { id: "a", sembol: "🛡️", aciklama: "Arkadaşını Koru", dogru: true },
-          { id: "b", sembol: "😴", aciklama: "Uyu", dogru: false },
-          { id: "c", sembol: "🍃", aciklama: "Yalnız Bırak", dogru: false },
+          { id: "a", sembol: "🛡️🏃", aciklama: "Koruma Sağlamak veya Kaçırmak", dogru: true },
+          { id: "b", sembol: "💤", aciklama: "Hiçbir şey yapmamak", dogru: false },
+          { id: "c", sembol: "🎁", aciklama: "Hediye etmek", dogru: false },
         ],
-        dogruMesaj: "Arkadaşını korudun! Birlikten kuvvet doğar!",
+        dogruMesaj: "Taşımızı ya koruruz ya da kaçırırız.",
       },
       {
         id: 2,
         karakter: "🏃‍♀️",
-        karakterAdi: "Hızlı Ceylan",
-        soruMetni: "Koruyamıyorsak ne yaparız? Hemen güvenli bir yere kaçarız! HIZLI KOŞUCU simgesine dokun!",
-        hedefSekil: "Koşucu 🏃",
+        karakterAdi: "Koşucu",
+        soruMetni: "Koruyamadığımız taşı nereye götürmeliyiz?",
+        tahtaTipi: "baslangic",
         secenekler: [
-          { id: "a", sembol: "🏃", aciklama: "Güvenli Yere Kaç", dogru: true },
-          { id: "b", sembol: "🧍", aciklama: "Bekle", dogru: false },
-          { id: "c", sembol: "🪑", aciklama: "Otur", dogru: false },
+          { id: "a", sembol: "🏝️", aciklama: "Güvenli Bir Kareye", dogru: true },
+          { id: "b", sembol: "🌋", aciklama: "Tehlikeye", dogru: false },
+          { id: "c", sembol: "📦", aciklama: "Kutuya", dogru: false },
         ],
-        dogruMesaj: "Vınnn! Taşını güvenli kareye kaçırıp kurtardın!",
+        dogruMesaj: "Güvenli kareye kaçırarak kurtarırız.",
       },
       {
         id: 3,
         karakter: "🤝",
-        karakterAdi: "El Ele Taşlar",
-        soruMetni: "Birbirini koruyan taş zincirini simgeleyen DOSTLUK HALKASI'na tıkla!",
-        hedefSekil: "Halka 💍",
+        karakterAdi: "Dost",
+        soruMetni: "Taşlarımız birbirini korursa ne olur?",
+        tahtaTipi: "baslangic",
         secenekler: [
-          { id: "a", sembol: "💍", aciklama: "Kopmaz Savunma Zinciri", dogru: true },
-          { id: "b", sembol: "✂️", aciklama: "Kopuk Makas", dogru: false },
-          { id: "c", sembol: "🧷", aciklama: "İğne", dogru: false },
+          { id: "a", sembol: "💪", aciklama: "Güçlü Savunma Zinciri Olur", dogru: true },
+          { id: "b", sembol: "💔", aciklama: "Zayıflar", dogru: false },
+          { id: "c", sembol: "📉", aciklama: "Düşer", dogru: false },
         ],
-        dogruMesaj: "Mükemmel savunma! Rakip taşlarına dokunamaz bile!",
+        dogruMesaj: "Kopmaz bir savunma zinciri oluşur.",
       },
     ],
   },
@@ -1358,98 +1335,94 @@ const KAZANIMLAR_VERISI: KazanimDetay[] = [
     uniteId: 4,
     uniteBaslik: "4. Satrançta Tehdit ve Savunma",
     baslik: "Satrançta taş alır.",
-    resmiAciklama:
-      "Kurallara uygun şekilde rakip taşın yerine geçerek taş alımı uygulatılır.",
+    resmiAciklama: "Rakip taşın yerine geçerek taş alma.",
     ornekler: [
       {
         id: 1,
         karakter: "🥊",
-        karakterAdi: "Boksör Kanguru",
-        soruMetni: "Rakip boşta duran bir fil bıraktı. Kuralına uygun şekilde onu al! BOKS ELDİVENİ simgesine tıkla!",
-        hedefSekil: "Eldiven 🥊",
+        karakterAdi: "Boksör",
+        soruMetni: "Rakip taş alındığında o kareye ne konur?",
+        tahtaTipi: "baslangic",
         secenekler: [
-          { id: "a", sembol: "🥊", aciklama: "Boştaki Taşı Al", dogru: true },
-          { id: "b", sembol: "💤", aciklama: "Görmezden Gel", dogru: false },
-          { id: "c", sembol: "🙈", aciklama: "Gözünü Kapa", dogru: false },
+          { id: "a", sembol: "♟️", aciklama: "Kendi Taşımız Konur", dogru: true },
+          { id: "b", sembol: "🕳️", aciklama: "Boş Bırakılır", dogru: false },
+          { id: "c", sembol: "🗑️", aciklama: "Kapatılır", dogru: false },
         ],
-        dogruMesaj: "Hamle yapıldı! Rakip taş tahtadan alındı ve yerini bizim taşımız aldı!",
+        dogruMesaj: "Rakip taş kalkar, bizim taşımız o kareye yerleşir.",
       },
       {
         id: 2,
         karakter: "🧁",
-        karakterAdi: "Tatlı Canavarı",
-        soruMetni: "Taş almak lezzetli bir keki yemek gibidir! DİLİM PASTA simgesine basıp taşı al!",
-        hedefSekil: "Pasta 🍰",
+        karakterAdi: "Tatlı",
+        soruMetni: "Boşta duran rakip taş alınmalı mıdır?",
+        tahtaTipi: "baslangic",
         secenekler: [
-          { id: "a", sembol: "🍰", aciklama: "Afiyetle Al", dogru: true },
-          { id: "b", sembol: "🥦", aciklama: "Bırak", dogru: false },
-          { id: "c", sembol: "🥣", aciklama: "Kase", dogru: false },
+          { id: "a", sembol: "✅", aciklama: "Evet, Fırsat Değerlendirilir", dogru: true },
+          { id: "b", sembol: "❌", aciklama: "Asla Alınmaz", dogru: false },
+          { id: "c", sembol: "💤", aciklama: "Uyunur", dogru: false },
         ],
-        dogruMesaj: "Nefis hamle! Taşını tahtadan aldın!",
+        dogruMesaj: "Boştaki taşlar kuralına uygun şekilde alınır.",
       },
       {
         id: 3,
         karakter: "⭐",
-        karakterAdi: "Puan Avcısı",
-        soruMetni: "Taş alırken aldığımız taşın yerine kendi taşımızı koyarız. DEĞİŞİM OKU simgesine tıkla!",
-        hedefSekil: "Değişim 🔄",
+        karakterAdi: "Yıldız",
+        soruMetni: "Taş alırken tahtadaki kare sayısı değişir mi?",
+        tahtaTipi: "baslangic",
         secenekler: [
-          { id: "a", sembol: "🔄", aciklama: "Kendi Taşını O Kareye Koy", dogru: true },
-          { id: "b", sembol: "❌", aciklama: "Yanına Koy", dogru: false },
-          { id: "c", sembol: "⬆️", aciklama: "Havaya At", dogru: false },
+          { id: "a", sembol: "⏹️", aciklama: "Hayır, 64 Kare Sabittir", dogru: true },
+          { id: "b", sembol: "📈", aciklama: "Artar", dogru: false },
+          { id: "c", sembol: "📉", aciklama: "Azalır", dogru: false },
         ],
-        dogruMesaj: "Tam kuralına uygun! Rakip taş kenara, senin taşın o kareye!",
+        dogruMesaj: "Tahta her zaman 64 karedir.",
       },
     ],
   },
-
-  // 5. ÜNİTE
   {
     kod: "ST.OÖ. 5.1.",
     uniteId: 5,
     uniteBaslik: "5. Satrancın Özel Kuralları",
     baslik: "Rok hamlesini uygular.",
-    resmiAciklama:
-      "Rok hamlesi; şahın güvenliği için kaleyle birlikte yaptığı özel bir hamledir. Şah veya kale oynamışsa yapılamaz.",
+    resmiAciklama: "Şah ve kalenin ortak özel hamlesi.",
     ornekler: [
       {
         id: 1,
         karakter: "🏰",
-        karakterAdi: "Saray Dansçısı Şah",
-        soruMetni: "Rok yaparken Şah önce iki adım kaleye doğru kayar, kale üstünden atlar! ŞAH VE KALE DANSI simgesine bas!",
-        hedefSekil: "Saray Dansı 💃",
+        karakterAdi: "Saray",
+        soruMetni: "Rok hamlesi kimin güvenliği için yapılır?",
+        tahtaTipi: "baslangic",
         secenekler: [
-          { id: "a", sembol: "💃", aciklama: "Sihirli Rok Dansı", dogru: true },
-          { id: "b", sembol: "🏃", aciklama: "Tek Başına Kaçış", dogru: false },
-          { id: "c", sembol: "🛑", aciklama: "Hareketsizlik", dogru: false },
+          { id: "a", sembol: "🤴", aciklama: "Bilge Şah", dogru: true },
+          { id: "b", sembol: "♟️", aciklama: "Piyon", dogru: false },
+          { id: "c", sembol: "♞", aciklama: "At", dogru: false },
         ],
-        dogruMesaj: "Harika dans! Şah köşeye saklandı, kale savaşa girdi!",
+        dogruMesaj: "Şahı güvenli köşeye almak için rok yapılır.",
       },
       {
         id: 2,
         karakter: "☝️",
-        karakterAdi: "Kuralcı Hakem",
-        soruMetni: "Rok atarken ilk önce hangi taşa dokunulmalıdır? BİLGE ŞAH'a dokun!",
-        hedefSekil: "Şah ♚",
+        karakterAdi: "Hakem",
+        soruMetni: "Rok yaparken tahtada ilk olarak hangi taşa dokunulmalıdır?",
+        tahtaTipi: "baslangic",
         secenekler: [
-          { id: "a", sembol: "♜", aciklama: "Kale (Yanlış)", dogru: false },
-          { id: "b", sembol: "♚", aciklama: "Önce Şaha Dokunulur!", dogru: true },
-          { id: "c", sembol: "♟️", aciklama: "Piyon", dogru: false },
+          { id: "a", sembol: "♚", aciklama: "Önce Şaha", dogru: true },
+          { id: "b", sembol: "♜", aciklama: "Önce Kaleye", dogru: false },
+          { id: "c", sembol: "♟️", aciklama: "Piyona", dogru: false },
         ],
-        dogruMesaj: "Mükemmel bilgi! Rok bir şah hamlesidir, önce şaha dokunulur!",
+        dogruMesaj: "Rok şah hamlesidir, önce şaha dokunulur.",
       },
       {
         id: 3,
         karakter: "🔒",
-        karakterAdi: "Güvenlik Şefi",
-        soruMetni: "Şah daha önce hareket etmişse rok yapabilir mi? KİLİTLİ KAPI simgesine dokun!",
-        hedefSekil: "Kilit 🔒",
+        karakterAdi: "Kilit",
+        soruMetni: "Daha önce oynamış şah ile rok yapılabilir mi?",
+        tahtaTipi: "baslangic",
         secenekler: [
-          { id: "a", sembol: "🔒", aciklama: "Hayır, Rok Hakkı Biter", dogru: true },
-          { id: "b", sembol: "🔓", aciklama: "Evet Yapabilir", dogru: false },
-          { id: "c", sembol: "🎉", aciklama: "İstediği Kadar Yapar", dogru: false },
+          { id: "a", sembol: "❌", aciklama: "Hayır, Rok Hakkı Yanar", dogru: true },
+          { id: "b", sembol: "✅", aciklama: "Evet Yapılır", dogru: false },
+          { id: "c", sembol: "🎉", aciklama: "Serbesttir", dogru: false },
         ],
-        dogruMesaj: "Doğru kural! Şah veya kale bir kere oynarsa bir daha rok yapılamaz!",
+        dogruMesaj: "Şah veya kale oynamışsa rok yapılamaz.",
       },
     ],
   },
@@ -1458,98 +1431,94 @@ const KAZANIMLAR_VERISI: KazanimDetay[] = [
     uniteId: 5,
     uniteBaslik: "5. Satrancın Özel Kuralları",
     baslik: "Piyonun geçerken alma hamlesini kavrar.",
-    resmiAciklama:
-      "İlk çıkışta iki kare fırlayan piyon, rakip piyonun tehdit ettiği kareden geçmişse sıradaki hamlede çapraz alınabilir.",
+    resmiAciklama: "Geçerken alma (En Passant) kuralı.",
     ornekler: [
       {
         id: 1,
         karakter: "👻",
-        karakterAdi: "Hayalet Avcısı",
-        soruMetni: "Piyon yanımızdan iki adım fırladı ama hayaleti arkadaki karede kaldı! HAYALET SİMGESİ'ne bas ve onu al!",
-        hedefSekil: "Hayalet 👻",
+        karakterAdi: "Hayalet",
+        soruMetni: "İlk çıkışta iki adım atlayan piyonun atladığı kareyi çaprazdan almasına ne denir?",
+        tahtaTipi: "baslangic",
         secenekler: [
-          { id: "a", sembol: "👻", aciklama: "Geçerken Alma (En Passant)", dogru: true },
-          { id: "b", sembol: "🧱", aciklama: "Duvar", dogru: false },
-          { id: "c", sembol: "🛑", aciklama: "Dur", dogru: false },
+          { id: "a", sembol: "👻", aciklama: "Geçerken Alma", dogru: true },
+          { id: "b", sembol: "🚀", aciklama: "Uçuş", dogru: false },
+          { id: "c", sembol: "💣", aciklama: "Bomba", dogru: false },
         ],
-        dogruMesaj: "Vooov! Geçerken alma (En Passant) büyülü kuralını çözdün!",
+        dogruMesaj: "Büyülü kural: Geçerken alma!",
       },
       {
         id: 2,
         karakter: "⚡",
-        karakterAdi: "Şimşek Piyon",
-        soruMetni: "Geçerken alma sadece o hamle yapıldığında HEMEN sıradaki hamlede yapılabilir. ŞİMŞEK simgesine bas!",
-        hedefSekil: "Şimşek ⚡",
+        karakterAdi: "Şimşek",
+        soruMetni: "Geçerken alma ne zaman yapılmalıdır?",
+        tahtaTipi: "baslangic",
         secenekler: [
-          { id: "a", sembol: "⚡", aciklama: "Hemen O Anda Yapılır", dogru: true },
-          { id: "b", sembol: "⏳", aciklama: "10 Hamle Sonra", dogru: false },
-          { id: "c", sembol: "📅", aciklama: "Yarın", dogru: false },
+          { id: "a", sembol: "⚡", aciklama: "Hemen O Anda (İlk Hamlede)", dogru: true },
+          { id: "b", sembol: "📅", aciklama: "İstediğimiz Zaman", dogru: false },
+          { id: "c", sembol: "⏳", aciklama: "Oyun Sonunda", dogru: false },
         ],
-        dogruMesaj: "Şimşek gibi anında! Sırasını kaçırırsan geçerken alma hakkı kaybolur!",
+        dogruMesaj: "Hemen o anda yapılmazsa hak kaybolur.",
       },
       {
         id: 3,
         karakter: "🪄",
-        karakterAdi: "Sihirbaz Tavşan",
-        soruMetni: "Bu özel kural sadece ve sadece hangi taşlar arasında gerçekleşir? MİNİK PİYON'a tıkla!",
-        hedefSekil: "Piyon ♟️",
+        karakterAdi: "Sihir",
+        soruMetni: "Geçerken alma kuralı hangi taşlar arasında geçerlidir?",
+        tahtaTipi: "baslangic",
         secenekler: [
-          { id: "a", sembol: "♟️", aciklama: "Sadece Piyonlar Arasında", dogru: true },
-          { id: "b", sembol: "♜", aciklama: "Kaleler Arasında", dogru: false },
-          { id: "c", sembol: "♚", aciklama: "Şahlar Arasında", dogru: false },
+          { id: "a", sembol: "♟️", aciklama: "Sadece Piyonlar", dogru: true },
+          { id: "b", sembol: "♜", aciklama: "Kaleler", dogru: false },
+          { id: "c", sembol: "♚", aciklama: "Şahlar", dogru: false },
         ],
-        dogruMesaj: "Tebrikler! Geçerken alma yalnızca piyonlara has bir sırdır!",
+        dogruMesaj: "Yalnızca piyonlara özel bir sırdır.",
       },
     ],
   },
-
-  // 6. ÜNİTE
   {
     kod: "ST.OÖ. 6.1.",
     uniteId: 6,
     uniteBaslik: "6. Satranç Oynuyorum",
     baslik: "Karşılıklı satranç oynar.",
-    resmiAciklama:
-      "Oyuna başlarken rakibe başarılar dileme, sırayla tek hamle yapma ve kurallı oyun bilinci kazandırılır.",
+    resmiAciklama: "Centilmenlik ve sırayla oynama bilinci.",
     ornekler: [
       {
         id: 1,
         karakter: "🤝",
-        karakterAdi: "Centilmen Aslan",
-        soruMetni: "Maç başlamadan önce rakibimizin elini sıkar ve ne deriz? 'BAŞARILAR DİLERİM' kalbine bas!",
-        hedefSekil: "Dostluk Kalbi 💖",
+        karakterAdi: "Dost",
+        soruMetni: "Maç başlamadan önce rakibimize ne söyleriz?",
+        tahtaTipi: "baslangic",
         secenekler: [
-          { id: "a", sembol: "💖", aciklama: "'İyi Oyunlar / Başarılar Dilerim'", dogru: true },
-          { id: "b", sembol: "😜", aciklama: "'Seni Yeneceğim!'", dogru: false },
-          { id: "c", sembol: "😠", aciklama: "Kızgın Bakış", dogru: false },
+          { id: "a", sembol: "💖", aciklama: "'İyi Oyunlar / Başarılar'", dogru: true },
+          { id: "b", sembol: "😜", aciklama: "Kötü Söz", dogru: false },
+          { id: "c", sembol: "😠", aciklama: "Kızmak", dogru: false },
         ],
-        dogruMesaj: "Harika centilmenlik! Satranç bir saygı ve dostluk oyunudur!",
+        dogruMesaj: "Başarılar diler, dostça başlarız.",
       },
       {
         id: 2,
         karakter: "⚪",
-        karakterAdi: "İlk Hamle Perisi",
-        soruMetni: "Satrançta oyuna HER ZAMAN hangi renk başlar? BEYAZ DAİRE'ye tıkla!",
-        hedefSekil: "Beyaz ⚪",
+        karakterAdi: "Beyaz",
+        soruMetni: "Satranç tahtasında maça her zaman hangi renk başlar?",
+        tahtaTipi: "baslangic",
         secenekler: [
-          { id: "a", sembol: "⚪", aciklama: "Daima Beyaz Başlar", dogru: true },
-          { id: "b", sembol: "⚫", aciklama: "Siyah Başlar", dogru: false },
-          { id: "c", sembol: "🔴", aciklama: "Kırmızı Başlar", dogru: false },
+          { id: "a", sembol: "⚪", aciklama: "Daima Beyaz Taşlar", dogru: true },
+          { id: "b", sembol: "⚫", aciklama: "Siyahlar", dogru: false },
+          { id: "c", sembol: "🔴", aciklama: "Kırmızı", dogru: false },
         ],
-        dogruMesaj: "Çok doğru! Satranç tahtasında ilk hamleyi her zaman Beyazlar yapar!",
+        dogruMesaj: "İlk hamle her zaman beyazlarındır.",
       },
       {
         id: 3,
         karakter: "🔄",
-        karakterAdi: "Sıra Bende Çarkı",
-        soruMetni: "Satrançta bir oyuncu peş peşe 2 hamle yapabilir mi? TEK HAMLE SIRASI simgesine bas!",
-        hedefSekil: "Sıra Çarkı 🔁",
+        karakterAdi: "Sıra",
+        soruMetni: "Hamle sırası kuralı nasıldır?",
+        tahtaTipi: "baslangic",
         secenekler: [
           { id: "a", sembol: "🔁", aciklama: "Sırayla Birer Hamle", dogru: true },
-          { id: "b", sembol: "⏩", aciklama: "İki Kere Üst Üste", dogru: false },
-          { id: "c", sembol: "⏸️", aciklama: "Hiç Oynamama", dogru: false },
+          { id: "b", sembol: "⏩", aciklama: "İstediğimiz Kadar", dogru: false },
+          { id: "c", sembol: "⏸️", aciklama: "Durmaksızın", dogru: false },
         ],
-        dogruMesaj: "Kurallara tam uyum! Sırayla bir sen, bir rakip oynar!",
+        dogruMesaj: "Sırayla bir sen, bir rakip oynar.",
       },
     ],
   },
@@ -1558,47 +1527,46 @@ const KAZANIMLAR_VERISI: KazanimDetay[] = [
     uniteId: 6,
     uniteBaslik: "6. Satranç Oynuyorum",
     baslik: "Oyun esnasında yardım ister.",
-    resmiAciklama:
-      "Kurallarla ilgili bir sorun çıktığında bağırmadan, el kaldırarak öğretmen veya hakemden yardım istenir.",
+    resmiAciklama: "Hakemden sessizce yardım isteme kuralları.",
     ornekler: [
       {
         id: 1,
         karakter: "🙋‍♂️",
-        karakterAdi: "Saygılı Öğrenci",
-        soruMetni: "Bir kural karışıklığında hakemi nasıl çağırırız? EL KALDIRMA simgesine tıkla!",
-        hedefSekil: "El Kaldırma 🙋",
+        karakterAdi: "Öğrenci",
+        soruMetni: "Sorun yaşayınca hakemi nasıl çağırırız?",
+        tahtaTipi: "baslangic",
         secenekler: [
-          { id: "a", sembol: "🙋", aciklama: "Sessizce El Kaldırırım", dogru: true },
-          { id: "b", sembol: "📢", aciklama: "Bağırırım", dogru: false },
-          { id: "c", sembol: "🤾", aciklama: "Taşları Fırlatırım", dogru: false },
+          { id: "a", sembol: "🙋", aciklama: "Sessizce El Kaldırarak", dogru: true },
+          { id: "b", sembol: "📢", aciklama: "Bağırarak", dogru: false },
+          { id: "c", sembol: "🤾", aciklama: "Koşarak", dogru: false },
         ],
-        dogruMesaj: "Örnek bir davranış! Hakem hemen yanına gelip sana yardımcı olur!",
+        dogruMesaj: "Sessizce el kaldırıp yardım isteriz.",
       },
       {
         id: 2,
         karakter: "🤫",
-        karakterAdi: "Kütüphane Kedisi",
-        soruMetni: "Satranç salonunda herkes düşünürken ortam nasıl olmalıdır? SESSİZLİK simgesine dokun!",
-        hedefSekil: "Sessizlik 🤫",
+        karakterAdi: "Sessizlik",
+        soruMetni: "Satranç salonunda ortam nasıl olmalıdır?",
+        tahtaTipi: "baslangic",
         secenekler: [
-          { id: "a", sembol: "🤫", aciklama: "Çıt Çıkmayan Sessiz Ortam", dogru: true },
-          { id: "b", sembol: "🥁", aciklama: "Davul Sesi", dogru: false },
-          { id: "c", sembol: "🎉", aciklama: "Parti Şarkıları", dogru: false },
+          { id: "a", sembol: "🤫", aciklama: "Çıt Çıkmayan Sessizlik", dogru: true },
+          { id: "b", sembol: "🥁", aciklama: "Gürültülü", dogru: false },
+          { id: "c", sembol: "🎉", aciklama: "Parti", dogru: false },
         ],
-        dogruMesaj: "Şşşt! Düşünce odasında sessizlik en büyük güçtür!",
+        dogruMesaj: "Sessizlik düşüncenin dostudur.",
       },
       {
         id: 3,
         karakter: "🧑‍🏫",
-        karakterAdi: "Sevgili Öğretmen",
-        soruMetni: "Hakem veya öğretmen geldiğinde onu dinlemek için KULAK VERME simgesine bas!",
-        hedefSekil: "Kulak 👂",
+        karakterAdi: "Öğretmen",
+        soruMetni: "Hakem geldiğinde nasıl davranmalıyız?",
+        tahtaTipi: "baslangic",
         secenekler: [
-          { id: "a", sembol: "👂", aciklama: "Dikkatle Dinlerim", dogru: true },
-          { id: "b", sembol: "🙈", aciklama: "Dinlemem", dogru: false },
-          { id: "c", sembol: "🏃", aciklama: "Kaçarım", dogru: false },
+          { id: "a", sembol: "👂", aciklama: "Sakinçe Dinlemeliyiz", dogru: true },
+          { id: "b", sembol: "🏃", aciklama: "Kaçmalıyız", dogru: false },
+          { id: "c", sembol: "🙈", aciklama: "Görmezden gelmeliyiz", dogru: false },
         ],
-        dogruMesaj: "Harika! Öğretmenin yönlendirmesiyle oyun güzellikle sürer!",
+        dogruMesaj: "Hakemi dinleyip kurala uyarız.",
       },
     ],
   },
@@ -1607,47 +1575,46 @@ const KAZANIMLAR_VERISI: KazanimDetay[] = [
     uniteId: 6,
     uniteBaslik: "6. Satranç Oynuyorum",
     baslik: "Oyun bitişini açıklar.",
-    resmiAciklama:
-      "Oyunun nasıl bittiği (mat, pat, süre), taşların düzenli kutusuna toplanması ve salon düzeni benimsetilir.",
+    resmiAciklama: "Maç sonu taşları toplama ve düzen.",
     ornekler: [
       {
         id: 1,
         karakter: "📦",
-        karakterAdi: "Düzenli Karınca",
-        soruMetni: "Maç bitince taşları tahtada bırakıp kaçar mıyız? DÜZENLİ TOPLAMA KUTUSU'na bas!",
-        hedefSekil: "Kutu 📦",
+        karakterAdi: "Kutu",
+        soruMetni: "Maç bitince taşlar ne yapılır?",
+        tahtaTipi: "baslangic",
         secenekler: [
-          { id: "a", sembol: "📦", aciklama: "Taşları Kutusuna Toplarım", dogru: true },
-          { id: "b", sembol: "🌪️", aciklama: "Yere Saçarım", dogru: false },
-          { id: "c", sembol: "🏃", aciklama: "Hemen Koşarım", dogru: false },
+          { id: "a", sembol: "📦", aciklama: "Düzenli Kutusuna Toplanır", dogru: true },
+          { id: "b", sembol: "🌪️", aciklama: "Yere Atılır", dogru: false },
+          { id: "c", sembol: "🏃", aciklama: "Bırakılıp Kaçılır", dogru: false },
         ],
-        dogruMesaj: "Harika disiplin! Tüm taşlar düzenli kutusuna yerleştirildi!",
+        dogruMesaj: "Taşlar kutusuna düzenli toplanır.",
       },
       {
         id: 2,
         karakter: "🏁",
-        karakterAdi: "Bitiş Hakemi",
-        soruMetni: "Maçın bittiğini her iki oyuncu masaya çağrılan hakeme bildirir. ONAY MÜHRÜ'ne tıkla!",
-        hedefSekil: "Onay Mührü 💮",
+        karakterAdi: "Bitiş",
+        soruMetni: "Oyun sonucu kime bildirilir?",
+        tahtaTipi: "baslangic",
         secenekler: [
-          { id: "a", sembol: "💮", aciklama: "Sonucu Bildir ve Onayla", dogru: true },
-          { id: "b", sembol: "❌", aciklama: "Gizle", dogru: false },
-          { id: "c", sembol: "💤", aciklama: "Uyu", dogru: false },
+          { id: "a", sembol: "💮", aciklama: "Hakeme veya Görevliye", dogru: true },
+          { id: "b", sembol: "❌", aciklama: "Kimseye", dogru: false },
+          { id: "c", sembol: "💤", aciklama: "Unutulur", dogru: false },
         ],
-        dogruMesaj: "Sonuç kaydedildi! Tebrikler maç tamamlandı!",
+        dogruMesaj: "Sonuç kaydedilir.",
       },
       {
         id: 3,
         karakter: "🧹",
-        karakterAdi: "Tertemiz Sınıf",
-        soruMetni: "Sandalyemizi düzeltip masayı bir sonraki arkadaşımıza tertemiz bırakmak için YILDIZ'a bas!",
-        hedefSekil: "Yıldız ⭐",
+        karakterAdi: "Temizlik",
+        soruMetni: "Masa nasıl bırakılmalıdır?",
+        tahtaTipi: "baslangic",
         secenekler: [
-          { id: "a", sembol: "⭐", aciklama: "Masayı Temiz Bırakırım", dogru: true },
-          { id: "b", sembol: "🗑️", aciklama: "Çöp Bırakırım", dogru: false },
-          { id: "c", sembol: "🪑", aciklama: "Sandalyeyi Deviririm", dogru: false },
+          { id: "a", sembol: "⭐", aciklama: "Tertemiz ve Düzenli", dogru: true },
+          { id: "b", sembol: "🗑️", acikli: "Dağınık", aciklama: "Çöplü", dogru: false },
+          { id: "c", sembol: "🔥", aciklama: "Kötü", dogru: false },
         ],
-        dogruMesaj: "Pırıl pırıl! Gerçek bir satranç sporcusu gibi davrandın!",
+        dogruMesaj: "Masayı temiz ve düzenli bırakırız.",
       },
     ],
   },
@@ -1656,51 +1623,158 @@ const KAZANIMLAR_VERISI: KazanimDetay[] = [
     uniteId: 6,
     uniteBaslik: "6. Satranç Oynuyorum",
     baslik: "Satrancın etik kurallarının farkına varır.",
-    resmiAciklama:
-      "Oyun arkadaşına saygı, yense de yenilse de rakibini kutlama ve maçı devam eden arkadaşlarını rahatsız etmeme öğretilir.",
+    resmiAciklama: "Fair-play, rakibe saygı ve sessizlik.",
     ornekler: [
       {
         id: 1,
         karakter: "💖",
-        karakterAdi: "Dost Kalpler",
-        soruMetni: "Maç bittiğinde kazansak da kaybetsek de rakibimizin elini sıkarız. SEVGİ KALBİ'ne bas!",
-        hedefSekil: "Sevgi Kalbi ❤️",
+        karakterAdi: "Kalp",
+        soruMetni: "Maç bittikten sonra rakibimize ne deriz?",
+        tahtaTipi: "baslangic",
         secenekler: [
-          { id: "a", sembol: "❤️", aciklama: "'Tebrik Ederim' Derim", dogru: true },
-          { id: "b", sembol: "😭", aciklama: "Ağlayıp Küserim", dogru: false },
-          { id: "c", sembol: "😝", aciklama: "Dalga Geçerim", dogru: false },
+          { id: "a", sembol: "❤️", aciklama: "'Tebrik Ederim, Güzel Maçtı'", dogru: true },
+          { id: "b", sembol: "😜", aciklama: "Alay Ederiz", dogru: false },
+          { id: "c", sembol: "😠", aciklama: "Küseriz", dogru: false },
         ],
-        dogruMesaj: "Gönüllerin şampiyonu! Rakibini tebrik etmek en büyük olgunluktur!",
+        dogruMesaj: "Tebrik eder, dostça el sıkışırız.",
       },
       {
         id: 2,
         karakter: "🤫",
-        karakterAdi: "Sessiz Parmak Uçları",
-        soruMetni: "Bizim maçımız bitti ama yan masadaki arkadaşlarımız hala oynuyor. Onların yanından nasıl geçeriz? PARMAK UCU simgesine tıkla!",
-        hedefSekil: "Parmak Ucu 👣",
+        karakterAdi: "Sessiz",
+        soruMetni: "Devam eden diğer maçlara nasıl davranmalıyız?",
+        tahtaTipi: "baslangic",
         secenekler: [
-          { id: "a", sembol: "👣", aciklama: "Parmak Ucunda Sessizce", dogru: true },
-          { id: "b", sembol: "🗣️", aciklama: "Tahtalarına Karışarak", dogru: false },
-          { id: "c", sembol: "📢", aciklama: "Bağırarak Koşarak", dogru: false },
+          { id: "a", sembol: "👣", aciklama: "Sessiz Olup Karışmayız", dogru: true },
+          { id: "b", sembol: "📢", aciklama: "Bağırırız", dogru: false },
+          { id: "c", sembol: "🗣️", aciklama: "Hamle Söyleriz", dogru: false },
         ],
-        dogruMesaj: "Harika saygı! Başkalarının maçına asla karışılmaz ve çıt çıkarılmaz!",
+        dogruMesaj: "Diğer maçlara saygı duyup sessiz oluruz.",
       },
       {
         id: 3,
         karakter: "🌟",
-        karakterAdi: "Fair-Play Yıldızı",
-        soruMetni: "Satrancın tüm nezaket kurallarına uyan gerçek bir sporcu oldun! PARLAK FAİR-PLAY YILDIZI'na dokun!",
-        hedefSekil: "Altın Yıldız 🌟",
+        karakterAdi: "Yıldız",
+        soruMetni: "Gerçek bir satranç sporcusu nasıl unvan alır?",
+        tahtaTipi: "baslangic",
         secenekler: [
-          { id: "a", sembol: "🌟", aciklama: "Ben Gerçek Bir Sporcuyum!", dogru: true },
-          { id: "b", sembol: "🍂", aciklama: "Kuralları Bozarım", dogru: false },
-          { id: "c", sembol: "❌", aciklama: "Vazgeçerim", dogru: false },
+          { id: "a", sembol: "🌟", aciklama: "Centilmen ve Kurallara Uyarak", dogru: true },
+          { id: "b", sembol: "🍂", aciklama: "Kural Bozarak", dogru: false },
+          { id: "c", sembol: "❌", aciklama: "Kavga Ederek", dogru: false },
         ],
-        dogruMesaj: "Tebrikler! Sen gerçek bir şampiyon ve centilmen satranç sporcususun!",
+        dogruMesaj: "Centilmenlik en büyük kazançtır!",
       },
     ],
   },
 ];
+
+// İNTERAKTİF SVG SATRANÇ TAHTASI VE OKLAR BİLEŞENİ
+function SatrançTahtasiGorseli({ tip, okYonu }: { tip: string; okYonu?: string }) {
+  return (
+    <div
+      style={{
+        width: "100%",
+        maxWidth: "260px",
+        margin: "12px auto",
+        backgroundColor: "#292524",
+        padding: "8px",
+        borderRadius: "14px",
+        boxShadow: "0 6px 16px rgba(0,0,0,0.15)",
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+      }}
+    >
+      <svg viewBox="0 0 200 200" style={{ width: "100%", height: "auto", borderRadius: "8px" }}>
+        {/* 8x8 Tahta Kareleri */}
+        {Array.from({ length: 8 }).map((_, row) =>
+          Array.from({ length: 8 }).map((_, col) => {
+            const isWhite = (row + col) % 2 === 0;
+            return (
+              <rect
+                key={`${row}-${col}`}
+                x={col * 25}
+                y={row * 25}
+                width={25}
+                height={25}
+                fill={isWhite ? "#fef08a" : "#ca8a04"}
+              />
+            );
+          })
+        )}
+
+        {/* Taş ve Ok Görselleştirmeleri */}
+        {tip === "baslangic" && (
+          <>
+            <text x="12" y="145" fontSize="16" textAnchor="middle">♖</text>
+            <text x="100" y="105" fontSize="18" textAnchor="middle" fill="#dc2626">♔</text>
+            <rect x="175" y="175" width="25" height="25" fill="#22c55e" opacity="0.7" />
+            <text x="187" y="192" fontSize="12" textAnchor="middle" fill="#ffffff">✔</text>
+          </>
+        )}
+
+        {tip === "kaleYolu" && (
+          <>
+            <text x="100" y="105" fontSize="18" textAnchor="middle">♜</text>
+            <line x1="100" y1="100" x2="100" y2="25" stroke="#ef4444" strokeWidth="4" strokeDasharray="4" />
+            <line x1="100" y1="100" x2="100" y2="175" stroke="#ef4444" strokeWidth="4" strokeDasharray="4" />
+            <line x1="100" y1="100" x2="25" y2="100" stroke="#ef4444" strokeWidth="4" strokeDasharray="4" />
+            <line x1="100" y1="100" x2="175" y2="100" stroke="#ef4444" strokeWidth="4" strokeDasharray="4" />
+          </>
+        )}
+
+        {tip === "filCapraz" && (
+          <>
+            <text x="100" y="105" fontSize="18" textAnchor="middle">♝</text>
+            <line x1="100" y1="100" x2="25" y2="25" stroke="#3b82f6" strokeWidth="4" strokeDasharray="4" />
+            <line x1="100" y1="100" x2="175" y2="175" stroke="#3b82f6" strokeWidth="4" strokeDasharray="4" />
+            <line x1="100" y1="100" x2="25" y2="175" stroke="#3b82f6" strokeWidth="4" strokeDasharray="4" />
+            <line x1="100" y1="100" x2="175" y2="25" stroke="#3b82f6" strokeWidth="4" strokeDasharray="4" />
+          </>
+        )}
+
+        {tip === "atL" && (
+          <>
+            <text x="100" y="105" fontSize="18" textAnchor="middle">♞</text>
+            <path d="M 100 100 L 100 50 L 125 50" stroke="#a855f7" strokeWidth="4" fill="none" />
+            <circle cx="125" cy="50" r="6" fill="#22c55e" />
+          </>
+        )}
+
+        {tip === "sahAdim" && (
+          <>
+            <text x="100" y="105" fontSize="18" textAnchor="middle">♚</text>
+            <circle cx="100" cy="80" r="4" fill="#ef4444" />
+            <circle cx="120" cy="80" r="4" fill="#ef4444" />
+            <circle cx="120" cy="100" r="4" fill="#ef4444" />
+            <circle cx="100" cy="120" r="4" fill="#ef4444" />
+            <circle cx="80" cy="120" r="4" fill="#ef4444" />
+            <circle cx="80" cy="100" r="4" fill="#ef4444" />
+          </>
+        )}
+
+        {tip === "piyonIleri" && (
+          <>
+            <text x="100" y="125" fontSize="18" textAnchor="middle">♟️</text>
+            <line x1="100" y1="110" x2="100" y2="60" stroke="#eab308" strokeWidth="4" />
+            <polygon points="100,50 95,65 105,65" fill="#eab308" />
+          </>
+        )}
+
+        {tip === "matVurusu" && (
+          <>
+            <text x="100" y="105" fontSize="18" textAnchor="middle">👑</text>
+            <text x="100" y="55" fontSize="16" textAnchor="middle" fill="#ef4444">💥</text>
+            <rect x="87" y="37" width="25" height="25" fill="none" stroke="#ef4444" strokeWidth="3" />
+          </>
+        )}
+      </svg>
+      <div style={{ fontSize: "10px", color: "#a855f7", fontWeight: "bold", marginTop: "4px" }}>
+        ♟️ İnteraktif Satranç Tahtası & Taktik Hattı
+      </div>
+    </div>
+  );
+}
 
 export default function DerslerPage() {
   const [seciliKod, setSeciliKod] = useState<string>("ST.OÖ. 1.1.");
@@ -1799,7 +1873,6 @@ export default function DerslerPage() {
           </h1>
         </div>
 
-        {/* Hızlı Açılır Liste (33 Kazanım) */}
         <select
           value={aktifKazanim.kod}
           onChange={(e) => handleKazanimDegistir(e.target.value)}
@@ -1871,19 +1944,19 @@ export default function DerslerPage() {
         </button>
       </div>
 
-      {/* 3 ADET ÇİZGİ FİLM VE TIKLAMALI ÖRNEK ALANI */}
+      {/* ÇİZGİ FİLM VE TAHTA ÜZERİNDE GÖRSEL ÖRNEKLER */}
       <div style={{ marginBottom: "24px" }}>
         <div style={{ textAlign: "center", marginBottom: "16px" }}>
-          <span style={{ fontSize: "28px" }}>🎬✨🧸</span>
+          <span style={{ fontSize: "28px" }}>♟️🗺️✨</span>
           <h2 style={{ fontSize: "16px", fontWeight: "900", color: "#1e293b", margin: "4px 0" }}>
-            Kahramanlarla 3 İnteraktif Örnek & Tıklamalı Oyun
+            Satranç Tahtası Üzerinde Görsel Örnekler & Görevler
           </h2>
           <p style={{ fontSize: "12px", color: "#64748b", margin: 0 }}>
-            Soruyu oku, doğru şekle veya kalbe basarak görevi tamamla!
+            Tahta üzerindeki okları ve taş konumlarını incele, doğru cevaba tıkla!
           </p>
         </div>
 
-        <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
+        <div style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
           {aktifKazanim.ornekler.map((ornek, idx) => {
             const secilenSecenekId = ornekCevaplari[ornek.id];
             const secilenSecenek = ornek.secenekler.find((s) => s.id === secilenSecenekId);
@@ -1898,94 +1971,92 @@ export default function DerslerPage() {
                   border: "2px solid #fed7aa",
                   padding: "16px 20px",
                   boxShadow: "0 4px 12px rgba(251, 146, 60, 0.08)",
+                  display: "grid",
+                  gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
+                  gap: "16px",
+                  alignItems: "center",
                 }}
               >
-                {/* Karakter Başlığı */}
-                <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "10px" }}>
-                  <span style={{ fontSize: "32px" }}>{ornek.karakter}</span>
-                  <div>
-                    <div style={{ fontSize: "13px", fontWeight: "900", color: "#c2410c" }}>
-                      {idx + 1}. Örnek Görev: {ornek.karakterAdi}
-                    </div>
-                    <div style={{ fontSize: "13px", fontWeight: "bold", color: "#1e293b" }}>
-                      {ornek.soruMetni}
+                {/* Sol Taraf: Karakter ve Soru */}
+                <div>
+                  <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "8px" }}>
+                    <span style={{ fontSize: "28px" }}>{ornek.karakter}</span>
+                    <div style={{ fontSize: "12px", fontWeight: "900", color: "#c2410c" }}>
+                      {idx + 1}. Görev: {ornek.karakterAdi}
                     </div>
                   </div>
-                </div>
 
-                {/* Tıklanacak Şekiller / Kalpler / Nesneler */}
-                <div
-                  style={{
-                    display: "grid",
-                    gridTemplateColumns: "repeat(auto-fit, minmax(130px, 1fr))",
-                    gap: "10px",
-                    marginTop: "12px",
-                  }}
-                >
-                  {ornek.secenekler.map((s) => {
-                    const secili = secilenSecenekId === s.id;
-                    let bgColor = "#ffffff";
-                    let borderColor = "#cbd5e1";
-                    if (secili) {
-                      bgColor = s.dogru ? "#dcfce7" : "#fee2e2";
-                      borderColor = s.dogru ? "#22c55e" : "#ef4444";
-                    }
-
-                    return (
-                      <button
-                        key={s.id}
-                        type="button"
-                        onClick={() => handleCevapSec(ornek.id, s.id)}
-                        style={{
-                          display: "flex",
-                          flexDirection: "column",
-                          alignItems: "center",
-                          gap: "6px",
-                          padding: "12px 8px",
-                          backgroundColor: bgColor,
-                          border: `2px solid ${borderColor}`,
-                          borderRadius: "14px",
-                          cursor: "pointer",
-                          transform: secili ? "scale(1.03)" : "none",
-                          transition: "all 0.15s ease",
-                        }}
-                      >
-                        <span style={{ fontSize: "30px" }}>{s.sembol}</span>
-                        <span style={{ fontSize: "11px", fontWeight: "bold", color: "#334155" }}>
-                          {s.aciklama}
-                        </span>
-                      </button>
-                    );
-                  })}
-                </div>
-
-                {/* Başarı Mesajı */}
-                {secilenSecenekId && (
-                  <div
-                    style={{
-                      marginTop: "12px",
-                      padding: "8px 12px",
-                      borderRadius: "10px",
-                      backgroundColor: dogruMu ? "#f0fdf4" : "#fef2f2",
-                      border: dogruMu ? "1px solid #86efac" : "1px solid #fca5a5",
-                      fontSize: "12px",
-                      fontWeight: "bold",
-                      color: dogruMu ? "#15803d" : "#b91c1c",
-                      textAlign: "center",
-                    }}
-                  >
-                    {dogruMu
-                      ? `🎉 ${ornek.dogruMesaj}`
-                      : "❌ Yanlış şekil! Soruyu tekrar oku ve doğru sembole tıkla."}
+                  <div style={{ fontSize: "13px", fontWeight: "bold", color: "#1e293b", marginBottom: "12px" }}>
+                    {ornek.soruMetni}
                   </div>
-                )}
+
+                  {/* Seçenek Butonları */}
+                  <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
+                    {ornek.secenekler.map((s) => {
+                      const secili = secilenSecenekId === s.id;
+                      let bgColor = "#ffffff";
+                      let borderColor = "#cbd5e1";
+                      if (secili) {
+                        bgColor = s.dogru ? "#dcfce7" : "#fee2e2";
+                        borderColor = s.dogru ? "#22c55e" : "#ef4444";
+                      }
+
+                      return (
+                        <button
+                          key={s.id}
+                          type="button"
+                          onClick={() => handleCevapSec(ornek.id, s.id)}
+                          style={{
+                            display: "flex",
+                            alignItems: "center",
+                            gap: "8px",
+                            padding: "8px 12px",
+                            backgroundColor: bgColor,
+                            border: `2px solid ${borderColor}`,
+                            borderRadius: "10px",
+                            cursor: "pointer",
+                            textAlign: "left",
+                            fontWeight: "bold",
+                            fontSize: "12px",
+                            color: "#334155",
+                          }}
+                        >
+                          <span style={{ fontSize: "18px" }}>{s.sembol}</span>
+                          <span>{s.aciklama}</span>
+                        </button>
+                      );
+                    })}
+                  </div>
+
+                  {secilenSecenekId && (
+                    <div
+                      style={{
+                        marginTop: "10px",
+                        padding: "6px 10px",
+                        borderRadius: "8px",
+                        backgroundColor: dogruMu ? "#f0fdf4" : "#fef2f2",
+                        border: dogruMu ? "1px solid #86efac" : "1px solid #fca5a5",
+                        fontSize: "11px",
+                        fontWeight: "bold",
+                        color: dogruMu ? "#15803d" : "#b91c1c",
+                      }}
+                    >
+                      {dogruMu ? `🎉 ${ornek.dogruMesaj}` : "❌ Yanlış! Tahta üzerindeki ipucunu tekrar incele."}
+                    </div>
+                  )}
+                </div>
+
+                {/* Sağ Taraf: İnteraktif Tahta Görseli ve Oklar */}
+                <div>
+                  <SatrançTahtasiGorseli tip={ornek.tahtaTipi} okYonu={ornek.okYonu} />
+                </div>
               </div>
             );
           })}
         </div>
       </div>
 
-      {/* ALT SAYFA GEÇİŞLERİ (Önceki Kazanım - Sonraki Kazanım) */}
+      {/* ALT GEÇİŞLER */}
       <div
         style={{
           display: "flex",
