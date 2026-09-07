@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Chess } from "chess.js";
 import Link from "next/link";
 
@@ -25,56 +25,47 @@ const SOUNDS = {
   gameEnd: "https://images.chesscomfiles.com/chess-themes/sounds/_MP3_/default/game-end.mp3",
 };
 
-// Haftalık Ödev Soruları (Mat Bulmacaları)
-const ODEV_SORULARI = [
-  {
-    id: 1,
-    title: "1. Görev: Çoban Matı Taktik Darbesi 🎯",
-    fen: "r1bqkb1r/pppp1ppp/2n5/4p3/2B1n3/5Q2/PPPP1PPP/RNB1K1NR w KQkq - 0 4",
-    hint: "İpucu: Vezir zayıf f7 karesine saldırabilir!",
-  },
-  {
-    id: 2,
-    title: "2. Görev: Koridor Matı (Arka Sıra) 🏰",
-    fen: "6k1/5ppp/8/8/8/8/8/4R1K1 w - - 0 1",
-    hint: "İpucu: Kaleyi en alt yataya (8. sıra) indir!",
-  },
-  {
-    id: 3,
-    title: "3. Görev: Vezir Dalışı 👑",
-    fen: "r1b2rk1/ppp2ppp/2n5/3p4/7q/2B5/PPP1QPPP/2KR1B1R w - - 0 1",
-    hint: "İpucu: Vezir e8 karesinden son sırayı vuruyor!",
-  },
-  {
-    id: 4,
-    title: "4. Görev: Zıplayan At Matı 🐴",
-    fen: "6k1/5ppp/8/8/5N2/8/8/6K1 w - - 0 1",
-    hint: "İpucu: At f4'ten e7'ye zıplayarak şaha kaçış bırakmıyor!",
-  },
-  {
-    id: 5,
-    title: "5. Görev: Merdiven Matı 🪜",
-    fen: "7k/R7/8/8/8/8/1R6/6K1 w - - 0 1",
-    hint: "İpucu: b2 kalesini b8'e indirerek mat et!",
-  },
-];
+interface SoruItem {
+  id: number;
+  title: string;
+  fen: string;
+  hint: string;
+}
 
 export default function OdevPage() {
+  const [sorular, setSorular] = useState<SoruItem[]>([]);
+  const [yukleniyor, setYukleniyor] = useState(true);
   const [ogrenciAdi, setOgrenciAdi] = useState("");
   const [odevBasladi, setOdevBasladi] = useState(false);
-  const [currentSoruIndex, setCurrentSoruIndex] = useState(0);
-  const currentSoru = ODEV_SORULARI[currentSoruIndex];
+  const [currentIdx, setCurrentIdx] = useState(0);
 
-  const [game, setGame] = useState(new Chess(currentSoru.fen));
+  const [game, setGame] = useState<Chess>(new Chess());
   const [selectedSquare, setSelectedSquare] = useState<string | null>(null);
   const [possibleSquares, setPossibleSquares] = useState<string[]>([]);
   const [durumMesaji, setDurumMesaji] = useState("Beyaz oynar, tek hamlede mat yapar!");
-  const [hataliDenemeSayisi, setHataliDenemeSayisi] = useState(0);
+  
+  // Soru Başı Hata Analizi Takibi
+  const [soruHatalari, setSoruHatalari] = useState<Record<number, number>>({});
+  const [baslamaZamani, setBaslamaZamani] = useState<number>(0);
   const [tamamlandi, setTamamlandi] = useState(false);
   const [kaydediliyor, setKaydediliyor] = useState(false);
 
   const files = ["a", "b", "c", "d", "e", "f", "g", "h"];
   const ranks = ["8", "7", "6", "5", "4", "3", "2", "1"];
+
+  // Soruları API'den çek
+  useEffect(() => {
+    fetch("/api/odev?type=sorular")
+      .then((r) => r.json())
+      .then((res) => {
+        if (res.success && res.data.length > 0) {
+          setSorular(res.data);
+          setGame(new Chess(res.data[0].fen));
+        }
+        setYukleniyor(false);
+      })
+      .catch(() => setYukleniyor(false));
+  }, []);
 
   function sesCal(tur: "move" | "capture" | "gameEnd") {
     try {
@@ -84,8 +75,10 @@ export default function OdevPage() {
     } catch {}
   }
 
+  const currentSoru = sorular[currentIdx];
+
   function handleSquareClick(square: string) {
-    if (tamamlandi) return;
+    if (tamamlandi || !currentSoru) return;
 
     if (!selectedSquare) {
       const piece = game.get(square as any);
@@ -113,23 +106,27 @@ export default function OdevPage() {
           setPossibleSquares([]);
           sesCal("gameEnd");
 
-          if (currentSoruIndex + 1 < ODEV_SORULARI.length) {
-            setDurumMesaji("🌟 Tebrikler! Doğru hamle! 2 saniye sonra yeni soruya geçiliyor...");
+          if (currentIdx + 1 < sorular.length) {
+            setDurumMesaji("🌟 Doğru Hamle! Sıradaki soruya geçiliyor...");
             setTimeout(() => {
-              const nextIndex = currentSoruIndex + 1;
-              setCurrentSoruIndex(nextIndex);
-              setGame(new Chess(ODEV_SORULARI[nextIndex].fen));
+              const nextIdx = currentIdx + 1;
+              setCurrentIdx(nextIdx);
+              setGame(new Chess(sorular[nextIdx].fen));
               setDurumMesaji("Beyaz oynar, tek hamlede mat yapar!");
-            }, 1800);
+            }, 1500);
           } else {
-            // TÜM ÖDEV BİTTİ
+            // ÖDEV BİTTİ
             setTamamlandi(true);
-            odeviSunucuyaGonder();
+            odeviGonder();
           }
         } else {
+          // Hamle geçerli ama mat değil
           setSelectedSquare(null);
           setPossibleSquares([]);
-          setHataliDenemeSayisi((h) => h + 1);
+          setSoruHatalari((prev) => ({
+            ...prev,
+            [currentSoru.id]: (prev[currentSoru.id] || 0) + 1,
+          }));
           setDurumMesaji("❌ Bu hamle güzel ama mat yapmadı! Tekrar dene.");
           sesCal("move");
         }
@@ -140,29 +137,56 @@ export default function OdevPage() {
     } catch {
       setSelectedSquare(null);
       setPossibleSquares([]);
-      setHataliDenemeSayisi((h) => h + 1);
+      setSoruHatalari((prev) => ({
+        ...prev,
+        [currentSoru.id]: (prev[currentSoru.id] || 0) + 1,
+      }));
       setDurumMesaji("Geçersiz hamle! Tekrar dene.");
     }
   }
 
-  async function odeviSunucuyaGonder() {
+  async function odeviGonder() {
     setKaydediliyor(true);
+    const gecenSure = Math.round((Date.now() - baslamaZamani) / 1000);
+    const toplamHata = Object.values(soruHatalari).reduce((a, b) => a + b, 0);
+
+    const soruDetaylari = sorular.map((s) => ({
+      soruId: s.id,
+      soruBaslik: s.title,
+      hataliDeneme: soruHatalari[s.id] || 0,
+    }));
+
     try {
       await fetch("/api/odev", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           ogrenciAdi,
-          toplamSoru: ODEV_SORULARI.length,
-          dogruSayisi: ODEV_SORULARI.length,
-          hataliHamleler: hataliDenemeSayisi,
+          toplamSoru: sorular.length,
+          dogruSayisi: sorular.length,
+          toplamHata,
+          gecenSureSaniye: gecenSure,
+          soruDetaylari,
         }),
       });
     } catch {}
     setKaydediliyor(false);
   }
 
-  // 1. AŞAMA: ÖĞRENCİ İSİM GİRİŞ EKRANI
+  if (yukleniyor) {
+    return <div style={{ textAlign: "center", padding: "40px", fontWeight: "900", color: "#78350f" }}>Ödev Yükleniyor... ⏳</div>;
+  }
+
+  if (sorular.length === 0) {
+    return (
+      <div style={{ textAlign: "center", padding: "40px", backgroundColor: "#fff", borderRadius: "20px", border: "2px solid #cbd5e1" }}>
+        <h3>Bu hafta için henüz ödev sorusu atanmadı. 😴</h3>
+        <p style={{ color: "#64748b", fontSize: "12px" }}>Öğretmeniniz yeni sorular eklediğinde burada görünecek!</p>
+      </div>
+    );
+  }
+
+  // 1. İSİM GİRİŞİ
   if (!odevBasladi) {
     return (
       <div
@@ -183,7 +207,7 @@ export default function OdevPage() {
           Haftalık Satranç Ödevi
         </h1>
         <p style={{ fontSize: "12px", color: "#92400e", marginBottom: "16px", fontWeight: "600" }}>
-          Ödevini tamamladığında sonucun otomatik olarak öğretmenine iletilecektir!
+          Bu hafta toplam <strong>{sorular.length}</strong> taktik görev seni bekliyor!
         </p>
 
         <div style={{ marginBottom: "16px" }}>
@@ -192,7 +216,7 @@ export default function OdevPage() {
           </label>
           <input
             type="text"
-            placeholder="Örn: Ali Yılmaz"
+            placeholder="Örn: Zeynep Kaya"
             value={ogrenciAdi}
             onChange={(e) => setOgrenciAdi(e.target.value)}
             style={{
@@ -214,6 +238,7 @@ export default function OdevPage() {
           onClick={() => {
             if (ogrenciAdi.trim().length > 1) {
               setOdevBasladi(true);
+              setBaslamaZamani(Date.now());
             } else {
               alert("Lütfen adını ve soyadını yaz!");
             }
@@ -237,7 +262,7 @@ export default function OdevPage() {
     );
   }
 
-  // 3. AŞAMA: ÖDEV TAMAMLANDI TEBRİK EKRANI
+  // 3. TEBRİK EKRANI
   if (tamamlandi) {
     return (
       <div
@@ -253,12 +278,12 @@ export default function OdevPage() {
           margin: "20px auto",
         }}
       >
-        <span style={{ fontSize: "56px" }}>🎉</span>
+        <span style={{ fontSize: "56px" }}>🏆</span>
         <h2 style={{ fontSize: "20px", fontWeight: "900", color: "#1e293b", margin: "8px 0" }}>
-          Harikasın, {ogrenciAdi}!
+          Tebrikler, {ogrenciAdi}!
         </h2>
         <p style={{ fontSize: "13px", color: "#047857", fontWeight: "bold", margin: "0 0 16px 0" }}>
-          Haftalık {ODEV_SORULARI.length} soruluk satranç ödevini başarıyla tamamladın! ⭐
+          Tüm ödev sorularını başarıyla çözdün!
         </p>
 
         <div
@@ -273,11 +298,7 @@ export default function OdevPage() {
             fontWeight: "700",
           }}
         >
-          {kaydediliyor ? (
-            "Ödev sonucu öğretmenine iletiliyor... ⏳"
-          ) : (
-            "✅ Ödev sonucun başarıyla öğretmenin paneline kaydedildi!"
-          )}
+          {kaydediliyor ? "Sonuç öğretmene iletiliyor... ⏳" : "✅ Ödevin öğretmenin kontrol paneline ulaştı!"}
         </div>
 
         <Link
@@ -299,7 +320,7 @@ export default function OdevPage() {
     );
   }
 
-  // 2. AŞAMA: SORU ÇÖZME TAHTASI
+  // 2. TAHTA EKRANI
   return (
     <div
       style={{
@@ -318,13 +339,15 @@ export default function OdevPage() {
         margin: "0 auto",
       }}
     >
-      <div style={{ display: "flex", justifyContent: "space-between", width: "100%", alignItems: "center", marginBottom: "8px" }}>
-        <span style={{ fontSize: "11px", fontWeight: "900", color: "#78350f" }}>
-          👤 Öğrenci: {ogrenciAdi}
-        </span>
+      <div style={{ display: "flex", justifyContent: "space-between", width: "100%", alignItems: "center", marginBottom: "6px" }}>
+        <span style={{ fontSize: "11px", fontWeight: "900", color: "#78350f" }}>👤 {ogrenciAdi}</span>
         <span style={{ fontSize: "11px", fontWeight: "900", color: "#d97706" }}>
-          Soru: {currentSoruIndex + 1} / {ODEV_SORULARI.length}
+          Soru: {currentIdx + 1} / {sorular.length}
         </span>
+      </div>
+
+      <div style={{ fontSize: "12px", fontWeight: "800", color: "#1e293b", marginBottom: "4px", textAlign: "center" }}>
+        {currentSoru.title}
       </div>
 
       <div
@@ -337,8 +360,8 @@ export default function OdevPage() {
           fontWeight: "900",
           fontSize: "12px",
           color: "#451a03",
-          marginBottom: "8px",
-          minHeight: "36px",
+          marginBottom: "6px",
+          minHeight: "34px",
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
