@@ -71,6 +71,21 @@ export default function RootLayout({
           </Link>
 
           <Link
+            href="/seviye-tespit"
+            style={{
+              padding: "7px 12px",
+              backgroundColor: "#10b981",
+              color: "#ffffff",
+              borderRadius: "14px",
+              textDecoration: "none",
+              fontWeight: "900",
+              fontSize: "12px",
+            }}
+          >
+            🔍 Seviye Tespit
+          </Link>
+
+          <Link
             href="/odev"
             style={{
               padding: "7px 12px",
