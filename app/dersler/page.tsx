@@ -3,15 +3,16 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 
-interface Ders {
+interface MebDers {
   id: number;
-  kademe: "baslangic" | "orta" | "ileri";
+  mebKodu: string;
+  oyunAlani: string;
   baslik: string;
   ikon: string;
-  sure: string;
+  dersSaati: string;
   aciklama: string;
-  ogrenilecekler: string[];
-  ipuclari: string;
+  kazanimlar: string[];
+  etkinlikOnerisi: string;
   miniSoru: {
     soru: string;
     secenekler: string[];
@@ -19,163 +20,168 @@ interface Ders {
   };
 }
 
-const DERSLER: Ders[] = [
+const MEB_DERSLER: MebDers[] = [
   {
     id: 1,
-    kademe: "baslangic",
-    baslik: "1. Ders: Büyülü Satranç Tahtası & Taşların Dizilişi",
+    mebKodu: "ST.OÖ. 1",
+    oyunAlani: "1. Alan: Tahta ve Yönler",
+    baslik: "1. Büyülü Satranç Ülkesi, Tahtası ve Yönler",
     ikon: "🗺️",
-    sure: "10 Dk",
-    aciklama: "Satranç tahtası 64 kareden oluşur (32 beyaz, 32 siyah). Tahtayı önümüze koyarken sağ alt köşede her zaman BEYAZ kare olmalıdır!",
-    ogrenilecekler: [
-      "Sağ alt köşe daima beyaz olmalı ('Beyaz sağda')",
-      "Beyaz Vezir beyaz karede, Siyah Vezir siyah karede başlar ('Vezir elbisesinin rengini sever')",
-      "Tüm piyonlar ikinci sırada bir kale duvarı gibi dizilir",
+    dersSaati: "5 Ders Saati",
+    aciklama: "Satranç tahtasının kare şekli, yatay, dikey ve çapraz yönler tanıtılır. Zemin üzerindeki açık ve koyu kareler ile kenar-köşe kavramları fark ettirilir.",
+    kazanimlar: [
+      "Satranç oyununu ve tahtasını tanır (ST.OÖ. 1.1)",
+      "Zemindeki açık ve koyu renkli kareleri fark eder",
+      "Nesneleri yatay, dikey ve çapraz yönlerde hareket ettirir (ST.OÖ. 1.2 - 1.3)",
+      "Yatay ve dikey hizalamada sekize kadar sayma çalışmaları yapar"
     ],
-    ipuclari: "Taktik İpucu: Tahtayı kurarken önce köşelere Kaleleri, yanlarına Atları, onların yanına Filleri yerleştir!",
+    etkinlikOnerisi: "Beden Eğitimi & Drama: Çocuklar sınıf zemininde oluşturulan dev karelerde kendileri birer nesne gibi ileri, geri ve çapraz adımlarla yürür.",
     miniSoru: {
-      soru: "Sağ alt köşemizdeki kare hangi renkte olmalıdır?",
-      secenekler: ["Siyah", "Beyaz", "Fark etmez"],
-      dogruIndex: 1,
-    },
+      soru: "Satranç tahtası önümüze konulurken sağ alt köşede hangi renk kare olmalıdır?",
+      secenekler: ["Koyu (Siyah) Kare", "Açık (Beyaz) Kare", "Fark etmez"],
+      dogruIndex: 1
+    }
   },
   {
     id: 2,
-    kademe: "baslangic",
-    baslik: "2. Ders: Zıplayan At ve Gizli L Kuralı",
-    ikon: "🐴",
-    sure: "12 Dk",
-    aciklama: "At, satrançtaki diğer tüm taşların üzerinden atlayabilen tek özel taştır. Dans ederken 'L' harfi çizer: 2 kare düz, 1 kare yana!",
-    ogrenilecekler: [
-      "Taşların üzerinden hoplayıp geçebilir, önü tıkansa bile durmaz",
-      "Beyaz kareden zıplayan At mutlaka siyah bir kareye iner",
-      "Merkezdeki bir at aynı anda 8 farklı kareyi kontrol eder",
+    mebKodu: "ST.OÖ. 2",
+    oyunAlani: "2. Alan: Taşlar ve Özellikleri",
+    baslik: "2. Taşların Gizemli Dünyası ve Başlangıç Dizilişi",
+    ikon: "🏰",
+    dersSaati: "8 Ders Saati",
+    aciklama: "Tüm taşların (Kale, Fil, Vezir, Şah, At, Piyon) yürüyüş şekilleri, puan değerleri, doğru taş alma ve başlangıç konumuna dizilişi öğrenilir.",
+    kazanimlar: [
+      "Kale, Fil, Vezir, Şah, At ve Piyonun hareketlerini uygular (ST.OÖ. 2.1 - 2.6)",
+      "Son sıraya ulaşan piyonun terfi kuralını açıklar (ST.OÖ. 2.7)",
+      "Taşları başlangıç konumuna doğru dizer (Beyaz sağda, vezir kendi renginde) (ST.OÖ. 2.8)",
+      "Taşların puan değerlerini sıralar ve şahın gücünün sınırsız olduğunu kavrar (ST.OÖ. 2.9)"
     ],
-    ipuclari: "Taktik İpucu: 'Kenardaki at kederli attır!' Atlarını kenarlara değil, tahtanın ortasına doğru geliştir.",
+    etkinlikOnerisi: "Şarkılı Oyun: 'Vezir elbisesinin rengini sever, beyaz vezir beyaza, siyah vezir siyaha gider' tekerlemesi ile diziliş yapılır.",
     miniSoru: {
-      soru: "Taşların üzerinden atlayabilen tek satranç taşı hangisidir?",
-      secenekler: ["Fil", "Kale", "At"],
-      dogruIndex: 2,
-    },
+      soru: "Diğer taşların üzerinden engel tanımadan zıplayabilen taş hangisidir?",
+      secenekler: ["Sevimli At", "Kaya Gibi Kale", "Küçük Piyon"],
+      dogruIndex: 0
+    }
   },
   {
     id: 3,
-    kademe: "orta",
-    baslik: "3. Ders: Çoban Matı ve f7 Zayıflığı",
-    ikon: "🎯",
-    sure: "15 Dk",
-    aciklama: "Oyunun başında sadece Şah tarafından korunan tek bir zayıf kare vardır: Beyaz için f2, Siyah için f7 karesi! Vezir ve Fil bu kareye saldırarak 4 hamlede mat yapabilir.",
-    ogrenilecekler: [
-      "f7 karesinin neden zayıf olduğunu anlama",
-      "Vezir ve Filin ortak hücum gücü",
-      "Çoban matına karşı Atı f6'ya çıkarak veya g6 sürerek savunma yapma",
+    mebKodu: "ST.OÖ. 3",
+    oyunAlani: "3. Alan: Şah Tehdidi ve Mat",
+    baslik: "3. Şah Çekme, Mat ve Pat Durumu",
+    ikon: "👑",
+    dersSaati: "6 Ders Saati",
+    aciklama: "Şahın oyun için hayati önemi kavranır. Şah tehdidinden kurtulma yolları (kaçma, alma, perdeleme), mat ile pat (beraberlik) arasındaki fark keşfedilir.",
+    kazanimlar: [
+      "Şahın oyun için önemini ve şahın tahtadan alınamayacağını kavrar (ST.OÖ. 3.1 - 3.4)",
+      "Şah tehdidinden 3 yolla kurtulur: Kaçar, tehdit edeni alır, perdeleme yapar (ST.OÖ. 3.3)",
+      "Mat etmeyi açıklar ve tek hamlelik mat alıştırmaları yapar (ST.OÖ. 3.5 - 3.6)",
+      "Şahın tehdit altında olmadığı ve hamlesinin kalmadığı 'Pat' durumunu mat ile ayırt eder (ST.OÖ. 3.7 - 3.9)"
     ],
-    ipuclari: "Taktik İpucu: Rakibin erken çıkan vezirine karşı hemen korkup piyonlarını dağıtma, sakin kalıp At veya Piyonla veziri tehdit et!",
+    etkinlikOnerisi: "Taktik Masalı: Şah bir kaleye sığınır, çocuklar tehdit eden taşa karşı kalkan (perdeleme) yapmayı dener.",
     miniSoru: {
-      soru: "Çoban matı hangi savunmasız kareye hücum edilerek yapılır?",
-      secenekler: ["f7 karesi", "h8 karesi", "a1 karesi"],
-      dogruIndex: 0,
-    },
+      soru: "Satrançta şah tehdit altında değilken yapacak hiçbir yasal hamlesi kalmazsa oyun nasıl biter?",
+      secenekler: ["Mat olur", "Pat (Berabere) olur", "Şah oyundan çıkar"],
+      dogruIndex: 1
+    }
   },
   {
     id: 4,
-    kademe: "orta",
-    baslik: "4. Ders: Taktik Silahı: Çatal Hamlesi 🍴",
-    ikon: "⚡",
-    sure: "15 Dk",
-    aciklama: "Tek bir taşın aynı anda rakibin iki ya da daha fazla değerli taşına birden saldırmasına 'Çatal' denir. Özellikle Atlar şah ve vezire çatal atarak maç kazandırır!",
-    ogrenilecekler: [
-      "At çatalı ile Şah ve Veziri aynı anda tehdit etme",
-      "Piyon çatalı ile rakibin iki hafif taşını zor durumda bırakma",
-      "Rakibin taşları aynı renkte hizalandığında çatal fırsatlarını arama",
+    mebKodu: "ST.OÖ. 4",
+    oyunAlani: "4. Alan: Tehdit ve Savunma",
+    baslik: "4. Tehditleri Fark Etme ve Güvenli Kareler",
+    ikon: "🛡️",
+    dersSaati: "6 Ders Saati",
+    aciklama: "Rakibin tehdit ettiği taşları önceden sezme, tehdit altındaki taşı kaçırma, korumalı karelere gitme ve perdeleme yapma becerisi kazandırılır.",
+    kazanimlar: [
+      "Satrançta tehdit durumlarını zamanında fark eder (ST.OÖ. 4.1)",
+      "Tehdit eden taşın önüne dost taşla perdeleme yapar (ST.OÖ. 4.2)",
+      "Tehdit altında olmayan güvenli kareleri ayırt eder (ST.OÖ. 4.3)",
+      "Korumalı ve korumasız taş kavramlarını açıklar (ST.OÖ. 4.4)"
     ],
-    ipuclari: "Taktik İpucu: Rakip şah ve vezir aynı renkteki karelerde duruyorsa hemen gözlerin bir At arasın!",
+    etkinlikOnerisi: "Güvenli Liman Oyunu: Öğretmen tahtada tehlikeli kareleri kırmızı renkle işaretler; öğrenci taşını güvenli limana (yeşil kareye) kaçırır.",
     miniSoru: {
-      soru: "Bir taşın aynı anda iki farklı taşa birden saldırmasına ne denir?",
-      secenekler: ["Rok", "Çatal", "Pat"],
-      dogruIndex: 1,
-    },
+      soru: "Tehdit altındaki bir taşımızı korumak için aşağıdakilerden hangisi yapılabilir?",
+      secenekler: ["Taşı güvenli bir kareye kaçırmak", "Önüne perdeleme yapmak", "Her ikisi de"],
+      dogruIndex: 2
+    }
   },
   {
     id: 5,
-    kademe: "ileri",
-    baslik: "5. Ders: Şahın Güvenliği ve Saray Dansı: Rok",
-    ikon: "🏰",
-    sure: "15 Dk",
-    aciklama: "Şahı tahtanın tehlikeli merkezinden güvenli köşeye kaçıran ve aynı anda kaleyi oyuna sokan tek hamleye 'Rok' denir.",
-    ogrenilecekler: [
-      "Kısa Rok ve Uzun Rok farkı",
-      "Şah veya Kale daha önce oynamışsa rok yapılamaz",
-      "Şah tehdit altındayken (şah çekilmişken) rok atılamaz",
+    mebKodu: "ST.OÖ. 5",
+    oyunAlani: "5. Alan: Özel Kurallar",
+    baslik: "5. Satrancın Özel Sırları: Rok ve Geçerken Alma",
+    ikon: "⭐",
+    dersSaati: "4 Ders Saati",
+    aciklama: "Şahı güvenli köşeye alıp kaleyi savaşa sokan 'Rok' hamlesi ve piyonların özel sürprizi 'Geçerken Alma' (En Passant) kuralları uygulanır.",
+    kazanimlar: [
+      "Rok hamlesini kurallarına uygun olarak uygular (ST.OÖ. 5.1)",
+      "Şah veya kale oynamışsa rok yapılamayacağını bilir",
+      "Piyonun geçerken alma kuralını uygulamalı kavrar (ST.OÖ. 5.2)"
     ],
-    ipuclari: "Taktik İpucu: Açılışta ilk 10 hamle içinde rok atarak şahını güvene al!",
+    etkinlikOnerisi: "Rok Dansı: Şah iki adım kaleye doğru kayar, kale hemen şahın üzerinden atlayarak yanına oturur.",
     miniSoru: {
-      soru: "Şah daha önce hareket etmişse rok yapabilir mi?",
-      secenekler: ["Evet, yapabilir", "Hayır, rok hakkı kaybolur", "Sadece uzun rok yapabilir"],
-      dogruIndex: 1,
-    },
+      soru: "Rok yaparken tahtada ilk önce hangi taşa dokunulmalıdır?",
+      secenekler: ["Kale", "Şah", "Piyon"],
+      dogruIndex: 1
+    }
   },
   {
     id: 6,
-    kademe: "ileri",
-    baslik: "6. Ders: Koridor Matı (Arka Sıra Tuzağı)",
-    ikon: "🚪",
-    sure: "15 Dk",
-    aciklama: "Rok atmış şahın önündeki piyonlar hareket etmediğinde, arkaya inen bir Kale veya Vezir şahı koridorda sıkıştırıp mat eder!",
-    ogrenilecekler: [
-      "Arka yatay zayıflığını fark etme",
-      "Şah için 'Hava Deliği' açmanın önemi (h3 veya g3 sürmek)",
-      "Ağır taşlarla son sırayı kontrol etme",
+    mebKodu: "ST.OÖ. 6",
+    oyunAlani: "6. Alan: Satranç Oynuyorum",
+    baslik: "6. Karşılıklı Maç, Nezaket ve Etik Kurallar",
+    ikon: "🤝",
+    dersSaati: "7 Ders Saati",
+    aciklama: "Centilmenlik, rakibe oyuna başlarken başarılar dileme, sessizce oynama, hakemden el kaldırarak yardım isteme ve oyun sonunda tebrikleşme davranışları kazandırılır.",
+    kazanimlar: [
+      "Kurallara uygun karşılıklı maç yapar (ST.OÖ. 6.1)",
+      "Oyun sırasında sorun yaşarsa el kaldırarak öğretmeninden/hakemden yardım ister (ST.OÖ. 6.2)",
+      "Satranç salonunun sessiz bir düşünme ortamı olduğunu kavrar",
+      "Oyun bittiğinde rakibinin elini sıkarak tebrik eder ve taşları kutusuna düzenli toplar (ST.OÖ. 6.3 - 6.4)"
     ],
-    ipuclari: "Taktik İpucu: Oyunun ortasında şahının nefes alabilmesi için kenardaki piyonunu 1 adım ileri sürerek bir 'hava deliği' aç!",
+    etkinlikOnerisi: "Dostluk Turnuvası: Karşılıklı oturan minikler önce el sıkışır, maç bitiminde birbirlerini alkışlayarak tahtayı birlikte toplar.",
     miniSoru: {
-      soru: "Koridor matından korunmak için şaha ne açılmalıdır?",
-      secenekler: ["Büyük kapı", "Hava deliği (kaçış karesi)", "Kale hendeği"],
-      dogruIndex: 1,
-    },
-  },
+      soru: "Satranç maçı başlamadan önce rakibimize ne söylemeliyiz?",
+      secenekler: ["Seni yeneceğim!", "İyi oyunlar / Başarılar dilerim", "Konuşmamalıyız"],
+      dogruIndex: 1
+    }
+  }
 ];
 
 export default function DerslerPage() {
-  const [seciliKademe, setSeciliKademe] = useState<"hepsi" | "baslangic" | "orta" | "ileri">("hepsi");
-  const [aktifDers, setAktifDers] = useState<Ders>(DERSLER[0]);
-  const [tamamlananDersler, setTamamlananDersler] = useState<number[]>([]);
+  const [aktifDers, setAktifDers] = useState<MebDers>(MEB_DERSLER[0]);
+  const [tamamlananlar, setTamamlananlar] = useState<number[]>([]);
   const [secilenCevap, setSecilenCevap] = useState<number | null>(null);
   const [cevapDurumu, setCevapDurumu] = useState<"bekliyor" | "dogru" | "yanlis">("bekliyor");
 
   useEffect(() => {
     try {
-      const kayitli = localStorage.getItem("tamamlananDersler");
-      if (kayitli) {
-        setTamamlananDersler(JSON.parse(kayitli));
-      }
+      const kayitli = localStorage.getItem("mebTamamlananDersler");
+      if (kayitli) setTamamlananlar(JSON.parse(kayitli));
     } catch {}
   }, []);
 
-  function handleDersSec(d: Ders) {
+  function handleDersSec(d: MebDers) {
     setAktifDers(d);
     setSecilenCevap(null);
     setCevapDurumu("bekliyor");
   }
 
   function handleDersTamamla(id: number) {
-    let yeni: number[];
-    if (tamamlananDersler.includes(id)) {
-      yeni = tamamlananDersler.filter((x) => x !== id);
-    } else {
-      yeni = [...tamamlananDersler, id];
-    }
-    setTamamlananDersler(yeni);
+    const yeni = tamamlananlar.includes(id)
+      ? tamamlananlar.filter((x) => x !== id)
+      : [...tamamlananlar, id];
+    setTamamlananlar(yeni);
     try {
-      localStorage.setItem("tamamlananDersler", JSON.stringify(yeni));
+      localStorage.setItem("mebTamamlananDersler", JSON.stringify(yeni));
     } catch {}
   }
 
-  function handleCevapKontrol(idx: number) {
+  function handleCevap(idx: number) {
     setSecilenCevap(idx);
     if (idx === aktifDers.miniSoru.dogruIndex) {
       setCevapDurumu("dogru");
-      if (!tamamlananDersler.includes(aktifDers.id)) {
+      if (!tamamlananlar.includes(aktifDers.id)) {
         handleDersTamamla(aktifDers.id);
       }
     } else {
@@ -183,11 +189,7 @@ export default function DerslerPage() {
     }
   }
 
-  const filtrelenenDersler = DERSLER.filter((d) =>
-    seciliKademe === "hepsi" ? true : d.kademe === seciliKademe
-  );
-
-  const ilerlemeYuzdesi = Math.round((tamamlananDersler.length / DERSLER.length) * 100);
+  const yuzde = Math.round((tamamlananlar.length / MEB_DERSLER.length) * 100);
 
   return (
     <div
@@ -202,120 +204,45 @@ export default function DerslerPage() {
         margin: "0 auto",
       }}
     >
-      {/* BAŞLIK & İLERLEME ÇUBUĞU */}
       <div style={{ textAlign: "center", marginBottom: "20px" }}>
-        <span style={{ fontSize: "44px" }}>🎓♟️</span>
+        <div style={{ fontSize: "11px", fontWeight: "bold", color: "#0369a1", letterSpacing: "1px" }}>
+          T.C. MİLLÎ EĞİTİM BAKANLIĞI • TEMEL EĞİTİM GENEL MÜDÜRLÜĞÜ
+        </div>
         <h1 style={{ fontSize: "22px", fontWeight: "900", color: "#1e293b", margin: "6px 0" }}>
-          Satranç Akademisi: Derslerim
+          Okul Öncesi Satranç Öğretim Programı
         </h1>
-        <p style={{ fontSize: "13px", color: "#64748b", margin: "0 0 14px 0" }}>
-          Adım adım satranç ustası ol! Dersleri tamamla, rozetleri kap!
+        <p style={{ fontSize: "12px", color: "#64748b", margin: "0 0 12px 0" }}>
+          MEB Müfredatı: 6 Temel Oyun Alanı • 33 Kazanım • 36 Ders Saati
         </p>
 
-        {/* İlerleme Göstergesi */}
+        {/* İlerleme Çubuğu */}
         <div
           style={{
-            maxWidth: "420px",
+            maxWidth: "400px",
             margin: "0 auto",
             backgroundColor: "#f1f5f9",
-            borderRadius: "16px",
-            padding: "10px 16px",
+            borderRadius: "14px",
+            padding: "8px 14px",
             border: "1px solid #e2e8f0",
           }}
         >
-          <div style={{ display: "flex", justifyContent: "space-between", fontSize: "12px", fontWeight: "bold", marginBottom: "6px" }}>
-            <span style={{ color: "#0284c7" }}>Genel Akademi İlerlemen</span>
-            <span style={{ color: "#0369a1" }}>%{ilerlemeYuzdesi} ({tamamlananDersler.length}/{DERSLER.length} Ders)</span>
+          <div style={{ display: "flex", justifyContent: "space-between", fontSize: "11px", fontWeight: "bold", marginBottom: "4px" }}>
+            <span style={{ color: "#0284c7" }}>Müfredat İlerlemesi</span>
+            <span style={{ color: "#0369a1" }}>%{yuzde} ({tamamlananlar.length}/6 Oyun Alanı)</span>
           </div>
-          <div style={{ width: "100%", height: "10px", backgroundColor: "#cbd5e1", borderRadius: "8px", overflow: "hidden" }}>
-            <div
-              style={{
-                width: `${ilerlemeYuzdesi}%`,
-                height: "100%",
-                backgroundColor: "#0284c7",
-                borderRadius: "8px",
-                transition: "width 0.4s ease",
-              }}
-            />
+          <div style={{ width: "100%", height: "8px", backgroundColor: "#cbd5e1", borderRadius: "8px", overflow: "hidden" }}>
+            <div style={{ width: `${yuzde}%`, height: "100%", backgroundColor: "#0284c7", transition: "width 0.3s ease" }} />
           </div>
         </div>
       </div>
 
-      {/* KADEME SEÇİCİ FİLTRELER */}
-      <div style={{ display: "flex", justifyContent: "center", gap: "8px", marginBottom: "18px", flexWrap: "wrap" }}>
-        <button
-          type="button"
-          onClick={() => setSeciliKademe("hepsi")}
-          style={{
-            padding: "6px 14px",
-            borderRadius: "12px",
-            border: "none",
-            backgroundColor: seciliKademe === "hepsi" ? "#0284c7" : "#f1f5f9",
-            color: seciliKademe === "hepsi" ? "#ffffff" : "#475569",
-            fontSize: "12px",
-            fontWeight: "bold",
-            cursor: "pointer",
-          }}
-        >
-          🌟 Tüm Dersler
-        </button>
-        <button
-          type="button"
-          onClick={() => setSeciliKademe("baslangic")}
-          style={{
-            padding: "6px 14px",
-            borderRadius: "12px",
-            border: "none",
-            backgroundColor: seciliKademe === "baslangic" ? "#16a34a" : "#f1f5f9",
-            color: seciliKademe === "baslangic" ? "#ffffff" : "#475569",
-            fontSize: "12px",
-            fontWeight: "bold",
-            cursor: "pointer",
-          }}
-        >
-          🟢 1. Kademe (Başlangıç)
-        </button>
-        <button
-          type="button"
-          onClick={() => setSeciliKademe("orta")}
-          style={{
-            padding: "6px 14px",
-            borderRadius: "12px",
-            border: "none",
-            backgroundColor: seciliKademe === "orta" ? "#f59e0b" : "#f1f5f9",
-            color: seciliKademe === "orta" ? "#ffffff" : "#475569",
-            fontSize: "12px",
-            fontWeight: "bold",
-            cursor: "pointer",
-          }}
-        >
-          🟡 2. Kademe (Taktikler)
-        </button>
-        <button
-          type="button"
-          onClick={() => setSeciliKademe("ileri")}
-          style={{
-            padding: "6px 14px",
-            borderRadius: "12px",
-            border: "none",
-            backgroundColor: seciliKademe === "ileri" ? "#ef4444" : "#f1f5f9",
-            color: seciliKademe === "ileri" ? "#ffffff" : "#475569",
-            fontSize: "12px",
-            fontWeight: "bold",
-            cursor: "pointer",
-          }}
-        >
-          🔴 3. Kademe (Ustalık)
-        </button>
-      </div>
-
-      {/* İKİ SÜTUNLU DÜZEN: SOL DERS LİSTESİ - SAĞ AKTİF DERS İÇERİĞİ */}
+      {/* İKİ SÜTUN: SOL ÜNİTELER - SAĞ KAZANIM & DETAY */}
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: "16px" }}>
-        {/* SOL: DERS LİSTESİ */}
+        {/* SOL: 6 OYUN ALANI LİSTESİ */}
         <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
-          {filtrelenenDersler.map((d) => {
+          {MEB_DERSLER.map((d) => {
             const secili = aktifDers.id === d.id;
-            const bitti = tamamlananDersler.includes(d.id);
+            const bitti = tamamlananlar.includes(d.id);
             return (
               <div
                 key={d.id}
@@ -324,7 +251,7 @@ export default function DerslerPage() {
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "space-between",
-                  padding: "12px 14px",
+                  padding: "10px 14px",
                   backgroundColor: secili ? "#e0f2fe" : "#f8fafc",
                   borderRadius: "14px",
                   border: secili ? "2px solid #0284c7" : "1px solid #e2e8f0",
@@ -335,160 +262,133 @@ export default function DerslerPage() {
                 <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
                   <span style={{ fontSize: "24px" }}>{d.ikon}</span>
                   <div>
-                    <div style={{ fontSize: "13px", fontWeight: "900", color: "#1e293b" }}>
+                    <div style={{ fontSize: "12px", fontWeight: "900", color: "#1e293b" }}>
                       {d.baslik}
                     </div>
-                    <div style={{ fontSize: "11px", color: "#64748b" }}>
-                      ⏱️ {d.sure} • {d.kademe.toUpperCase()}
+                    <div style={{ fontSize: "10px", color: "#64748b" }}>
+                      {d.mebKodu} • ⏱️ {d.dersSaati}
                     </div>
                   </div>
                 </div>
-
-                <span style={{ fontSize: "18px" }}>
-                  {bitti ? "✅" : "⚪"}
-                </span>
+                <span>{bitti ? "✅" : "⚪"}</span>
               </div>
             );
           })}
         </div>
 
-        {/* SAĞ: SEÇİLİ DERS DETAYI */}
+        {/* SAĞ: KAZANIM VE PEDAGOJİK ETKİNLİK ALANI */}
         <div
           style={{
             backgroundColor: "#f0f9ff",
-            padding: "20px",
+            padding: "18px",
             borderRadius: "18px",
             border: "2px solid #bae6fd",
           }}
         >
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "10px" }}>
-            <h2 style={{ fontSize: "16px", fontWeight: "900", color: "#0369a1", margin: 0 }}>
-              {aktifDers.ikon} {aktifDers.baslik}
-            </h2>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "8px" }}>
+            <span style={{ fontSize: "11px", fontWeight: "bold", color: "#0284c7" }}>
+              {aktifDers.oyunAlani}
+            </span>
             <button
               type="button"
               onClick={() => handleDersTamamla(aktifDers.id)}
               style={{
-                padding: "6px 12px",
-                backgroundColor: tamamlananDersler.includes(aktifDers.id) ? "#16a34a" : "#0284c7",
+                padding: "5px 10px",
+                backgroundColor: tamamlananlar.includes(aktifDers.id) ? "#16a34a" : "#0284c7",
                 color: "#ffffff",
-                borderRadius: "10px",
+                borderRadius: "8px",
                 border: "none",
                 fontSize: "11px",
                 fontWeight: "bold",
                 cursor: "pointer",
               }}
             >
-              {tamamlananDersler.includes(aktifDers.id) ? "Tamamlandı ✨" : "Tamamla ⚪"}
+              {tamamlananlar.includes(aktifDers.id) ? "Tamamlandı ✨" : "Tamamla ⚪"}
             </button>
           </div>
 
-          <p style={{ fontSize: "13px", lineHeight: "1.6", color: "#334155", marginBottom: "14px" }}>
+          <h2 style={{ fontSize: "15px", fontWeight: "900", color: "#0f172a", margin: "0 0 8px 0" }}>
+            {aktifDers.baslik}
+          </h2>
+
+          <p style={{ fontSize: "12px", lineHeight: "1.6", color: "#334155", margin: "0 0 12px 0" }}>
             {aktifDers.aciklama}
           </p>
 
-          <div style={{ backgroundColor: "#ffffff", padding: "12px", borderRadius: "12px", border: "1px solid #e0f2fe", marginBottom: "14px" }}>
-            <div style={{ fontSize: "12px", fontWeight: "900", color: "#0369a1", marginBottom: "6px" }}>
-              📌 Bu Derste Neler Öğreneceğiz?
+          {/* MEB KAZANIMLARI KUTUSU */}
+          <div style={{ backgroundColor: "#ffffff", padding: "10px 14px", borderRadius: "12px", border: "1px solid #e0f2fe", marginBottom: "12px" }}>
+            <div style={{ fontSize: "11px", fontWeight: "900", color: "#0369a1", marginBottom: "4px" }}>
+              🎯 MEB Resmi Kazanımları:
             </div>
-            <ul style={{ margin: 0, paddingLeft: "18px", fontSize: "12px", color: "#475569", lineHeight: "1.6" }}>
-              {aktifDers.ogrenilecekler.map((madde, i) => (
-                <li key={i}>{madde}</li>
+            <ul style={{ margin: 0, paddingLeft: "16px", fontSize: "11px", color: "#475569", lineHeight: "1.5" }}>
+              {aktifDers.kazanimlar.map((k, i) => (
+                <li key={i}>{k}</li>
               ))}
             </ul>
           </div>
 
-          <div style={{ backgroundColor: "#fef3c7", padding: "10px 12px", borderRadius: "10px", border: "1px solid #fde68a", fontSize: "12px", color: "#92400e", fontWeight: "bold", marginBottom: "16px" }}>
-            💡 {aktifDers.ipuclari}
+          {/* OYUN / DRAMA ÖNERİSİ */}
+          <div style={{ backgroundColor: "#fef3c7", padding: "8px 12px", borderRadius: "10px", border: "1px solid #fde68a", fontSize: "11px", color: "#92400e", fontWeight: "bold", marginBottom: "14px" }}>
+            🎭 {aktifDers.etkinlikOnerisi}
           </div>
 
-          {/* DERSİN MİNİ BİLGİ TESTİ */}
-          <div style={{ backgroundColor: "#ffffff", padding: "14px", borderRadius: "14px", border: "1px solid #cbd5e1" }}>
-            <div style={{ fontSize: "12px", fontWeight: "900", color: "#1e293b", marginBottom: "8px" }}>
-              ❓ Bilgi Testi: {aktifDers.miniSoru.soru}
+          {/* MİNİ ETKİNLİK TESTİ */}
+          <div style={{ backgroundColor: "#ffffff", padding: "12px", borderRadius: "12px", border: "1px solid #cbd5e1" }}>
+            <div style={{ fontSize: "11px", fontWeight: "900", color: "#1e293b", marginBottom: "6px" }}>
+              ❓ Pekiştirme Sorusu: {aktifDers.miniSoru.soru}
             </div>
 
-            <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
-              {aktifDers.miniSoru.secenekler.map((secenek, idx) => {
-                let bg = "#f8fafc";
-                let text = "#334155";
-                if (secilenCevap === idx) {
-                  if (idx === aktifDers.miniSoru.dogruIndex) {
-                    bg = "#dcfce7";
-                    text = "#15803d";
-                  } else {
-                    bg = "#fee2e2";
-                    text = "#b91c1c";
-                  }
-                }
-                return (
-                  <button
-                    key={idx}
-                    type="button"
-                    onClick={() => handleCevapKontrol(idx)}
-                    style={{
-                      textAlign: "left",
-                      padding: "8px 12px",
-                      borderRadius: "10px",
-                      border: "1px solid #e2e8f0",
-                      backgroundColor: bg,
-                      color: text,
-                      fontSize: "12px",
-                      fontWeight: "bold",
-                      cursor: "pointer",
-                    }}
-                  >
-                    {String.fromCharCode(65 + idx)}) {secenek}
-                  </button>
-                );
-              })}
+            <div style={{ display: "flex", flexDirection: "column", gap: "5px" }}>
+              {aktifDers.miniSoru.secenekler.map((sec, idx) => (
+                <button
+                  key={idx}
+                  type="button"
+                  onClick={() => handleCevap(idx)}
+                  style={{
+                    textAlign: "left",
+                    padding: "6px 10px",
+                    borderRadius: "8px",
+                    border: "1px solid #e2e8f0",
+                    backgroundColor: secilenCevap === idx ? (idx === aktifDers.miniSoru.dogruIndex ? "#dcfce7" : "#fee2e2") : "#f8fafc",
+                    fontSize: "11px",
+                    fontWeight: "bold",
+                    cursor: "pointer",
+                  }}
+                >
+                  {sec}
+                </button>
+              ))}
             </div>
 
             {cevapDurumu === "dogru" && (
-              <div style={{ marginTop: "8px", fontSize: "12px", fontWeight: "bold", color: "#16a34a" }}>
-                🎉 Harika! Doğru cevap, ders otomatik tamamlandı.
+              <div style={{ marginTop: "6px", fontSize: "11px", fontWeight: "bold", color: "#16a34a" }}>
+                🎉 Tebrikler! Kazanım başarıyla tamamlandı.
               </div>
             )}
             {cevapDurumu === "yanlis" && (
-              <div style={{ marginTop: "8px", fontSize: "12px", fontWeight: "bold", color: "#dc2626" }}>
-                ❌ Tekrar dene! İpucu yukarıdaki derste saklı.
+              <div style={{ marginTop: "6px", fontSize: "11px", fontWeight: "bold", color: "#dc2626" }}>
+                ❌ Tekrar düşün! İpucu kazanım açıklamalarında gizli.
               </div>
             )}
           </div>
         </div>
       </div>
 
-      {/* ALT GEÇİŞ BUTONLARI */}
-      <div style={{ display: "flex", justifyContent: "center", gap: "10px", marginTop: "22px", flexWrap: "wrap" }}>
+      <div style={{ textAlign: "center", marginTop: "18px" }}>
         <Link
           href="/odev"
           style={{
-            padding: "10px 18px",
-            backgroundColor: "#ef4444",
+            display: "inline-block",
+            padding: "8px 16px",
+            backgroundColor: "#2563eb",
             color: "#ffffff",
             borderRadius: "12px",
             textDecoration: "none",
             fontWeight: "900",
             fontSize: "12px",
-            boxShadow: "0 4px 10px rgba(239, 68, 68, 0.2)",
           }}
         >
-          📚 Şimdi Haftalık Ödevime Geç
-        </Link>
-        <Link
-          href="/masallar"
-          style={{
-            padding: "10px 18px",
-            backgroundColor: "#ec4899",
-            color: "#ffffff",
-            borderRadius: "12px",
-            textDecoration: "none",
-            fontWeight: "900",
-            fontSize: "12px",
-            boxShadow: "0 4px 10px rgba(236, 72, 153, 0.2)",
-          }}
-        >
-          ✨ Masallarla Eğlen
+          🚀 Kazanımları Pekiştirmek İçin Ödevlere Geç
         </Link>
       </div>
     </div>
