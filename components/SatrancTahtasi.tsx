@@ -49,16 +49,73 @@ const BOTS: BotProfile[] = [
   { id: "hard", name: "Bilge Baykuş", avatar: "🦉", title: "Zor" },
 ];
 
+// Tek hamlede mat bulmacaları (Beyaz oynar, tek hamlede mat yapar)
+interface Puzzle {
+  id: number;
+  title: string;
+  hint: string;
+  fen: string;
+  winningMove: { from: string; to: string };
+}
+
+const PUZZLES: Puzzle[] = [
+  {
+    id: 1,
+    title: "1. Görev: Çoban Matı Vurgunu 🎯",
+    hint: "İpucu: Vezir f7 karesindeki zayıf piyona dikkat çekiyor!",
+    fen: "r1bqkb1r/pppp1ppp/2n5/4p3/2B1n3/5Q2/PPPP1PPP/RNB1K1NR w KQkq - 0 4",
+    winningMove: { from: "f3", to: "f7" },
+  },
+  {
+    id: 2,
+    title: "2. Görev: Koridor Matı (Arka Sıra) 🏰",
+    hint: "İpucu: Siyah şah kendi piyonlarının arkasında sıkıştı. Kaleyi son yataya indir!",
+    fen: "6k1/5ppp/8/8/8/8/8/4R1K1 w - - 0 1",
+    winningMove: { from: "e1", to: "e8" },
+  },
+  {
+    id: 3,
+    title: "3. Görev: Vezir ve Fil İş Birliği 🤝",
+    hint: "İpucu: Vezir filin korumasıyla h7 karesine dalış yapabilir mi?",
+    fen: "r1b2rk1/ppp2ppp/2n5/3p4/7q/2B5/PPP1QPPP/2KR1B1R w - - 0 1",
+    winningMove: { from: "e2", to: "e8" },
+  },
+  {
+    id: 4,
+    title: "4. Görev: Akıllı At Matı 🐴",
+    hint: "İpucu: At f7 karesine zıplayarak şaha kaçış yolu bırakmıyor!",
+    fen: "6k1/5ppp/8/8/5N2/8/8/6K1 w - - 0 1",
+    winningMove: { from: "f4", to: "e7" },
+  },
+  {
+    id: 5,
+    title: "5. Görev: İki Kale Merdiven Matı 🪜",
+    hint: "İpucu: Birinci kale kaçışı kesti, ikinci kale son darbeyi vuruyor!",
+    fen: "7k/R7/8/8/8/8/1R6/6K1 w - - 0 1",
+    winningMove: { from: "b2", to: "b8" },
+  },
+];
+
 export default function SatrancTahtasi() {
+  const [activeTab, setActiveTab] = useState<"bot" | "puzzle">("bot");
+
+  // Bot Modu Durumları
   const [game, setGame] = useState(new Chess());
   const [selectedSquare, setSelectedSquare] = useState<string | null>(null);
   const [possibleSquares, setPossibleSquares] = useState<string[]>([]);
   const [activeBot, setActiveBot] = useState<BotProfile>(BOTS[0]);
   const [durumMesaji, setDurumMesaji] = useState("Senin sıran! (Beyaz)");
   const [isBotThinking, setIsBotThinking] = useState(false);
-
   const [capturedByWhite, setCapturedByWhite] = useState<string[]>([]);
   const [capturedByBlack, setCapturedByBlack] = useState<string[]>([]);
+
+  // Bulmaca Modu Durumları
+  const [currentPuzzleIdx, setCurrentPuzzleIdx] = useState(0);
+  const currentPuzzle = PUZZLES[currentPuzzleIdx];
+  const [puzzleGame, setPuzzleGame] = useState(new Chess(currentPuzzle.fen));
+  const [puzzleDurum, setPuzzleDurum] = useState("Beyaz oynar, tek hamlede mat yapar!");
+  const [isPuzzleSolved, setIsPuzzleSolved] = useState(false);
+  const [puzzleStars, setPuzzleStars] = useState(0);
 
   const files = ["a", "b", "c", "d", "e", "f", "g", "h"];
   const ranks = ["8", "7", "6", "5", "4", "3", "2", "1"];
@@ -125,7 +182,8 @@ export default function SatrancTahtasi() {
     return legalMoves[Math.floor(Math.random() * legalMoves.length)];
   }
 
-  function handleSquareClick(square: string) {
+  // BOT MODU HAMLE YÖNETİMİ
+  function handleSquareClickBot(square: string) {
     if (isBotThinking || game.isGameOver()) return;
 
     if (!selectedSquare) {
@@ -227,6 +285,67 @@ export default function SatrancTahtasi() {
     }
   }
 
+  // BULMACA MODU HAMLE YÖNETİMİ
+  function handleSquareClickPuzzle(square: string) {
+    if (isPuzzleSolved) return;
+
+    if (!selectedSquare) {
+      const piece = puzzleGame.get(square as any);
+      if (piece && piece.color === "w") {
+        setSelectedSquare(square);
+        const legalMoves = puzzleGame.moves({ square: square as any, verbose: true });
+        setPossibleSquares(legalMoves.map((m) => m.to));
+        setPuzzleDurum(`Seçildi: ${square.toUpperCase()} ➔ Mat hamleni yap!`);
+      }
+      return;
+    }
+
+    try {
+      const puzzleCopy = new Chess(puzzleGame.fen());
+      const move = puzzleCopy.move({
+        from: selectedSquare,
+        to: square,
+        promotion: "q",
+      });
+
+      if (move) {
+        if (puzzleCopy.isCheckmate()) {
+          // Doğru tek hamlede mat!
+          setPuzzleGame(puzzleCopy);
+          setSelectedSquare(null);
+          setPossibleSquares([]);
+          setIsPuzzleSolved(true);
+          setPuzzleStars((s) => s + 1);
+          sesCal("gameEnd");
+          setPuzzleDurum("🌟 TEBRİKLER! Şah Mat yaptın! +1 Yıldız kazandın! 🏆");
+        } else {
+          // Hamle geçerli ama mat değil
+          setSelectedSquare(null);
+          setPossibleSquares([]);
+          setPuzzleDurum("❌ Bu hamle güzel ama mat yapmadı! Tekrar dene.");
+          sesCal("move");
+        }
+      } else {
+        setSelectedSquare(null);
+        setPossibleSquares([]);
+      }
+    } catch {
+      setSelectedSquare(null);
+      setPossibleSquares([]);
+      setPuzzleDurum("Geçersiz hamle! Tekrar dene.");
+    }
+  }
+
+  function bulmacaDegistir(index: number) {
+    const nextP = PUZZLES[index];
+    setCurrentPuzzleIdx(index);
+    setPuzzleGame(new Chess(nextP.fen));
+    setSelectedSquare(null);
+    setPossibleSquares([]);
+    setIsPuzzleSolved(false);
+    setPuzzleDurum("Beyaz oynar, tek hamlede mat yapar!");
+  }
+
   function oyunuSifirla(yeniBot?: BotProfile) {
     const seciliBot = yeniBot || activeBot;
     setGame(new Chess());
@@ -238,6 +357,9 @@ export default function SatrancTahtasi() {
     setDurumMesaji(`Yeni oyun! Rakibin ${seciliBot.name}. Hamleni yap!`);
   }
 
+  const currentGame = activeTab === "bot" ? game : puzzleGame;
+  const currentClickHandler = activeTab === "bot" ? handleSquareClickBot : handleSquareClickPuzzle;
+
   return (
     <div
       style={{
@@ -245,7 +367,7 @@ export default function SatrancTahtasi() {
         flexDirection: "column",
         alignItems: "center",
         justifyContent: "center",
-        padding: "20px",
+        padding: "16px",
         backgroundColor: "#fffbeb",
         borderRadius: "24px",
         boxShadow: "0 20px 25px -5px rgba(0, 0, 0, 0.15)",
@@ -257,98 +379,193 @@ export default function SatrancTahtasi() {
         margin: "0 auto",
       }}
     >
-      {/* Bot Seçim Butonları */}
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "8px", width: "100%", marginBottom: "12px" }}>
-        {BOTS.map((bot) => {
-          const isActive = activeBot.id === bot.id;
-          return (
-            <button
-              key={bot.id}
-              type="button"
-              onClick={() => {
-                if (isActive) return;
-                setActiveBot(bot);
-                oyunuSifirla(bot);
-              }}
-              style={{
-                display: "flex",
-                flexDirection: "column",
-                alignItems: "center",
-                justifyContent: "center",
-                padding: "8px 4px",
-                borderRadius: "16px",
-                border: isActive ? "2px solid #d97706" : "2px solid #fde68a",
-                backgroundColor: isActive ? "#fbbf24" : "#fef3c7",
-                cursor: "pointer",
-                transform: isActive ? "scale(1.04)" : "scale(1)",
-                transition: "all 0.15s ease",
-              }}
-            >
-              <span style={{ fontSize: "24px" }}>{bot.avatar}</span>
-              <span style={{ fontSize: "11px", fontWeight: "900", color: "#451a03", marginTop: "2px" }}>{bot.name}</span>
-              <span style={{ fontSize: "10px", fontWeight: "bold", color: "#92400e" }}>({bot.title})</span>
-            </button>
-          );
-        })}
-      </div>
-
-      {/* Durum Mesajı */}
+      {/* Sekme Butonları: Oyun vs Bulmaca */}
       <div
         style={{
-          width: "100%",
-          padding: "8px 12px",
-          backgroundColor: "#fde68a",
-          borderRadius: "9999px",
-          textAlign: "center",
-          fontWeight: "900",
-          fontSize: "14px",
-          color: "#451a03",
-          marginBottom: "12px",
-          minHeight: "40px",
           display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          boxSizing: "border-box",
-        }}
-      >
-        {durumMesaji}
-      </div>
-
-      {/* Rakip Bot Bilgisi */}
-      <div
-        style={{
           width: "100%",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-          padding: "8px 12px",
           backgroundColor: "#fef3c7",
           borderRadius: "16px",
-          marginBottom: "8px",
-          border: "1px solid #fde68a",
-          boxSizing: "border-box",
+          padding: "4px",
+          gap: "6px",
+          marginBottom: "14px",
+          border: "2px solid #fde68a",
         }}
       >
-        <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-          <span style={{ fontSize: "24px" }}>{activeBot.avatar}</span>
-          <div style={{ display: "flex", flexDirection: "column" }}>
-            <span style={{ fontWeight: "800", fontSize: "12px", color: "#78350f" }}>{activeBot.name}</span>
-            <span style={{ fontSize: "10px", color: "#b45309", fontWeight: "bold" }}>{activeBot.title} Rakip</span>
-          </div>
-        </div>
-        <div style={{ display: "flex", alignItems: "center", gap: "4px" }}>
-          {capturedByBlack.map((p, idx) => (
-            <img key={idx} src={PIECE_IMAGES[`w${p.toUpperCase()}`]} alt={p} style={{ width: "20px", height: "20px" }} />
-          ))}
-          {scoreDiff < 0 && (
-            <span style={{ fontSize: "11px", fontWeight: "900", color: "#be123c", backgroundColor: "#ffe4e6", padding: "2px 6px", borderRadius: "6px" }}>
-              +{Math.abs(scoreDiff)}
-            </span>
-          )}
-        </div>
+        <button
+          type="button"
+          onClick={() => {
+            setActiveTab("bot");
+            setSelectedSquare(null);
+            setPossibleSquares([]);
+          }}
+          style={{
+            flex: 1,
+            padding: "8px",
+            borderRadius: "12px",
+            fontWeight: "900",
+            fontSize: "13px",
+            border: "none",
+            cursor: "pointer",
+            backgroundColor: activeTab === "bot" ? "#f59e0b" : "transparent",
+            color: activeTab === "bot" ? "#ffffff" : "#78350f",
+            transition: "all 0.15s ease",
+          }}
+        >
+          🎮 Bot ile Oyna
+        </button>
+
+        <button
+          type="button"
+          onClick={() => {
+            setActiveTab("puzzle");
+            setSelectedSquare(null);
+            setPossibleSquares([]);
+            bulmacaDegistir(currentPuzzleIdx);
+          }}
+          style={{
+            flex: 1,
+            padding: "8px",
+            borderRadius: "12px",
+            fontWeight: "900",
+            fontSize: "13px",
+            border: "none",
+            cursor: "pointer",
+            backgroundColor: activeTab === "puzzle" ? "#10b981" : "transparent",
+            color: activeTab === "puzzle" ? "#ffffff" : "#78350f",
+            transition: "all 0.15s ease",
+          }}
+        >
+          🧩 Mat Bulmacaları
+        </button>
       </div>
 
-      {/* Satranç Tahtası (Sabit 352x352 px) */}
+      {/* BOT MODU BAŞLIĞI */}
+      {activeTab === "bot" && (
+        <>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "8px", width: "100%", marginBottom: "10px" }}>
+            {BOTS.map((bot) => {
+              const isActive = activeBot.id === bot.id;
+              return (
+                <button
+                  key={bot.id}
+                  type="button"
+                  onClick={() => {
+                    if (isActive) return;
+                    setActiveBot(bot);
+                    oyunuSifirla(bot);
+                  }}
+                  style={{
+                    display: "flex",
+                    flexDirection: "column",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    padding: "8px 4px",
+                    borderRadius: "16px",
+                    border: isActive ? "2px solid #d97706" : "2px solid #fde68a",
+                    backgroundColor: isActive ? "#fbbf24" : "#fef3c7",
+                    cursor: "pointer",
+                    transform: isActive ? "scale(1.04)" : "scale(1)",
+                    transition: "all 0.15s ease",
+                  }}
+                >
+                  <span style={{ fontSize: "22px" }}>{bot.avatar}</span>
+                  <span style={{ fontSize: "11px", fontWeight: "900", color: "#451a03", marginTop: "2px" }}>{bot.name}</span>
+                  <span style={{ fontSize: "10px", fontWeight: "bold", color: "#92400e" }}>({bot.title})</span>
+                </button>
+              );
+            })}
+          </div>
+
+          <div
+            style={{
+              width: "100%",
+              padding: "8px 12px",
+              backgroundColor: "#fde68a",
+              borderRadius: "9999px",
+              textAlign: "center",
+              fontWeight: "900",
+              fontSize: "13px",
+              color: "#451a03",
+              marginBottom: "10px",
+              minHeight: "38px",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              boxSizing: "border-box",
+            }}
+          >
+            {durumMesaji}
+          </div>
+
+          <div
+            style={{
+              width: "100%",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+              padding: "6px 12px",
+              backgroundColor: "#fef3c7",
+              borderRadius: "14px",
+              marginBottom: "8px",
+              border: "1px solid #fde68a",
+              boxSizing: "border-box",
+            }}
+          >
+            <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+              <span style={{ fontSize: "20px" }}>{activeBot.avatar}</span>
+              <div style={{ display: "flex", flexDirection: "column" }}>
+                <span style={{ fontWeight: "800", fontSize: "11px", color: "#78350f" }}>{activeBot.name}</span>
+                <span style={{ fontSize: "9px", color: "#b45309", fontWeight: "bold" }}>{activeBot.title}</span>
+              </div>
+            </div>
+            <div style={{ display: "flex", alignItems: "center", gap: "3px" }}>
+              {capturedByBlack.map((p, idx) => (
+                <img key={idx} src={PIECE_IMAGES[`w${p.toUpperCase()}`]} alt={p} style={{ width: "18px", height: "18px" }} />
+              ))}
+              {scoreDiff < 0 && (
+                <span style={{ fontSize: "10px", fontWeight: "900", color: "#be123c", backgroundColor: "#ffe4e6", padding: "1px 5px", borderRadius: "5px" }}>
+                  +{Math.abs(scoreDiff)}
+                </span>
+              )}
+            </div>
+          </div>
+        </>
+      )}
+
+      {/* BULMACA MODU BAŞLIĞI */}
+      {activeTab === "puzzle" && (
+        <div style={{ width: "100%", marginBottom: "10px" }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "6px" }}>
+            <span style={{ fontSize: "12px", fontWeight: "900", color: "#78350f" }}>{currentPuzzle.title}</span>
+            <span style={{ fontSize: "12px", fontWeight: "900", color: "#d97706" }}>⭐ {puzzleStars} Yıldız</span>
+          </div>
+
+          <div
+            style={{
+              width: "100%",
+              padding: "8px 10px",
+              backgroundColor: isPuzzleSolved ? "#dcfce7" : "#ecfdf5",
+              borderRadius: "14px",
+              textAlign: "center",
+              fontWeight: "800",
+              fontSize: "12px",
+              color: isPuzzleSolved ? "#15803d" : "#047857",
+              marginBottom: "6px",
+              border: isPuzzleSolved ? "2px solid #22c55e" : "1px solid #a7f3d0",
+              boxSizing: "border-box",
+            }}
+          >
+            {puzzleDurum}
+          </div>
+
+          <div style={{ fontSize: "10px", color: "#92400e", textAlign: "center", fontStyle: "italic", marginBottom: "4px" }}>
+            {currentPuzzle.hint}
+          </div>
+        </div>
+      )}
+
+      {/* SATRANÇ TAHTASI (352x352 px) */}
       <div
         style={{
           width: "352px",
@@ -366,7 +583,7 @@ export default function SatrancTahtasi() {
         {ranks.map((rank, rankIndex) =>
           files.map((file, fileIndex) => {
             const square = `${file}${rank}`;
-            const piece = game.get(square as any);
+            const piece = currentGame.get(square as any);
             const isDark = (rankIndex + fileIndex) % 2 === 1;
             const isSelected = selectedSquare === square;
             const isPossibleTarget = possibleSquares.includes(square);
@@ -378,7 +595,7 @@ export default function SatrancTahtasi() {
               <button
                 key={square}
                 type="button"
-                onClick={() => handleSquareClick(square)}
+                onClick={() => currentClickHandler(square)}
                 style={{
                   width: "44px",
                   height: "44px",
@@ -433,60 +650,116 @@ export default function SatrancTahtasi() {
         )}
       </div>
 
-      {/* Oyuncu Bilgisi */}
-      <div
-        style={{
-          width: "100%",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-          padding: "8px 12px",
-          backgroundColor: "#fef3c7",
-          borderRadius: "16px",
-          marginTop: "8px",
-          border: "1px solid #fde68a",
-          boxSizing: "border-box",
-        }}
-      >
-        <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-          <span style={{ fontSize: "24px" }}>🦁</span>
-          <div style={{ display: "flex", flexDirection: "column" }}>
-            <span style={{ fontWeight: "800", fontSize: "12px", color: "#78350f" }}>Sen (Beyaz)</span>
-            <span style={{ fontSize: "11px", fontWeight: "900", color: "#d97706" }}>⭐ {whiteScore} Yıldız</span>
+      {/* ALT ALAN: BOT OYUNCU BİLGİSİ YA DA BULMACA KONTROLLERİ */}
+      {activeTab === "bot" ? (
+        <>
+          <div
+            style={{
+              width: "100%",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+              padding: "6px 12px",
+              backgroundColor: "#fef3c7",
+              borderRadius: "14px",
+              marginTop: "8px",
+              border: "1px solid #fde68a",
+              boxSizing: "border-box",
+            }}
+          >
+            <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+              <span style={{ fontSize: "20px" }}>🦁</span>
+              <div style={{ display: "flex", flexDirection: "column" }}>
+                <span style={{ fontWeight: "800", fontSize: "11px", color: "#78350f" }}>Sen (Beyaz)</span>
+                <span style={{ fontSize: "10px", fontWeight: "900", color: "#d97706" }}>⭐ {whiteScore} Yıldız</span>
+              </div>
+            </div>
+
+            <div style={{ display: "flex", alignItems: "center", gap: "3px" }}>
+              {capturedByWhite.map((p, idx) => (
+                <img key={idx} src={PIECE_IMAGES[`b${p.toUpperCase()}`]} alt={p} style={{ width: "18px", height: "18px" }} />
+              ))}
+              {scoreDiff > 0 && (
+                <span style={{ fontSize: "10px", fontWeight: "900", color: "#047857", backgroundColor: "#d1fae5", padding: "1px 5px", borderRadius: "5px" }}>
+                  +{scoreDiff}
+                </span>
+              )}
+            </div>
           </div>
-        </div>
 
-        <div style={{ display: "flex", alignItems: "center", gap: "4px" }}>
-          {capturedByWhite.map((p, idx) => (
-            <img key={idx} src={PIECE_IMAGES[`b${p.toUpperCase()}`]} alt={p} style={{ width: "20px", height: "20px" }} />
-          ))}
-          {scoreDiff > 0 && (
-            <span style={{ fontSize: "11px", fontWeight: "900", color: "#047857", backgroundColor: "#d1fae5", padding: "2px 6px", borderRadius: "6px" }}>
-              +{scoreDiff}
-            </span>
-          )}
-        </div>
-      </div>
+          <button
+            type="button"
+            onClick={() => oyunuSifirla()}
+            style={{
+              marginTop: "12px",
+              padding: "8px 20px",
+              backgroundColor: "#10b981",
+              color: "white",
+              fontWeight: "900",
+              borderRadius: "14px",
+              border: "none",
+              fontSize: "14px",
+              cursor: "pointer",
+              boxShadow: "0 4px 6px -1px rgba(0,0,0,0.1)",
+            }}
+          >
+            Yeniden Başla 🔄
+          </button>
+        </>
+      ) : (
+        <div style={{ display: "flex", gap: "8px", marginTop: "12px", width: "100%", justifyContent: "center" }}>
+          <button
+            type="button"
+            onClick={() => bulmacaDegistir((currentPuzzleIdx - 1 + PUZZLES.length) % PUZZLES.length)}
+            style={{
+              padding: "8px 14px",
+              backgroundColor: "#fef3c7",
+              color: "#78350f",
+              fontWeight: "800",
+              borderRadius: "12px",
+              border: "1px solid #fde68a",
+              fontSize: "12px",
+              cursor: "pointer",
+            }}
+          >
+            ◀ Önceki Soru
+          </button>
 
-      {/* Yeniden Başla Butonu */}
-      <button
-        type="button"
-        onClick={() => oyunuSifirla()}
-        style={{
-          marginTop: "14px",
-          padding: "10px 24px",
-          backgroundColor: "#10b981",
-          color: "white",
-          fontWeight: "900",
-          borderRadius: "16px",
-          border: "none",
-          fontSize: "15px",
-          cursor: "pointer",
-          boxShadow: "0 4px 6px -1px rgba(0,0,0,0.1)",
-        }}
-      >
-        Yeniden Başla 🔄
-      </button>
+          <button
+            type="button"
+            onClick={() => bulmacaDegistir(currentPuzzleIdx)}
+            style={{
+              padding: "8px 14px",
+              backgroundColor: "#fde68a",
+              color: "#78350f",
+              fontWeight: "800",
+              borderRadius: "12px",
+              border: "none",
+              fontSize: "12px",
+              cursor: "pointer",
+            }}
+          >
+            Sıfırla 🔄
+          </button>
+
+          <button
+            type="button"
+            onClick={() => bulmacaDegistir((currentPuzzleIdx + 1) % PUZZLES.length)}
+            style={{
+              padding: "8px 14px",
+              backgroundColor: "#10b981",
+              color: "white",
+              fontWeight: "800",
+              borderRadius: "12px",
+              border: "none",
+              fontSize: "12px",
+              cursor: "pointer",
+            }}
+          >
+            Sonraki Soru ▶
+          </button>
+        </div>
+      )}
     </div>
   );
 }
