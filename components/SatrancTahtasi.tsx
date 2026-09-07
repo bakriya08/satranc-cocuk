@@ -242,7 +242,10 @@ export default function SatrancTahtasi() {
 
   return (
     <div className="flex flex-col items-center justify-center p-5 bg-amber-50 rounded-3xl shadow-2xl max-w-md w-full border-4 border-amber-300 select-none">
-      <div className="w-full grid grid-cols-3 gap-2 mb-3">
+      <div 
+        style={{ width: "360px", height: "360px", display: "grid", gridTemplateColumns: "repeat(8, 1fr)", gridTemplateRows: "repeat(8, 1fr)" }}
+        className="rounded-2xl overflow-hidden border-4 border-amber-900 shadow-xl bg-amber-900"
+      >
         {BOTS.map((bot) => {
           const isActive = activeBot.id === bot.id;
           return (
