@@ -69,20 +69,32 @@ const VARSAYILAN_SORULAR: SoruItem[] = [
     fen: "6k1/5ppp/8/8/8/8/8/4R1K1 w - - 0 1",
     hint: "İpucu: Kaleyi 8. yataya indir!",
   },
+  {
+    id: 3,
+    title: "3. Görev: Vezir Dalışı 👑",
+    fen: "r1b2rk1/ppp2ppp/2n5/3p4/7q/2B5/PPP1QPPP/2KR1B1R w - - 0 1",
+    hint: "İpucu: Vezir e8 karesinden son sırayı vuruyor!",
+  },
 ];
 
 const UPSTASH_URL = process.env.UPSTASH_REDIS_REST_URL;
 const UPSTASH_TOKEN = process.env.UPSTASH_REDIS_REST_TOKEN;
 
+// Hafıza içi yedek (Upstash anahtarı olmasa dahi çökmemesi için)
+let bellekDeposu: Record<string, any> = {};
+
 async function redisGet<T>(key: string, fallback: T): Promise<T> {
-  if (!UPSTASH_URL || !UPSTASH_TOKEN) return fallback;
+  if (!UPSTASH_URL || !UPSTASH_TOKEN) {
+    return bellekDeposu[key] !== undefined ? bellekDeposu[key] : fallback;
+  }
   try {
     const res = await fetch(`${UPSTASH_URL}/get/${key}`, {
       headers: { Authorization: `Bearer ${UPSTASH_TOKEN}` },
       cache: "no-store",
     });
+    if (!res.ok) return fallback;
     const json = await res.json();
-    if (json && json.result) {
+    if (json && json.result !== null && json.result !== undefined) {
       return typeof json.result === "string" ? JSON.parse(json.result) : json.result;
     }
     return fallback;
@@ -92,44 +104,53 @@ async function redisGet<T>(key: string, fallback: T): Promise<T> {
 }
 
 async function redisSet(key: string, value: any): Promise<void> {
+  bellekDeposu[key] = value;
   if (!UPSTASH_URL || !UPSTASH_TOKEN) return;
+
   try {
-    await fetch(`${UPSTASH_URL}/set/${key}`, {
+    // Upstash REST API standart formatı
+    await fetch(`${UPSTASH_URL}`, {
       method: "POST",
       headers: {
         Authorization: `Bearer ${UPSTASH_TOKEN}`,
         "Content-Type": "application/json",
       },
-      body: JSON.stringify(JSON.stringify(value)),
+      body: JSON.stringify(["SET", key, JSON.stringify(value)]),
       cache: "no-store",
     });
-  } catch {}
+  } catch (err) {
+    console.error("Upstash SET hatasi:", err);
+  }
 }
 
 export async function GET(request: Request) {
-  const { searchParams } = new URL(request.url);
-  const type = searchParams.get("type");
+  try {
+    const { searchParams } = new URL(request.url);
+    const type = searchParams.get("type");
 
-  const sorular = await redisGet<SoruItem[]>("odev_sorulari", VARSAYILAN_SORULAR);
-  if (type === "sorular") return NextResponse.json({ success: true, data: sorular });
+    const sorular = await redisGet<SoruItem[]>("odev_sorulari", VARSAYILAN_SORULAR);
+    if (type === "sorular") return NextResponse.json({ success: true, data: sorular });
 
-  const ogrenciler = await redisGet<OgrenciProfil[]>("kayitli_ogrenciler", []);
-  if (type === "ogrenciler") return NextResponse.json({ success: true, data: ogrenciler });
+    const ogrenciler = await redisGet<OgrenciProfil[]>("kayitli_ogrenciler", []);
+    if (type === "ogrenciler") return NextResponse.json({ success: true, data: ogrenciler });
 
-  const ogretmenler = await redisGet<OgretmenProfil[]>("kayitli_ogretmenler", VARSAYILAN_OGRETMENLER);
-  const aktifOdevler = await redisGet<OdevKaydi[]>("aktif_odevler", []);
-  const arsivler = await redisGet<any[]>("arsiv_odevler", []);
+    const ogretmenler = await redisGet<OgretmenProfil[]>("kayitli_ogretmenler", VARSAYILAN_OGRETMENLER);
+    const aktifOdevler = await redisGet<OdevKaydi[]>("aktif_odevler", []);
+    const arsivler = await redisGet<any[]>("arsiv_odevler", []);
 
-  return NextResponse.json({
-    success: true,
-    data: {
-      sorular,
-      aktifOdevler,
-      arsivSayisi: arsivler.length,
-      ogrenciler,
-      ogretmenler,
-    },
-  });
+    return NextResponse.json({
+      success: true,
+      data: {
+        sorular,
+        aktifOdevler,
+        arsivSayisi: arsivler.length,
+        ogrenciler,
+        ogretmenler,
+      },
+    });
+  } catch {
+    return NextResponse.json({ success: false, message: "Veri okuma hatası" }, { status: 500 });
+  }
 }
 
 export async function POST(request: Request) {
@@ -137,7 +158,37 @@ export async function POST(request: Request) {
     const body = await request.json();
     const { action } = body;
 
-    // ÖĞRETMEN GİRİŞ KONTROLÜ
+    // 1. ÖĞRENCİ KAYIT
+    if (action === "ogrenciKayit") {
+      const { adSoyad, sinifGrup, avatar, pin } = body;
+      if (!adSoyad || !String(adSoyad).trim()) {
+        return NextResponse.json({ success: false, message: "İsim gereklidir" }, { status: 400 });
+      }
+
+      const ogrenciler = await redisGet<OgrenciProfil[]>("kayitli_ogrenciler", []);
+      const yeniOgrenci: OgrenciProfil = {
+        id: Date.now().toString(),
+        adSoyad: String(adSoyad).trim(),
+        sinifGrup: String(sinifGrup || "Genel").trim(),
+        avatar: String(avatar || "🦁"),
+        pin: String(pin || "1234"),
+        kayitTarihi: new Date().toLocaleDateString("tr-TR"),
+      };
+
+      const mevcutIdx = ogrenciler.findIndex(
+        (o) => o.adSoyad.toLowerCase() === yeniOgrenci.adSoyad.toLowerCase()
+      );
+      if (mevcutIdx >= 0) {
+        ogrenciler[mevcutIdx] = yeniOgrenci;
+      } else {
+        ogrenciler.push(yeniOgrenci);
+      }
+
+      await redisSet("kayitli_ogrenciler", ogrenciler);
+      return NextResponse.json({ success: true, data: yeniOgrenci });
+    }
+
+    // 2. ÖĞRETMEN GİRİŞİ
     if (action === "ogretmenGiris") {
       const { sifre } = body;
       const ogretmenler = await redisGet<OgretmenProfil[]>("kayitli_ogretmenler", VARSAYILAN_OGRETMENLER);
@@ -146,18 +197,15 @@ export async function POST(request: Request) {
       if (bulunan || sifre === "satranc123") {
         return NextResponse.json({
           success: true,
-          data: bulunan || { id: "admin", adSoyad: "Öğretmen", unvan: "Eğitmen", rol: "yonetici" },
+          data: bulunan || { id: "admin", adSoyad: "Yönetici Öğretmen", unvan: "Eğitmen", rol: "yonetici" },
         });
       }
       return NextResponse.json({ success: false, message: "Hatalı şifre!" }, { status: 401 });
     }
 
-    // YENİ ÖĞRETMEN EKLEME
+    // 3. ÖĞRETMEN EKLEME
     if (action === "ogretmenEkle") {
       const { adSoyad, unvan, sifre } = body;
-      if (!adSoyad || !sifre) {
-        return NextResponse.json({ success: false, message: "İsim ve şifre zorunludur" }, { status: 400 });
-      }
       const ogretmenler = await redisGet<OgretmenProfil[]>("kayitli_ogretmenler", VARSAYILAN_OGRETMENLER);
       const yeni: OgretmenProfil = {
         id: Date.now().toString(),
@@ -171,7 +219,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ success: true, data: ogretmenler });
     }
 
-    // ÖĞRETMEN SİLME
+    // 4. ÖĞRETMEN SİLME
     if (action === "ogretmenSil") {
       const { id } = body;
       let ogretmenler = await redisGet<OgretmenProfil[]>("kayitli_ogretmenler", VARSAYILAN_OGRETMENLER);
@@ -180,33 +228,18 @@ export async function POST(request: Request) {
       return NextResponse.json({ success: true, data: ogretmenler });
     }
 
-    // ÖĞRENCİ KAYIT
-    if (action === "ogrenciKayit") {
-      const { adSoyad, sinifGrup, avatar, pin } = body;
-      const ogrenciler = await redisGet<OgrenciProfil[]>("kayitli_ogrenciler", []);
-      const yeniOgrenci: OgrenciProfil = {
-        id: Date.now().toString(),
-        adSoyad: String(adSoyad).trim(),
-        sinifGrup: String(sinifGrup || "Genel").trim(),
-        avatar: String(avatar || "🦁"),
-        pin: String(pin || "1234"),
-        kayitTarihi: new Date().toLocaleDateString("tr-TR"),
-      };
-      ogrenciler.push(yeniOgrenci);
-      await redisSet("kayitli_ogrenciler", ogrenciler);
-      return NextResponse.json({ success: true, data: yeniOgrenci });
-    }
-
-    // PIN SIFIRLAMA
+    // 5. PIN SIFIRLAMA
     if (action === "pinSifirla") {
       const { ogrenciId, yeniPin } = body;
       let ogrenciler = await redisGet<OgrenciProfil[]>("kayitli_ogrenciler", []);
-      ogrenciler = ogrenciler.map((o) => (o.id === ogrenciId ? { ...o, pin: String(yeniPin || "1234") } : o));
+      ogrenciler = ogrenciler.map((o) =>
+        o.id === ogrenciId ? { ...o, pin: String(yeniPin || "1234") } : o
+      );
       await redisSet("kayitli_ogrenciler", ogrenciler);
       return NextResponse.json({ success: true });
     }
 
-    // ÖĞRENCİ SİLME
+    // 6. ÖĞRENCİ SİLME
     if (action === "ogrenciSil") {
       const { ogrenciId } = body;
       let ogrenciler = await redisGet<OgrenciProfil[]>("kayitli_ogrenciler", []);
@@ -215,7 +248,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ success: true });
     }
 
-    // SORU EKLEME / SİLME
+    // 7. SORU EKLEME / SİLME
     if (action === "soruEkle") {
       const { title, fen, hint } = body;
       const sorular = await redisGet<SoruItem[]>("odev_sorulari", VARSAYILAN_SORULAR);
@@ -233,7 +266,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ success: true, data: sorular });
     }
 
-    // ARŞİVLEME
+    // 8. ARŞİVLEME
     if (action === "haftayiArsivle") {
       const aktif = await redisGet<OdevKaydi[]>("aktif_odevler", []);
       if (aktif.length > 0) {
@@ -245,7 +278,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ success: true });
     }
 
-    // ÖDEV TESLİMİ
+    // 9. ÖDEV TESLİMİ
     const { ogrenciAdi, sinifGrup, avatar, toplamSoru, dogruSayisi, toplamHata, gecenSureSaniye, soruDetaylari } = body;
     const aktifOdevler = await redisGet<OdevKaydi[]>("aktif_odevler", []);
     const yeniTeslim: OdevKaydi = {
@@ -262,8 +295,10 @@ export async function POST(request: Request) {
     };
     aktifOdevler.unshift(yeniTeslim);
     await redisSet("aktif_odevler", aktifOdevler);
+
     return NextResponse.json({ success: true, data: yeniTeslim });
-  } catch {
-    return NextResponse.json({ success: false, message: "Sunucu hatası" }, { status: 500 });
+  } catch (err) {
+    console.error("API POST Hatasi:", err);
+    return NextResponse.json({ success: false, message: "Sunucu hatası oluştu" }, { status: 500 });
   }
 }
