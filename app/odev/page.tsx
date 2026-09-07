@@ -45,7 +45,7 @@ export default function OdevPage() {
   const [selectedSquare, setSelectedSquare] = useState<string | null>(null);
   const [possibleSquares, setPossibleSquares] = useState<string[]>([]);
   const [durumMesaji, setDurumMesaji] = useState("Beyaz oynar, tek hamlede mat yapar!");
-  
+
   const [soruHatalari, setSoruHatalari] = useState<Record<number, number>>({});
   const [baslamaZamani, setBaslamaZamani] = useState<number>(0);
   const [tamamlandi, setTamamlandi] = useState(false);
@@ -55,18 +55,8 @@ export default function OdevPage() {
   const ranks = ["8", "7", "6", "5", "4", "3", "2", "1"];
 
   useEffect(() => {
-    // 1. Tarayıcıda kayıtlı öğrenci profilini ara
-    try {
-      const kayitli = localStorage.getItem("satranc_ogrenci");
-      if (kayitli) {
-        const parsed = JSON.parse(kayitli);
-        setOgrenciAdi(parsed.adSoyad || "");
-        setSinifGrup(parsed.sinifGrup || "");
-        setAvatar(parsed.avatar || "🦁");
-      }
-    } catch {}
+    profilYukle();
 
-    // 2. Soruları çek
     fetch("/api/odev?type=sorular")
       .then((r) => r.json())
       .then((res) => {
@@ -78,6 +68,32 @@ export default function OdevPage() {
       })
       .catch(() => setYukleniyor(false));
   }, []);
+
+  function profilYukle() {
+    try {
+      const kayitli = localStorage.getItem("satranc_ogrenci");
+      if (kayitli) {
+        const parsed = JSON.parse(kayitli);
+        setOgrenciAdi(parsed.adSoyad || "");
+        setSinifGrup(parsed.sinifGrup || "");
+        setAvatar(parsed.avatar || "🦁");
+      }
+    } catch {}
+  }
+
+  // ÇIKIŞ YAP FONKSİYONU (Kardeşler için)
+  function cikisYap() {
+    try {
+      localStorage.removeItem("satranc_ogrenci");
+    } catch {}
+    setOgrenciAdi("");
+    setSinifGrup("");
+    setAvatar("🦁");
+    setOdevBasladi(false);
+    setTamamlandi(false);
+    setCurrentIdx(0);
+    setSoruHatalari({});
+  }
 
   function sesCal(tur: "move" | "capture" | "gameEnd") {
     try {
@@ -211,12 +227,39 @@ export default function OdevPage() {
         </h1>
 
         {ogrenciAdi ? (
-          <div style={{ backgroundColor: "#fef3c7", padding: "10px", borderRadius: "14px", marginBottom: "14px" }}>
+          <div
+            style={{
+              backgroundColor: "#fef3c7",
+              padding: "12px",
+              borderRadius: "16px",
+              marginBottom: "14px",
+              border: "2px solid #fde68a",
+            }}
+          >
             <span style={{ fontSize: "11px", color: "#92400e", fontWeight: "bold" }}>Giriş Yapılan Profil:</span>
-            <div style={{ fontSize: "16px", fontWeight: "900", color: "#451a03" }}>
+            <div style={{ fontSize: "17px", fontWeight: "900", color: "#451a03", marginTop: "2px" }}>
               {avatar} {ogrenciAdi}
             </div>
-            {sinifGrup && <span style={{ fontSize: "11px", color: "#b45309" }}>({sinifGrup})</span>}
+            {sinifGrup && <span style={{ fontSize: "11px", color: "#b45309", fontWeight: "bold" }}>({sinifGrup})</span>}
+
+            {/* ÇIKIŞ YAP BUTONU (KARDEŞLER İÇİN) */}
+            <div style={{ marginTop: "8px", borderTop: "1px dashed #fcd34d", paddingTop: "6px" }}>
+              <button
+                type="button"
+                onClick={cikisYap}
+                style={{
+                  background: "none",
+                  border: "none",
+                  color: "#dc2626",
+                  fontSize: "11px",
+                  fontWeight: "800",
+                  cursor: "pointer",
+                  textDecoration: "underline",
+                }}
+              >
+                🔄 Ben {ogrenciAdi.split(" ")[0]} değilim (Çıkış Yap / Kardeşim Başlasın)
+              </button>
+            </div>
           </div>
         ) : (
           <div style={{ marginBottom: "14px" }}>
@@ -238,9 +281,11 @@ export default function OdevPage() {
                 marginBottom: "8px",
               }}
             />
-            <Link href="/kayit" style={{ fontSize: "11px", color: "#2563eb", fontWeight: "800", textDecoration: "none" }}>
-              ✨ Henüz kayıt olmadın mı? Kulüp Kartı Oluştur ➔
-            </Link>
+            <div style={{ display: "flex", justifyContent: "center", gap: "10px" }}>
+              <Link href="/kayit" style={{ fontSize: "11px", color: "#2563eb", fontWeight: "800", textDecoration: "none" }}>
+                🌟 Kendi Kulüp Kartını Oluştur ➔
+              </Link>
+            </div>
           </div>
         )}
 
@@ -273,7 +318,7 @@ export default function OdevPage() {
     );
   }
 
-  // 3. BİTİŞ EKRANI
+  // 3. BİTİŞ EKRANI (Kardeş İçin Oturum Kapatma Destekli)
   if (tamamlandi) {
     return (
       <div
@@ -309,24 +354,44 @@ export default function OdevPage() {
             fontWeight: "700",
           }}
         >
-          {kaydediliyor ? "Sonuç öğretmenine iletiliyor... ⏳" : "✅ Ödevin öğretmeninin kontrol paneline ulaştı!"}
+          {kaydediliyor ? "Sonuç öğretmenine iletiliyor... ⏳" : "✅ Ödevin öğretmenin kontrol paneline ulaştı!"}
         </div>
 
-        <Link
-          href="/"
-          style={{
-            display: "inline-block",
-            padding: "12px 24px",
-            backgroundColor: "#f59e0b",
-            color: "#ffffff",
-            fontWeight: "900",
-            fontSize: "13px",
-            borderRadius: "14px",
-            textDecoration: "none",
-          }}
-        >
-          🏠 Ana Sayfaya Dön
-        </Link>
+        <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+          <Link
+            href="/"
+            style={{
+              display: "block",
+              padding: "12px 24px",
+              backgroundColor: "#f59e0b",
+              color: "#ffffff",
+              fontWeight: "900",
+              fontSize: "13px",
+              borderRadius: "14px",
+              textDecoration: "none",
+            }}
+          >
+            🏠 Ana Sayfaya Dön
+          </Link>
+
+          {/* Kardeşim Oynasın Butonu */}
+          <button
+            type="button"
+            onClick={cikisYap}
+            style={{
+              padding: "10px",
+              backgroundColor: "#eff6ff",
+              color: "#2563eb",
+              border: "2px solid #bfdbfe",
+              fontWeight: "800",
+              fontSize: "12px",
+              borderRadius: "14px",
+              cursor: "pointer",
+            }}
+          >
+            🔄 Kardeşim Sırasını Alsın (Çıkış Yap)
+          </button>
+        </div>
       </div>
     );
   }
