@@ -86,6 +86,21 @@ export default function RootLayout({
           </Link>
 
           <Link
+            href="/online-mac"
+            style={{
+              padding: "7px 12px",
+              backgroundColor: "#2563eb",
+              color: "#ffffff",
+              borderRadius: "14px",
+              textDecoration: "none",
+              fontWeight: "900",
+              fontSize: "12px",
+            }}
+          >
+            ⚔️ Online Maç
+          </Link>
+
+          <Link
             href="/odev"
             style={{
               padding: "7px 12px",
@@ -153,17 +168,3 @@ export default function RootLayout({
     </html>
   );
 }
-<Link
-            href="/online-mac"
-            style={{
-              padding: "7px 12px",
-              backgroundColor: "#2563eb",
-              color: "#ffffff",
-              borderRadius: "14px",
-              textDecoration: "none",
-              fontWeight: "900",
-              fontSize: "12px",
-            }}
-          >
-            ⚔️ Online Maç
-          </Link>
