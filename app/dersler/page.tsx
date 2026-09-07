@@ -3,198 +3,306 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 
-interface MebDers {
-  id: number;
-  mebKodu: string;
-  oyunAlani: string;
+interface KazanimItem {
+  kod: string;
   baslik: string;
-  ikon: string;
-  dersSaati: string;
   aciklama: string;
-  kazanimlar: string[];
-  etkinlikOnerisi: string;
-  miniSoru: {
-    soru: string;
-    secenekler: string[];
-    dogruIndex: number;
-  };
 }
 
-const MEB_DERSLER: MebDers[] = [
+interface UniteItem {
+  id: number;
+  baslik: string;
+  ikon: string;
+  kazanimlar: KazanimItem[];
+}
+
+const OKUL_ONCESI_PROGRAMI: UniteItem[] = [
   {
     id: 1,
-    mebKodu: "ST.OÖ. 1",
-    oyunAlani: "1. Alan: Tahta ve Yönler",
-    baslik: "1. Büyülü Satranç Ülkesi, Tahtası ve Yönler",
+    baslik: "1. Satranç Oyunu, Tahtası ve Yönler",
     ikon: "🗺️",
-    dersSaati: "5 Ders Saati",
-    aciklama: "Satranç tahtasının kare şekli, yatay, dikey ve çapraz yönler tanıtılır. Zemin üzerindeki açık ve koyu kareler ile kenar-köşe kavramları fark ettirilir.",
     kazanimlar: [
-      "Satranç oyununu ve tahtasını tanır (ST.OÖ. 1.1)",
-      "Zemindeki açık ve koyu renkli kareleri fark eder",
-      "Nesneleri yatay, dikey ve çapraz yönlerde hareket ettirir (ST.OÖ. 1.2 - 1.3)",
-      "Yatay ve dikey hizalamada sekize kadar sayma çalışmaları yapar"
+      {
+        kod: "ST.OÖ. 1.1.",
+        baslik: "Satranç oyununu ve tahtasını tanır.",
+        aciklama:
+          "Satranç oyunu hakkında genel bilgi verilir. Satranç tahtasının; yatay, dikey, çapraz, kenar, köşelerine ve şeklinin kare olduğuna dikkat çekilir. Öğrencilerden satranç tahtasının zemin karelerindeki açık, koyu kavramlarını fark etmeleri beklenir. Satranç tahtası üzerinde yatay ve dikey hizalamada sekize kadar saymalarına rehberlik edilir. Bu dönemdeki çocuklar için satranç tahtası tanıtılırken çeşitli oyunlar, etkinlikler, drama vb. yöntem ve tekniklerinden yararlanılır.",
+      },
+      {
+        kod: "ST.OÖ. 1.2.",
+        baslik: "Satranç tahtasında nesneleri yatay ve dikey yönlerde hareket ettirir.",
+        aciklama:
+          "Yatay ve dikey kavramı gösterilir. Karelerden oluşan zeminde, çeşitli etkinliklerle bedenin, nesnelerin yatay ve dikey yönde hareket ettirilmesi sağlanır. Bu tür çalışmalarla satranç tahtası üzerinde konu pekiştirilir.",
+      },
+      {
+        kod: "ST.OÖ. 1.3.",
+        baslik: "Satranç tahtasında nesneleri çapraz yönlerde hareket ettirir.",
+        aciklama:
+          "Çapraz yön kavramı gösterilir. Karelerden oluşan zeminde, çeşitli etkinliklerle nesneler çapraz hareket ettirilir. Bu tür çalışmalardan sonra satranç tahtası üzerinde nesnelerin hareket ettirilmesi sağlanarak konu pekiştirilir.",
+      },
     ],
-    etkinlikOnerisi: "Beden Eğitimi & Drama: Çocuklar sınıf zemininde oluşturulan dev karelerde kendileri birer nesne gibi ileri, geri ve çapraz adımlarla yürür.",
-    miniSoru: {
-      soru: "Satranç tahtası önümüze konulurken sağ alt köşede hangi renk kare olmalıdır?",
-      secenekler: ["Koyu (Siyah) Kare", "Açık (Beyaz) Kare", "Fark etmez"],
-      dogruIndex: 1
-    }
   },
   {
     id: 2,
-    mebKodu: "ST.OÖ. 2",
-    oyunAlani: "2. Alan: Taşlar ve Özellikleri",
-    baslik: "2. Taşların Gizemli Dünyası ve Başlangıç Dizilişi",
+    baslik: "2. Taşlar ve Özellikleri",
     ikon: "🏰",
-    dersSaati: "8 Ders Saati",
-    aciklama: "Tüm taşların (Kale, Fil, Vezir, Şah, At, Piyon) yürüyüş şekilleri, puan değerleri, doğru taş alma ve başlangıç konumuna dizilişi öğrenilir.",
     kazanimlar: [
-      "Kale, Fil, Vezir, Şah, At ve Piyonun hareketlerini uygular (ST.OÖ. 2.1 - 2.6)",
-      "Son sıraya ulaşan piyonun terfi kuralını açıklar (ST.OÖ. 2.7)",
-      "Taşları başlangıç konumuna doğru dizer (Beyaz sağda, vezir kendi renginde) (ST.OÖ. 2.8)",
-      "Taşların puan değerlerini sıralar ve şahın gücünün sınırsız olduğunu kavrar (ST.OÖ. 2.9)"
+      {
+        kod: "ST.OÖ. 2.1.",
+        baslik: "Kale taşının hareketini uygular.",
+        aciklama:
+          "Kale taşı ve taşın oyundaki konumu tanıtılır. Öğrencilere kalenin tahta üzerindeki hareketi gösterilir, öğrencilerin denemelerine fırsat verilir.",
+      },
+      {
+        kod: "ST.OÖ. 2.2.",
+        baslik: "Fil taşının hareketini uygular.",
+        aciklama:
+          "Fil taşı ve taşın oyundaki konumu tanıtılır. Öğrencilere filin tahta üzerindeki hareketi gösterilir, öğrencilerin denemelerine fırsat verilir.",
+      },
+      {
+        kod: "ST.OÖ. 2.3.",
+        baslik: "Vezir taşının hareketini uygular.",
+        aciklama:
+          "Vezir taşı ve taşın oyundaki konumu tanıtılır. Öğrencilere vezirin tahta üzerindeki hareketi gösterilir, öğrencilerin denemelerine fırsat verilir.",
+      },
+      {
+        kod: "ST.OÖ. 2.4.",
+        baslik: "Şah taşının hareketini uygular.",
+        aciklama:
+          "Şah taşı ve taşın oyundaki konumu tanıtılır. Öğrencilere şahın tahta üzerindeki hareketi gösterilir, öğrencilerin denemelerine fırsat verilir.",
+      },
+      {
+        kod: "ST.OÖ. 2.5.",
+        baslik: "At taşının hareketini uygular.",
+        aciklama:
+          "At taşı ve taşın oyundaki konumu tanıtılır. Öğrencilere atın tahta üzerindeki hareketi gösterilir, öğrencilerin denemelerine fırsat verilir.",
+      },
+      {
+        kod: "ST.OÖ. 2.6.",
+        baslik: "Piyon taşının hareketini uygular.",
+        aciklama:
+          "Piyon taşı ve taşın oyundaki konumu tanıtılır. Öğrencilere piyonun tahta üzerindeki hareketi gösterilir, öğrencilerin denemelerine fırsat verilir.",
+      },
+      {
+        kod: "ST.OÖ. 2.7.",
+        baslik: "Piyon terfisini uygular.",
+        aciklama:
+          "Piyonun terfi olma özelliği anlatılır. Satrançta en son sıraya ulaşan piyonun, vezir, kale, fil ya da at ile değiştirilmesi gerektiği vurgulanır.",
+      },
+      {
+        kod: "ST.OÖ. 2.8.",
+        baslik: "Satrançtaki başlangıç konumunu dizer.",
+        aciklama:
+          "Öğrencilerin satranç tahtası önünde dururken beyaz karenin öğrencinin sağ tarafına gelmesi sağlanır. Satranç taşlarını doğru yerleştirmesine, taşların başlangıç konumuna göre dizilmesine rehberlik edilir. Özellikle şah ve vezirin yerlerine dikkat çekilir.",
+      },
+      {
+        kod: "ST.OÖ. 2.9.",
+        baslik: "Taşların puan değerlerini kavrar.",
+        aciklama:
+          "Taşların değerlerini bilir ve değerlerine göre sıralayabilir, karşılaştırabilir, gruplayabilir. Bazı etkinliklerle taşların değerlerinin karşılaştırılmasına ve özellikle şahın gücünün sınırsız olduğuna dikkat çekilir.",
+      },
+      {
+        kod: "ST.OÖ. 2.10.",
+        baslik: "Satrançta taş almayı bilir.",
+        aciklama:
+          "İyi taş alışı, kötü taş alışı ve eşit taş alışı kavramları üzerinde durulur. Taşların puan değerlerine göre taş alışı örneklerle gösterilir. Doğru taş alışı kavramı ve bunun önemi anlatılır.",
+      },
+      {
+        kod: "ST.OÖ. 2.11.",
+        baslik: "Satrançta saldırı altındaki taşın koruması kavramını açıklar.",
+        aciklama:
+          "Korumasız taş ve korumalı taş kavramının ne olduğuna dikkat çekilir. Korumasız taşı ve korumalı taşı tahta üzerinde gösterebilir. Korumasız taş üzerine farklı konumlar oluşturularak öğrencilerin yorum yapmalarına fırsat verilir.",
+      },
     ],
-    etkinlikOnerisi: "Şarkılı Oyun: 'Vezir elbisesinin rengini sever, beyaz vezir beyaza, siyah vezir siyaha gider' tekerlemesi ile diziliş yapılır.",
-    miniSoru: {
-      soru: "Diğer taşların üzerinden engel tanımadan zıplayabilen taş hangisidir?",
-      secenekler: ["Sevimli At", "Kaya Gibi Kale", "Küçük Piyon"],
-      dogruIndex: 0
-    }
   },
   {
     id: 3,
-    mebKodu: "ST.OÖ. 3",
-    oyunAlani: "3. Alan: Şah Tehdidi ve Mat",
-    baslik: "3. Şah Çekme, Mat ve Pat Durumu",
+    baslik: "3. Satrançta Şah Tehdidi ve Mat",
     ikon: "👑",
-    dersSaati: "6 Ders Saati",
-    aciklama: "Şahın oyun için hayati önemi kavranır. Şah tehdidinden kurtulma yolları (kaçma, alma, perdeleme), mat ile pat (beraberlik) arasındaki fark keşfedilir.",
     kazanimlar: [
-      "Şahın oyun için önemini ve şahın tahtadan alınamayacağını kavrar (ST.OÖ. 3.1 - 3.4)",
-      "Şah tehdidinden 3 yolla kurtulur: Kaçar, tehdit edeni alır, perdeleme yapar (ST.OÖ. 3.3)",
-      "Mat etmeyi açıklar ve tek hamlelik mat alıştırmaları yapar (ST.OÖ. 3.5 - 3.6)",
-      "Şahın tehdit altında olmadığı ve hamlesinin kalmadığı 'Pat' durumunu mat ile ayırt eder (ST.OÖ. 3.7 - 3.9)"
+      {
+        kod: "ST.OÖ. 3.1.",
+        baslik: "Şahın, oyun için önemini açıklar.",
+        aciklama:
+          "Öğrencilerin dikkati şahın önemine çekilir. Oyunun amacının şahı ele geçirmek olduğu vurgulanır. Öğrencilerden şahın yakalandığında oyunun biteceğini bilmesi beklenir.",
+      },
+      {
+        kod: "ST.OÖ. 3.2.",
+        baslik: "Şah çeker.",
+        aciklama:
+          "Öğrenciler bir veya daha fazla taşın, karşı tarafın şahını tehdit etmesi durumunun şah çekmek olduğunu bilir. Satranç tahtası üzerinde şah çekme konumu gösterilir ve uygulatılır.",
+      },
+      {
+        kod: "ST.OÖ. 3.3.",
+        baslik: "Şah tehdidinden çeşitli teknikleri uygulayarak kurtulur.",
+        aciklama:
+          "Tehdit altında bulunan şahın; tehdit eden taşı alarak kurtarabileceği, kaçarak kurtarabileceği, başka bir taş ile perdeleme yaparak kurtarabileceği uygulama örnekleriyle verilir. Satranç tahtası üzerinde şahın tehditten güvenli bir kareye kaçması sağlanır.",
+      },
+      {
+        kod: "ST.OÖ. 3.4.",
+        baslik: "Şahın diğer taşlar gibi alınamayacağını kavrar.",
+        aciklama:
+          "Satranç oyunu bitse dahi şahın tahtadan alınmadığı, şahı almanın kural dışı bir hamle olduğu benimsetilir ve bu kural uygulatılır.",
+      },
+      {
+        kod: "ST.OÖ. 3.5.",
+        baslik: "Mat etmeyi açıklar.",
+        aciklama:
+          "Şah tehdidinden kurtulamayan tarafın mat olduğuna ve mat olma durumunda oyunun sona erdiğine dikkat çekilir.",
+      },
+      {
+        kod: "ST.OÖ. 3.6.",
+        baslik: "Tek hamlelik mat alıştırmalarını yapar.",
+        aciklama:
+          "Satranç tahtasına dizilen tek hamlelik mat konumlarında doğru hamle uygulamalı olarak gösterilir. Mat durumu sözel olarak ifade edilir.",
+      },
+      {
+        kod: "ST.OÖ. 3.7.",
+        baslik: "Pat durumunu bilir.",
+        aciklama:
+          "Hamle sırası kendinde olan öğrencinin şahı tehdit altında değilse, yapılabilecek hamle kalmamışsa ve hamle yapılabilecek herhangi bir taş da yoksa konumun pat olduğu ve maçın berabere bittiği öğrenciye fark ettirilir. Öğrencilerin uygulamalarına fırsat verilir.",
+      },
+      {
+        kod: "ST.OÖ. 3.8.",
+        baslik: "Berabere kalmanın ne olduğunu bilir.",
+        aciklama:
+          "Satrançta beraberlik durumunun olduğu belirtilir. Öğrencilerin, beraberlik türleri olan taş yetmezliğini, 50 hamle kuralını, 3 konum tekrarını, anlaşmalı beraberlik özelliklerini ve pat durumunu anlamalarına rehberlik edilir.",
+      },
+      {
+        kod: "ST.OÖ. 3.9.",
+        baslik: "Mat ile pat konumlarını ayırt eder.",
+        aciklama:
+          "Önceki kazanımlarda verilen 'mat' ve 'pat' durumları tekrar edilir. Öğrencilerin satranç tahtasına dizilen örnek konumlar arasında 'mat' ile 'pat' pozisyonlarının farkına varmaları sağlanır. Öğrencilerin bu iki pozisyonu daha net ayırabilmelerini sağlayacak uygulamalar yaptırılır.",
+      },
     ],
-    etkinlikOnerisi: "Taktik Masalı: Şah bir kaleye sığınır, çocuklar tehdit eden taşa karşı kalkan (perdeleme) yapmayı dener.",
-    miniSoru: {
-      soru: "Satrançta şah tehdit altında değilken yapacak hiçbir yasal hamlesi kalmazsa oyun nasıl biter?",
-      secenekler: ["Mat olur", "Pat (Berabere) olur", "Şah oyundan çıkar"],
-      dogruIndex: 1
-    }
   },
   {
     id: 4,
-    mebKodu: "ST.OÖ. 4",
-    oyunAlani: "4. Alan: Tehdit ve Savunma",
-    baslik: "4. Tehditleri Fark Etme ve Güvenli Kareler",
+    baslik: "4. Satrançta Tehdit ve Savunma",
     ikon: "🛡️",
-    dersSaati: "6 Ders Saati",
-    aciklama: "Rakibin tehdit ettiği taşları önceden sezme, tehdit altındaki taşı kaçırma, korumalı karelere gitme ve perdeleme yapma becerisi kazandırılır.",
     kazanimlar: [
-      "Satrançta tehdit durumlarını zamanında fark eder (ST.OÖ. 4.1)",
-      "Tehdit eden taşın önüne dost taşla perdeleme yapar (ST.OÖ. 4.2)",
-      "Tehdit altında olmayan güvenli kareleri ayırt eder (ST.OÖ. 4.3)",
-      "Korumalı ve korumasız taş kavramlarını açıklar (ST.OÖ. 4.4)"
+      {
+        kod: "ST.OÖ. 4.1.",
+        baslik: "Satrançta tehdit durumlarını fark eder.",
+        aciklama:
+          "Öğrencilere rakibinin ve kendi taşlarının konumları fark ettirilir. Örnek pozisyonlar üzerinde tehdit altında olan taşlar uygulamalı olarak gösterilir. Bu pozisyonlarla ilgili alıştırmalar yaptırılır.",
+      },
+      {
+        kod: "ST.OÖ. 4.2.",
+        baslik: "Taşının önüne perdeleme yapar.",
+        aciklama:
+          "Tehdit eden ve edilen taş arasına kurallara uygun şekilde taşını oynayarak tehditten kurtulabileceği gösterilir. Öğrencilere bu kazanıma yönelik çeşitli uygulamalar yaptırılır.",
+      },
+      {
+        kod: "ST.OÖ. 4.3.",
+        baslik: "Satrançta güvenli kareleri ayırt eder.",
+        aciklama:
+          "Öğrencilerin tehdit altında olmayan kareleri görebilmelerine rehberlik edilir. Güvenli kareye gitmeyen taşın kaybedileceğine dair örnek uygulamalar yaptırılır.",
+      },
+      {
+        kod: "ST.OÖ. 4.4.",
+        baslik: "Taşını korur.",
+        aciklama:
+          "Tehdit altındaki taşın başka bir taştan destek alınarak veya güvenli bir kareye kaçırılarak kurtarılabileceği gösterilir. Öğrencilere bu kazanıma yönelik çeşitli uygulamalar yaptırılır.",
+      },
+      {
+        kod: "ST.OÖ. 4.5.",
+        baslik: "Satrançta taş alır.",
+        aciklama:
+          "Tehdit altında olan taşın istenirse alınabileceği ile ilgili uygulamalar yapılabilir.",
+      },
     ],
-    etkinlikOnerisi: "Güvenli Liman Oyunu: Öğretmen tahtada tehlikeli kareleri kırmızı renkle işaretler; öğrenci taşını güvenli limana (yeşil kareye) kaçırır.",
-    miniSoru: {
-      soru: "Tehdit altındaki bir taşımızı korumak için aşağıdakilerden hangisi yapılabilir?",
-      secenekler: ["Taşı güvenli bir kareye kaçırmak", "Önüne perdeleme yapmak", "Her ikisi de"],
-      dogruIndex: 2
-    }
   },
   {
     id: 5,
-    mebKodu: "ST.OÖ. 5",
-    oyunAlani: "5. Alan: Özel Kurallar",
-    baslik: "5. Satrancın Özel Sırları: Rok ve Geçerken Alma",
+    baslik: "5. Satrancın Özel Kuralları",
     ikon: "⭐",
-    dersSaati: "4 Ders Saati",
-    aciklama: "Şahı güvenli köşeye alıp kaleyi savaşa sokan 'Rok' hamlesi ve piyonların özel sürprizi 'Geçerken Alma' (En Passant) kuralları uygulanır.",
     kazanimlar: [
-      "Rok hamlesini kurallarına uygun olarak uygular (ST.OÖ. 5.1)",
-      "Şah veya kale oynamışsa rok yapılamayacağını bilir",
-      "Piyonun geçerken alma kuralını uygulamalı kavrar (ST.OÖ. 5.2)"
+      {
+        kod: "ST.OÖ. 5.1.",
+        baslik: "Rok hamlesini uygular.",
+        aciklama:
+          "Rok hamlesinin şahın özel bir hamlesi ve kalenin şah ile yer değiştirmesi olduğuna dikkat çekilir. Uygulamalar yaptırılır.",
+      },
+      {
+        kod: "ST.OÖ. 5.2.",
+        baslik: "Piyonun geçerken alma hamlesini kavrar.",
+        aciklama:
+          "Piyonlar çapraz alan taşlardır ancak ilk çıkışta iki kare ilerlediğinde bir piyonun tehdit karesinden atlanılmışsa o piyonun bir kare çıkmış olduğu kabul edilir ve piyon çapraz alınır. Öğrencilere geçerken alma kuralına uygun olarak kavrayabileceği örnekler sunulmalıdır.",
+      },
     ],
-    etkinlikOnerisi: "Rok Dansı: Şah iki adım kaleye doğru kayar, kale hemen şahın üzerinden atlayarak yanına oturur.",
-    miniSoru: {
-      soru: "Rok yaparken tahtada ilk önce hangi taşa dokunulmalıdır?",
-      secenekler: ["Kale", "Şah", "Piyon"],
-      dogruIndex: 1
-    }
   },
   {
     id: 6,
-    mebKodu: "ST.OÖ. 6",
-    oyunAlani: "6. Alan: Satranç Oynuyorum",
-    baslik: "6. Karşılıklı Maç, Nezaket ve Etik Kurallar",
+    baslik: "6. Satranç Oynuyorum",
     ikon: "🤝",
-    dersSaati: "7 Ders Saati",
-    aciklama: "Centilmenlik, rakibe oyuna başlarken başarılar dileme, sessizce oynama, hakemden el kaldırarak yardım isteme ve oyun sonunda tebrikleşme davranışları kazandırılır.",
     kazanimlar: [
-      "Kurallara uygun karşılıklı maç yapar (ST.OÖ. 6.1)",
-      "Oyun sırasında sorun yaşarsa el kaldırarak öğretmeninden/hakemden yardım ister (ST.OÖ. 6.2)",
-      "Satranç salonunun sessiz bir düşünme ortamı olduğunu kavrar",
-      "Oyun bittiğinde rakibinin elini sıkarak tebrik eder ve taşları kutusuna düzenli toplar (ST.OÖ. 6.3 - 6.4)"
+      {
+        kod: "ST.OÖ. 6.1.",
+        baslik: "Karşılıklı satranç oynar.",
+        aciklama:
+          "Oyuna başlarken rakibe başarılar dilenmesi gerektiğine, kurallara uygun karşılıklı maç yapılmasına vb. konulara dikkat çekilir.",
+      },
+      {
+        kod: "ST.OÖ. 6.2.",
+        baslik: "Oyun esnasında yardım ister.",
+        aciklama:
+          "Oyun oynarken karşılaştığı kurallarla ilgili sorunlarda öğretmeninden / hakemden el kaldırma yoluyla yardım istenmesi ve satrancın sessiz bir ortamda konuşulmadan oynanacağı kavratılır.",
+      },
+      {
+        kod: "ST.OÖ. 6.3.",
+        baslik: "Oyun bitişini açıklar.",
+        aciklama:
+          "Oyunun nasıl bittiği, kazanç, kayıp, berabere durumları örneklerle açıklanır. Satranç materyallerinin düzenli bir şekilde toplanması, yerine bırakılması vb. davranışlar kazandırılır.",
+      },
+      {
+        kod: "ST.OÖ. 6.4.",
+        baslik: "Satrancın etik kurallarının farkına varır.",
+        aciklama:
+          "Öğrencilere oyun arkadaşlarına saygı duyma, oyun bitiminde birbirlerini tebrik etme vb. davranışlar kazandırılır. Öğrencilerin satranca devam eden arkadaşlarına karşı da onların oyunları bitene kadar saygı kurallarına uygun davranmaları ve diğer oyunlara müdahale etmemeleri gerektiğine dikkat çekilir.",
+      },
     ],
-    etkinlikOnerisi: "Dostluk Turnuvası: Karşılıklı oturan minikler önce el sıkışır, maç bitiminde birbirlerini alkışlayarak tahtayı birlikte toplar.",
-    miniSoru: {
-      soru: "Satranç maçı başlamadan önce rakibimize ne söylemeliyiz?",
-      secenekler: ["Seni yeneceğim!", "İyi oyunlar / Başarılar dilerim", "Konuşmamalıyız"],
-      dogruIndex: 1
-    }
-  }
+  },
 ];
 
 export default function DerslerPage() {
-  const [aktifDers, setAktifDers] = useState<MebDers>(MEB_DERSLER[0]);
-  const [tamamlananlar, setTamamlananlar] = useState<number[]>([]);
-  const [secilenCevap, setSecilenCevap] = useState<number | null>(null);
-  const [cevapDurumu, setCevapDurumu] = useState<"bekliyor" | "dogru" | "yanlis">("bekliyor");
+  const [aktifUnite, setAktifUnite] = useState<UniteItem>(OKUL_ONCESI_PROGRAMI[0]);
+  const [seciliKazanim, setSeciliKazanim] = useState<KazanimItem>(OKUL_ONCESI_PROGRAMI[0].kazanimlar[0]);
+  const [tamamlananKodlar, setTamamlananKodlar] = useState<string[]>([]);
 
   useEffect(() => {
     try {
-      const kayitli = localStorage.getItem("mebTamamlananDersler");
-      if (kayitli) setTamamlananlar(JSON.parse(kayitli));
+      const kayit = localStorage.getItem("tamamlananMebKazanimlar");
+      if (kayit) setTamamlananKodlar(JSON.parse(kayit));
     } catch {}
   }, []);
 
-  function handleDersSec(d: MebDers) {
-    setAktifDers(d);
-    setSecilenCevap(null);
-    setCevapDurumu("bekliyor");
+  function handleUniteSec(u: UniteItem) {
+    setAktifUnite(u);
+    setSeciliKazanim(u.kazanimlar[0]);
   }
 
-  function handleDersTamamla(id: number) {
-    const yeni = tamamlananlar.includes(id)
-      ? tamamlananlar.filter((x) => x !== id)
-      : [...tamamlananlar, id];
-    setTamamlananlar(yeni);
+  function handleKazanimTamamla(kod: string) {
+    let yeni: string[];
+    if (tamamlananKodlar.includes(kod)) {
+      yeni = tamamlananKodlar.filter((k) => k !== kod);
+    } else {
+      yeni = [...tamamlananKodlar, kod];
+    }
+    setTamamlananKodlar(yeni);
     try {
-      localStorage.setItem("mebTamamlananDersler", JSON.stringify(yeni));
+      localStorage.setItem("tamamlananMebKazanimlar", JSON.stringify(yeni));
     } catch {}
   }
 
-  function handleCevap(idx: number) {
-    setSecilenCevap(idx);
-    if (idx === aktifDers.miniSoru.dogruIndex) {
-      setCevapDurumu("dogru");
-      if (!tamamlananlar.includes(aktifDers.id)) {
-        handleDersTamamla(aktifDers.id);
-      }
-    } else {
-      setCevapDurumu("yanlis");
-    }
-  }
-
-  const yuzde = Math.round((tamamlananlar.length / MEB_DERSLER.length) * 100);
+  const toplamKazanimSayisi = OKUL_ONCESI_PROGRAMI.reduce((toplam, u) => toplam + u.kazanimlar.length, 0);
+  const tamamlananSayisi = tamamlananKodlar.length;
+  const ilerlemeYuzdesi = Math.round((tamamlananSayisi / toplamKazanimSayisi) * 100);
 
   return (
     <div
       style={{
-        maxWidth: "960px",
+        maxWidth: "980px",
         width: "100%",
         backgroundColor: "#ffffff",
         padding: "24px",
@@ -204,21 +312,22 @@ export default function DerslerPage() {
         margin: "0 auto",
       }}
     >
+      {/* ÜST BAŞLIK & İLERLEME ÇUBUĞU */}
       <div style={{ textAlign: "center", marginBottom: "20px" }}>
-        <div style={{ fontSize: "11px", fontWeight: "bold", color: "#0369a1", letterSpacing: "1px" }}>
+        <div style={{ fontSize: "11px", fontWeight: "900", color: "#0369a1", letterSpacing: "1.5px" }}>
           T.C. MİLLÎ EĞİTİM BAKANLIĞI • TEMEL EĞİTİM GENEL MÜDÜRLÜĞÜ
         </div>
         <h1 style={{ fontSize: "22px", fontWeight: "900", color: "#1e293b", margin: "6px 0" }}>
-          Okul Öncesi Satranç Öğretim Programı
+          Satranç Okul Öncesi Öğretim Programı
         </h1>
         <p style={{ fontSize: "12px", color: "#64748b", margin: "0 0 12px 0" }}>
-          MEB Müfredatı: 6 Temel Oyun Alanı • 33 Kazanım • 36 Ders Saati
+          6 Ana Öğrenme Alanı • 33 Temel Yaşam & Oyun Kazanımı
         </p>
 
         {/* İlerleme Çubuğu */}
         <div
           style={{
-            maxWidth: "400px",
+            maxWidth: "420px",
             margin: "0 auto",
             backgroundColor: "#f1f5f9",
             borderRadius: "14px",
@@ -228,168 +337,186 @@ export default function DerslerPage() {
         >
           <div style={{ display: "flex", justifyContent: "space-between", fontSize: "11px", fontWeight: "bold", marginBottom: "4px" }}>
             <span style={{ color: "#0284c7" }}>Müfredat İlerlemesi</span>
-            <span style={{ color: "#0369a1" }}>%{yuzde} ({tamamlananlar.length}/6 Oyun Alanı)</span>
+            <span style={{ color: "#0369a1" }}>%{ilerlemeYuzdesi} ({tamamlananSayisi}/{toplamKazanimSayisi} Kazanım)</span>
           </div>
           <div style={{ width: "100%", height: "8px", backgroundColor: "#cbd5e1", borderRadius: "8px", overflow: "hidden" }}>
-            <div style={{ width: `${yuzde}%`, height: "100%", backgroundColor: "#0284c7", transition: "width 0.3s ease" }} />
+            <div style={{ width: `${ilerlemeYuzdesi}%`, height: "100%", backgroundColor: "#0284c7", transition: "width 0.3s ease" }} />
           </div>
         </div>
       </div>
 
-      {/* İKİ SÜTUN: SOL ÜNİTELER - SAĞ KAZANIM & DETAY */}
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: "16px" }}>
-        {/* SOL: 6 OYUN ALANI LİSTESİ */}
+      {/* 6 ANA ÜNİTE BUTONLARI */}
+      <div
+        style={{
+          display: "grid",
+          gridTemplateColumns: "repeat(auto-fit, minmax(140px, 1fr))",
+          gap: "8px",
+          marginBottom: "18px",
+        }}
+      >
+        {OKUL_ONCESI_PROGRAMI.map((u) => {
+          const aktif = aktifUnite.id === u.id;
+          return (
+            <button
+              key={u.id}
+              type="button"
+              onClick={() => handleUniteSec(u)}
+              style={{
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center",
+                gap: "4px",
+                padding: "8px 6px",
+                borderRadius: "14px",
+                border: aktif ? "2px solid #0284c7" : "1px solid #e2e8f0",
+                backgroundColor: aktif ? "#e0f2fe" : "#f8fafc",
+                color: aktif ? "#0369a1" : "#475569",
+                cursor: "pointer",
+                fontWeight: "900",
+                fontSize: "11px",
+                transition: "all 0.15s ease",
+              }}
+            >
+              <span style={{ fontSize: "20px" }}>{u.ikon}</span>
+              <span style={{ textAlign: "center", lineHeight: "1.2" }}>{u.baslik}</span>
+            </button>
+          );
+        })}
+      </div>
+
+      {/* İKİ SÜTUNLU DÜZEN: KAZANIM LİSTESİ VE KAZANIM DETAYI */}
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(290px, 1fr))", gap: "16px" }}>
+        {/* SOL: SEÇİLİ ÜNİTENİN KAZANIM LİSTESİ */}
         <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
-          {MEB_DERSLER.map((d) => {
-            const secili = aktifDers.id === d.id;
-            const bitti = tamamlananlar.includes(d.id);
+          <div style={{ fontSize: "12px", fontWeight: "900", color: "#0f172a", marginBottom: "2px" }}>
+            📋 {aktifUnite.baslik} ({aktifUnite.kazanimlar.length} Kazanım)
+          </div>
+          {aktifUnite.kazanimlar.map((k) => {
+            const secili = seciliKazanim.kod === k.kod;
+            const bitti = tamamlananKodlar.includes(k.kod);
             return (
               <div
-                key={d.id}
-                onClick={() => handleDersSec(d)}
+                key={k.kod}
+                onClick={() => setSeciliKazanim(k)}
                 style={{
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "space-between",
-                  padding: "10px 14px",
-                  backgroundColor: secili ? "#e0f2fe" : "#f8fafc",
-                  borderRadius: "14px",
+                  padding: "10px 12px",
+                  borderRadius: "12px",
                   border: secili ? "2px solid #0284c7" : "1px solid #e2e8f0",
+                  backgroundColor: secili ? "#f0f9ff" : "#f8fafc",
                   cursor: "pointer",
                   transition: "all 0.15s ease",
                 }}
               >
-                <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-                  <span style={{ fontSize: "24px" }}>{d.ikon}</span>
-                  <div>
-                    <div style={{ fontSize: "12px", fontWeight: "900", color: "#1e293b" }}>
-                      {d.baslik}
-                    </div>
-                    <div style={{ fontSize: "10px", color: "#64748b" }}>
-                      {d.mebKodu} • ⏱️ {d.dersSaati}
-                    </div>
+                <div>
+                  <div style={{ fontSize: "11px", fontWeight: "900", color: "#0284c7" }}>
+                    {k.kod}
+                  </div>
+                  <div style={{ fontSize: "12px", fontWeight: "bold", color: "#1e293b" }}>
+                    {k.baslik}
                   </div>
                 </div>
-                <span>{bitti ? "✅" : "⚪"}</span>
+                <span style={{ fontSize: "16px", marginLeft: "6px" }}>{bitti ? "✅" : "⚪"}</span>
               </div>
             );
           })}
         </div>
 
-        {/* SAĞ: KAZANIM VE PEDAGOJİK ETKİNLİK ALANI */}
+        {/* SAĞ: SEÇİLİ KAZANIMIN PEDAGOJİK AÇIKLAMASI */}
         <div
           style={{
-            backgroundColor: "#f0f9ff",
-            padding: "18px",
+            backgroundColor: "#f8fafc",
+            padding: "20px",
             borderRadius: "18px",
-            border: "2px solid #bae6fd",
+            border: "2px solid #e2e8f0",
+            display: "flex",
+            flexDirection: "column",
+            justifyContent: "space-between",
           }}
         >
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "8px" }}>
-            <span style={{ fontSize: "11px", fontWeight: "bold", color: "#0284c7" }}>
-              {aktifDers.oyunAlani}
-            </span>
-            <button
-              type="button"
-              onClick={() => handleDersTamamla(aktifDers.id)}
+          <div>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "10px" }}>
+              <span style={{ fontSize: "13px", fontWeight: "900", color: "#0284c7" }}>
+                {seciliKazanim.kod}
+              </span>
+              <button
+                type="button"
+                onClick={() => handleKazanimTamamla(seciliKazanim.kod)}
+                style={{
+                  padding: "6px 12px",
+                  backgroundColor: tamamlananKodlar.includes(seciliKazanim.kod) ? "#16a34a" : "#0284c7",
+                  color: "#ffffff",
+                  borderRadius: "10px",
+                  border: "none",
+                  fontSize: "11px",
+                  fontWeight: "bold",
+                  cursor: "pointer",
+                }}
+              >
+                {tamamlananKodlar.includes(seciliKazanim.kod) ? "Tamamlandı ✨" : "Tamamla ⚪"}
+              </button>
+            </div>
+
+            <h2 style={{ fontSize: "16px", fontWeight: "900", color: "#0f172a", margin: "0 0 12px 0" }}>
+              {seciliKazanim.baslik}
+            </h2>
+
+            <div
               style={{
-                padding: "5px 10px",
-                backgroundColor: tamamlananlar.includes(aktifDers.id) ? "#16a34a" : "#0284c7",
-                color: "#ffffff",
-                borderRadius: "8px",
-                border: "none",
-                fontSize: "11px",
-                fontWeight: "bold",
-                cursor: "pointer",
+                backgroundColor: "#ffffff",
+                padding: "16px",
+                borderRadius: "14px",
+                border: "1px solid #cbd5e1",
+                fontSize: "13px",
+                lineHeight: "1.7",
+                color: "#334155",
+                boxShadow: "0 2px 6px rgba(0,0,0,0.02)",
               }}
             >
-              {tamamlananlar.includes(aktifDers.id) ? "Tamamlandı ✨" : "Tamamla ⚪"}
-            </button>
-          </div>
-
-          <h2 style={{ fontSize: "15px", fontWeight: "900", color: "#0f172a", margin: "0 0 8px 0" }}>
-            {aktifDers.baslik}
-          </h2>
-
-          <p style={{ fontSize: "12px", lineHeight: "1.6", color: "#334155", margin: "0 0 12px 0" }}>
-            {aktifDers.aciklama}
-          </p>
-
-          {/* MEB KAZANIMLARI KUTUSU */}
-          <div style={{ backgroundColor: "#ffffff", padding: "10px 14px", borderRadius: "12px", border: "1px solid #e0f2fe", marginBottom: "12px" }}>
-            <div style={{ fontSize: "11px", fontWeight: "900", color: "#0369a1", marginBottom: "4px" }}>
-              🎯 MEB Resmi Kazanımları:
-            </div>
-            <ul style={{ margin: 0, paddingLeft: "16px", fontSize: "11px", color: "#475569", lineHeight: "1.5" }}>
-              {aktifDers.kazanimlar.map((k, i) => (
-                <li key={i}>{k}</li>
-              ))}
-            </ul>
-          </div>
-
-          {/* OYUN / DRAMA ÖNERİSİ */}
-          <div style={{ backgroundColor: "#fef3c7", padding: "8px 12px", borderRadius: "10px", border: "1px solid #fde68a", fontSize: "11px", color: "#92400e", fontWeight: "bold", marginBottom: "14px" }}>
-            🎭 {aktifDers.etkinlikOnerisi}
-          </div>
-
-          {/* MİNİ ETKİNLİK TESTİ */}
-          <div style={{ backgroundColor: "#ffffff", padding: "12px", borderRadius: "12px", border: "1px solid #cbd5e1" }}>
-            <div style={{ fontSize: "11px", fontWeight: "900", color: "#1e293b", marginBottom: "6px" }}>
-              ❓ Pekiştirme Sorusu: {aktifDers.miniSoru.soru}
-            </div>
-
-            <div style={{ display: "flex", flexDirection: "column", gap: "5px" }}>
-              {aktifDers.miniSoru.secenekler.map((sec, idx) => (
-                <button
-                  key={idx}
-                  type="button"
-                  onClick={() => handleCevap(idx)}
-                  style={{
-                    textAlign: "left",
-                    padding: "6px 10px",
-                    borderRadius: "8px",
-                    border: "1px solid #e2e8f0",
-                    backgroundColor: secilenCevap === idx ? (idx === aktifDers.miniSoru.dogruIndex ? "#dcfce7" : "#fee2e2") : "#f8fafc",
-                    fontSize: "11px",
-                    fontWeight: "bold",
-                    cursor: "pointer",
-                  }}
-                >
-                  {sec}
-                </button>
-              ))}
-            </div>
-
-            {cevapDurumu === "dogru" && (
-              <div style={{ marginTop: "6px", fontSize: "11px", fontWeight: "bold", color: "#16a34a" }}>
-                🎉 Tebrikler! Kazanım başarıyla tamamlandı.
+              <div style={{ fontSize: "11px", fontWeight: "900", color: "#0369a1", marginBottom: "6px" }}>
+                📖 MEB Öğretim Programı Açıklaması:
               </div>
-            )}
-            {cevapDurumu === "yanlis" && (
-              <div style={{ marginTop: "6px", fontSize: "11px", fontWeight: "bold", color: "#dc2626" }}>
-                ❌ Tekrar düşün! İpucu kazanım açıklamalarında gizli.
-              </div>
-            )}
+              {seciliKazanim.aciklama}
+            </div>
+          </div>
+
+          <div style={{ marginTop: "16px", display: "flex", justifyContent: "space-between", gap: "8px" }}>
+            <Link
+              href="/masallar"
+              style={{
+                flex: 1,
+                textAlign: "center",
+                padding: "8px 12px",
+                backgroundColor: "#ec4899",
+                color: "#ffffff",
+                borderRadius: "10px",
+                textDecoration: "none",
+                fontSize: "11px",
+                fontWeight: "900",
+              }}
+            >
+              ✨ Masallarla Pekiştir
+            </Link>
+            <Link
+              href="/odev"
+              style={{
+                flex: 1,
+                textAlign: "center",
+                padding: "8px 12px",
+                backgroundColor: "#ef4444",
+                color: "#ffffff",
+                borderRadius: "10px",
+                textDecoration: "none",
+                fontSize: "11px",
+                fontWeight: "900",
+              }}
+            >
+              📚 Ödevlere Git
+            </Link>
           </div>
         </div>
-      </div>
-
-      <div style={{ textAlign: "center", marginTop: "18px" }}>
-        <Link
-          href="/odev"
-          style={{
-            display: "inline-block",
-            padding: "8px 16px",
-            backgroundColor: "#2563eb",
-            color: "#ffffff",
-            borderRadius: "12px",
-            textDecoration: "none",
-            fontWeight: "900",
-            fontSize: "12px",
-          }}
-        >
-          🚀 Kazanımları Pekiştirmek İçin Ödevlere Geç
-        </Link>
       </div>
     </div>
   );
