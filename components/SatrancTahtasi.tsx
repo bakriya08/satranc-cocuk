@@ -49,50 +49,43 @@ const BOTS: BotProfile[] = [
   { id: "hard", name: "Bilge Baykuş", avatar: "🦉", title: "Zor" },
 ];
 
-// Tek hamlede mat bulmacaları (Beyaz oynar, tek hamlede mat yapar)
 interface Puzzle {
   id: number;
   title: string;
   hint: string;
   fen: string;
-  winningMove: { from: string; to: string };
 }
 
 const PUZZLES: Puzzle[] = [
   {
     id: 1,
     title: "1. Görev: Çoban Matı Vurgunu 🎯",
-    hint: "İpucu: Vezir f7 karesindeki zayıf piyona dikkat çekiyor!",
+    hint: "İpucu: Vezir f7 karesindeki zayıf piyonu alabilir mi?",
     fen: "r1bqkb1r/pppp1ppp/2n5/4p3/2B1n3/5Q2/PPPP1PPP/RNB1K1NR w KQkq - 0 4",
-    winningMove: { from: "f3", to: "f7" },
   },
   {
     id: 2,
     title: "2. Görev: Koridor Matı (Arka Sıra) 🏰",
-    hint: "İpucu: Siyah şah kendi piyonlarının arkasında sıkıştı. Kaleyi son yataya indir!",
+    hint: "İpucu: Siyah şah piyonlarının arkasında sıkıştı. Kaleyi 8. yataya indir!",
     fen: "6k1/5ppp/8/8/8/8/8/4R1K1 w - - 0 1",
-    winningMove: { from: "e1", to: "e8" },
   },
   {
     id: 3,
-    title: "3. Görev: Vezir ve Fil İş Birliği 🤝",
-    hint: "İpucu: Vezir filin korumasıyla h7 karesine dalış yapabilir mi?",
+    title: "3. Görev: Vezir Dalışı 👑",
+    hint: "İpucu: Vezir e8 karesine indiğinde arkasında şahı kimse kurtaramaz!",
     fen: "r1b2rk1/ppp2ppp/2n5/3p4/7q/2B5/PPP1QPPP/2KR1B1R w - - 0 1",
-    winningMove: { from: "e2", to: "e8" },
   },
   {
     id: 4,
     title: "4. Görev: Akıllı At Matı 🐴",
-    hint: "İpucu: At f7 karesine zıplayarak şaha kaçış yolu bırakmıyor!",
+    hint: "İpucu: At d6 veya e7 zıplayarak şaha kaçış yolu bırakmıyor!",
     fen: "6k1/5ppp/8/8/5N2/8/8/6K1 w - - 0 1",
-    winningMove: { from: "f4", to: "e7" },
   },
   {
     id: 5,
     title: "5. Görev: İki Kale Merdiven Matı 🪜",
-    hint: "İpucu: Birinci kale kaçışı kesti, ikinci kale son darbeyi vuruyor!",
+    hint: "İpucu: a7 kalesinin kaçışı kestiği şaha b2 kalesini b8'e indir!",
     fen: "7k/R7/8/8/8/8/1R6/6K1 w - - 0 1",
-    winningMove: { from: "b2", to: "b8" },
   },
 ];
 
@@ -115,7 +108,9 @@ export default function SatrancTahtasi() {
   const [puzzleGame, setPuzzleGame] = useState(new Chess(currentPuzzle.fen));
   const [puzzleDurum, setPuzzleDurum] = useState("Beyaz oynar, tek hamlede mat yapar!");
   const [isPuzzleSolved, setIsPuzzleSolved] = useState(false);
-  const [puzzleStars, setPuzzleStars] = useState(0);
+  const [solvedPuzzleIds, setSolvedPuzzleIds] = useState<number[]>([]);
+  const [showCertificate, setShowCertificate] = useState(false);
+  const [studentName, setStudentName] = useState("");
 
   const files = ["a", "b", "c", "d", "e", "f", "g", "h"];
   const ranks = ["8", "7", "6", "5", "4", "3", "2", "1"];
@@ -182,7 +177,6 @@ export default function SatrancTahtasi() {
     return legalMoves[Math.floor(Math.random() * legalMoves.length)];
   }
 
-  // BOT MODU HAMLE YÖNETİMİ
   function handleSquareClickBot(square: string) {
     if (isBotThinking || game.isGameOver()) return;
 
@@ -285,7 +279,6 @@ export default function SatrancTahtasi() {
     }
   }
 
-  // BULMACA MODU HAMLE YÖNETİMİ
   function handleSquareClickPuzzle(square: string) {
     if (isPuzzleSolved) return;
 
@@ -310,16 +303,22 @@ export default function SatrancTahtasi() {
 
       if (move) {
         if (puzzleCopy.isCheckmate()) {
-          // Doğru tek hamlede mat!
           setPuzzleGame(puzzleCopy);
           setSelectedSquare(null);
           setPossibleSquares([]);
           setIsPuzzleSolved(true);
-          setPuzzleStars((s) => s + 1);
           sesCal("gameEnd");
-          setPuzzleDurum("🌟 TEBRİKLER! Şah Mat yaptın! +1 Yıldız kazandın! 🏆");
+
+          const yeniCozulenler = Array.from(new Set([...solvedPuzzleIds, currentPuzzle.id]));
+          setSolvedPuzzleIds(yeniCozulenler);
+
+          if (yeniCozulenler.length === PUZZLES.length) {
+            setPuzzleDurum("🏆 TÜM GÖREVLER BİTTİ! SEN BİR SATRANÇ ŞAMPİYONUSUN!");
+            setTimeout(() => setShowCertificate(true), 800);
+          } else {
+            setPuzzleDurum("🌟 TEBRİKLER! Şah Mat yaptın! Sonraki soruya geçebilirsin! 🎯");
+          }
         } else {
-          // Hamle geçerli ama mat değil
           setSelectedSquare(null);
           setPossibleSquares([]);
           setPuzzleDurum("❌ Bu hamle güzel ama mat yapmadı! Tekrar dene.");
@@ -377,9 +376,139 @@ export default function SatrancTahtasi() {
         boxSizing: "border-box",
         userSelect: "none",
         margin: "0 auto",
+        position: "relative",
       }}
     >
-      {/* Sekme Butonları: Oyun vs Bulmaca */}
+      {/* ŞAMPİYONLUK KUPASI VE SERTİFİKA POPUP MODAL */}
+      {showCertificate && (
+        <div
+          style={{
+            position: "absolute",
+            inset: 0,
+            backgroundColor: "rgba(0,0,0,0.75)",
+            borderRadius: "20px",
+            zIndex: 50,
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            justifyContent: "center",
+            padding: "20px",
+            boxSizing: "border-box",
+            backdropFilter: "blur(4px)",
+          }}
+        >
+          <div
+            style={{
+              backgroundColor: "#ffffff",
+              borderRadius: "24px",
+              padding: "20px 16px",
+              width: "100%",
+              maxWidth: "340px",
+              textAlign: "center",
+              border: "6px solid #f59e0b",
+              boxShadow: "0 25px 50px -12px rgba(0,0,0,0.5)",
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+            }}
+          >
+            {/* Altın Kupa Rozeti */}
+            <div style={{ fontSize: "56px", lineHeight: "1", filter: "drop-shadow(0 4px 6px rgba(0,0,0,0.2))" }}>
+              🏆
+            </div>
+            <span style={{ fontSize: "11px", fontWeight: "900", color: "#b45309", letterSpacing: "1px", textTransform: "uppercase", marginTop: "4px" }}>
+              Tebrikler Şampiyon!
+            </span>
+            <h2 style={{ fontSize: "20px", fontWeight: "900", color: "#1e293b", margin: "4px 0" }}>
+              SATRANÇ USTASI
+            </h2>
+            <p style={{ fontSize: "11px", color: "#64748b", margin: "0 0 12px 0", fontWeight: "600" }}>
+              Tüm taktik mat görevlerini başarıyla tamamlayarak Altın Rozet kazandın!
+            </p>
+
+            {/* İsim Girişi */}
+            <div style={{ width: "100%", marginBottom: "12px" }}>
+              <input
+                type="text"
+                placeholder="Öğrencinin Adı Soyadı"
+                value={studentName}
+                onChange={(e) => setStudentName(e.target.value)}
+                style={{
+                  width: "100%",
+                  padding: "8px 12px",
+                  borderRadius: "12px",
+                  border: "2px solid #cbd5e1",
+                  fontSize: "14px",
+                  fontWeight: "bold",
+                  textAlign: "center",
+                  outline: "none",
+                  boxSizing: "border-box",
+                }}
+              />
+            </div>
+
+            {/* Sertifika Görsel Kartı */}
+            <div
+              style={{
+                width: "100%",
+                padding: "12px 8px",
+                backgroundColor: "#fffbeb",
+                border: "2px dashed #d97706",
+                borderRadius: "16px",
+                marginBottom: "14px",
+              }}
+            >
+              <div style={{ fontSize: "10px", fontWeight: "800", color: "#b45309" }}>BAŞARI BELGESİ</div>
+              <div style={{ fontSize: "16px", fontWeight: "900", color: "#0f172a", margin: "4px 0" }}>
+                {studentName.trim() ? studentName : "Küçük Büyükusta"}
+              </div>
+              <div style={{ fontSize: "10px", color: "#475569", fontWeight: "600" }}>
+                Tek Hamlede Mat Görevlerini %100 Başarıyla Tamamladı ⭐⭐⭐⭐⭐
+              </div>
+            </div>
+
+            {/* Butonlar */}
+            <div style={{ display: "flex", gap: "8px", width: "100%" }}>
+              <button
+                type="button"
+                onClick={() => window.print()}
+                style={{
+                  flex: 1,
+                  padding: "10px",
+                  backgroundColor: "#f59e0b",
+                  color: "#ffffff",
+                  fontWeight: "900",
+                  borderRadius: "14px",
+                  border: "none",
+                  fontSize: "12px",
+                  cursor: "pointer",
+                }}
+              >
+                🖨️ Yazdır / İndir
+              </button>
+              <button
+                type="button"
+                onClick={() => setShowCertificate(false)}
+                style={{
+                  flex: 1,
+                  padding: "10px",
+                  backgroundColor: "#e2e8f0",
+                  color: "#334155",
+                  fontWeight: "900",
+                  borderRadius: "14px",
+                  border: "none",
+                  fontSize: "12px",
+                  cursor: "pointer",
+                }}
+              >
+                Kapat ✖
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Üst Sekmeler */}
       <div
         style={{
           display: "flex",
@@ -440,7 +569,7 @@ export default function SatrancTahtasi() {
         </button>
       </div>
 
-      {/* BOT MODU BAŞLIĞI */}
+      {/* BOT MODU */}
       {activeTab === "bot" && (
         <>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "8px", width: "100%", marginBottom: "10px" }}>
@@ -533,12 +662,56 @@ export default function SatrancTahtasi() {
         </>
       )}
 
-      {/* BULMACA MODU BAŞLIĞI */}
+      {/* BULMACA MODU */}
       {activeTab === "puzzle" && (
         <div style={{ width: "100%", marginBottom: "10px" }}>
+          {/* İlerleme ve Rozet Barı */}
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "6px" }}>
-            <span style={{ fontSize: "12px", fontWeight: "900", color: "#78350f" }}>{currentPuzzle.title}</span>
-            <span style={{ fontSize: "12px", fontWeight: "900", color: "#d97706" }}>⭐ {puzzleStars} Yıldız</span>
+            <div style={{ display: "flex", gap: "4px" }}>
+              {PUZZLES.map((p, idx) => {
+                const isSolved = solvedPuzzleIds.includes(p.id);
+                return (
+                  <span
+                    key={p.id}
+                    onClick={() => bulmacaDegistir(idx)}
+                    style={{
+                      fontSize: "14px",
+                      cursor: "pointer",
+                      opacity: currentPuzzleIdx === idx ? 1 : 0.6,
+                      transform: currentPuzzleIdx === idx ? "scale(1.2)" : "scale(1)",
+                      display: "inline-block",
+                    }}
+                  >
+                    {isSolved ? "⭐" : "⚪"}
+                  </span>
+                );
+              })}
+            </div>
+            {solvedPuzzleIds.length === PUZZLES.length ? (
+              <button
+                type="button"
+                onClick={() => setShowCertificate(true)}
+                style={{
+                  padding: "4px 8px",
+                  backgroundColor: "#f59e0b",
+                  color: "#ffffff",
+                  fontSize: "11px",
+                  fontWeight: "900",
+                  borderRadius: "8px",
+                  border: "none",
+                  cursor: "pointer",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "4px",
+                }}
+              >
+                🏆 Sertifikanı Gör!
+              </button>
+            ) : (
+              <span style={{ fontSize: "11px", fontWeight: "900", color: "#d97706" }}>
+                {solvedPuzzleIds.length} / {PUZZLES.length} Çözüldü
+              </span>
+            )}
           </div>
 
           <div
@@ -565,7 +738,7 @@ export default function SatrancTahtasi() {
         </div>
       )}
 
-      {/* SATRANÇ TAHTASI (352x352 px) */}
+      {/* TAHTA (352x352 px) */}
       <div
         style={{
           width: "352px",
@@ -650,7 +823,7 @@ export default function SatrancTahtasi() {
         )}
       </div>
 
-      {/* ALT ALAN: BOT OYUNCU BİLGİSİ YA DA BULMACA KONTROLLERİ */}
+      {/* ALT PANEL */}
       {activeTab === "bot" ? (
         <>
           <div
@@ -712,7 +885,7 @@ export default function SatrancTahtasi() {
             type="button"
             onClick={() => bulmacaDegistir((currentPuzzleIdx - 1 + PUZZLES.length) % PUZZLES.length)}
             style={{
-              padding: "8px 14px",
+              padding: "8px 12px",
               backgroundColor: "#fef3c7",
               color: "#78350f",
               fontWeight: "800",
@@ -722,14 +895,14 @@ export default function SatrancTahtasi() {
               cursor: "pointer",
             }}
           >
-            ◀ Önceki Soru
+            ◀ Önceki
           </button>
 
           <button
             type="button"
             onClick={() => bulmacaDegistir(currentPuzzleIdx)}
             style={{
-              padding: "8px 14px",
+              padding: "8px 12px",
               backgroundColor: "#fde68a",
               color: "#78350f",
               fontWeight: "800",
@@ -746,7 +919,7 @@ export default function SatrancTahtasi() {
             type="button"
             onClick={() => bulmacaDegistir((currentPuzzleIdx + 1) % PUZZLES.length)}
             style={{
-              padding: "8px 14px",
+              padding: "8px 12px",
               backgroundColor: "#10b981",
               color: "white",
               fontWeight: "800",
@@ -756,7 +929,7 @@ export default function SatrancTahtasi() {
               cursor: "pointer",
             }}
           >
-            Sonraki Soru ▶
+            Sonraki ▶
           </button>
         </div>
       )}
