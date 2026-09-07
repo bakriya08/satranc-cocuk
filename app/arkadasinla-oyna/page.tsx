@@ -35,10 +35,10 @@ const PIECE_VALUES: Record<string, number> = {
 };
 
 const PRESET_OPTIONS = [
-  { label: "Süresiz ♾️", seconds: 0 },
-  { label: "3 Dk ⚡", seconds: 180 },
-  { label: "5 Dk ⭐", seconds: 300 },
-  { label: "10 Dk ⏳", seconds: 600 },
+  { id: "none", label: "Süresiz ♾️", minutes: 0, increment: 0 },
+  { id: "3+2", label: "3+2 ⚡", minutes: 3, increment: 2 },
+  { id: "5+3", label: "5+3 ⭐", minutes: 5, increment: 3 },
+  { id: "10+5", label: "10+5 ⏳", minutes: 10, increment: 5 },
 ];
 
 export default function ArkadasinlaOynaPage() {
@@ -52,16 +52,18 @@ export default function ArkadasinlaOynaPage() {
   const [capturedByBlack, setCapturedByBlack] = useState<string[]>([]);
 
   // Zaman Sayacı Durumları
-  const [selectedTimeMode, setSelectedTimeMode] = useState<number | "custom">(300);
+  const [selectedPresetId, setSelectedPresetId] = useState<string>("5+3");
+  const [incrementSeconds, setIncrementSeconds] = useState<number>(3);
   const [whiteTime, setWhiteTime] = useState<number>(300);
   const [blackTime, setBlackTime] = useState<number>(300);
   const [isClockRunning, setIsClockRunning] = useState<boolean>(false);
   const [isPaused, setIsPaused] = useState<boolean>(false);
 
-  // Manuel Ayar Paneli Durumu
+  // Manuel Ayar Paneli
   const [showCustomPanel, setShowCustomPanel] = useState<boolean>(false);
   const [customWhiteMinutes, setCustomWhiteMinutes] = useState<number>(5);
   const [customBlackMinutes, setCustomBlackMinutes] = useState<number>(5);
+  const [customIncrement, setCustomIncrement] = useState<number>(3);
 
   const defaultFiles = ["a", "b", "c", "d", "e", "f", "g", "h"];
   const defaultRanks = ["8", "7", "6", "5", "4", "3", "2", "1"];
@@ -151,6 +153,16 @@ export default function ArkadasinlaOynaPage() {
       });
 
       if (move) {
+        // Hamle yapıldığında saate saniye ekleme (Fischer Increment)
+        if (isClockRunning && incrementSeconds > 0) {
+          if (currentTurn === "w") {
+            setWhiteTime((t) => t + incrementSeconds);
+          } else {
+            setBlackTime((t) => t + incrementSeconds);
+          }
+        }
+
+        // İlk geçerli hamlede saati başlat
         if (!isClockRunning && (whiteTime > 0 || blackTime > 0)) {
           setIsClockRunning(true);
         }
@@ -225,9 +237,10 @@ export default function ArkadasinlaOynaPage() {
     }
   }
 
-  function oyunuSifirla(yeniBeyaz?: number, yeniSiyah?: number) {
+  function oyunuSifirla(yeniBeyaz?: number, yeniSiyah?: number, yeniInc?: number) {
     const w = yeniBeyaz !== undefined ? yeniBeyaz : whiteTime;
     const b = yeniSiyah !== undefined ? yeniSiyah : blackTime;
+    if (yeniInc !== undefined) setIncrementSeconds(yeniInc);
     setGame(new Chess());
     setSelectedSquare(null);
     setPossibleSquares([]);
@@ -244,9 +257,9 @@ export default function ArkadasinlaOynaPage() {
   function manuelSureyiUygula() {
     const wSeconds = Math.max(1, customWhiteMinutes) * 60;
     const bSeconds = Math.max(1, customBlackMinutes) * 60;
-    setSelectedTimeMode("custom");
+    setSelectedPresetId("custom");
     setShowCustomPanel(false);
-    oyunuSifirla(wSeconds, bSeconds);
+    oyunuSifirla(wSeconds, bSeconds, customIncrement);
   }
 
   const hasTimer = whiteTime > 0 || blackTime > 0;
@@ -275,11 +288,11 @@ export default function ArkadasinlaOynaPage() {
           👥 İki Kişilik Turnuva Modu
         </h2>
         <span style={{ fontSize: "11px", color: "#3b82f6", fontWeight: "bold" }}>
-          Özel Ayarlanabilir Dijital Satranç Saati ⏱️
+          Dakika + Saniye Ekleme (İncrement) Destekli Saat ⏱️
         </span>
       </div>
 
-      {/* SÜRE SEÇİM BARLARI */}
+      {/* TEMPO SEÇİM BARLARI */}
       <div
         style={{
           display: "flex",
@@ -293,15 +306,16 @@ export default function ArkadasinlaOynaPage() {
         }}
       >
         {PRESET_OPTIONS.map((opt) => {
-          const isSelected = selectedTimeMode === opt.seconds;
+          const isSelected = selectedPresetId === opt.id;
           return (
             <button
-              key={opt.seconds}
+              key={opt.id}
               type="button"
               onClick={() => {
-                setSelectedTimeMode(opt.seconds);
+                setSelectedPresetId(opt.id);
                 setShowCustomPanel(false);
-                oyunuSifirla(opt.seconds, opt.seconds);
+                const secs = opt.minutes * 60;
+                oyunuSifirla(secs, secs, opt.increment);
               }}
               style={{
                 flex: 1,
@@ -321,7 +335,7 @@ export default function ArkadasinlaOynaPage() {
           );
         })}
 
-        {/* Özel Süre Butonu */}
+        {/* Manuel Özel Ayar */}
         <button
           type="button"
           onClick={() => setShowCustomPanel(!showCustomPanel)}
@@ -333,8 +347,8 @@ export default function ArkadasinlaOynaPage() {
             fontSize: "10.5px",
             fontWeight: "900",
             cursor: "pointer",
-            backgroundColor: selectedTimeMode === "custom" || showCustomPanel ? "#3b82f6" : "transparent",
-            color: selectedTimeMode === "custom" || showCustomPanel ? "#ffffff" : "#1e40af",
+            backgroundColor: selectedPresetId === "custom" || showCustomPanel ? "#3b82f6" : "transparent",
+            color: selectedPresetId === "custom" || showCustomPanel ? "#ffffff" : "#1e40af",
             transition: "all 0.15s ease",
           }}
         >
@@ -342,7 +356,7 @@ export default function ArkadasinlaOynaPage() {
         </button>
       </div>
 
-      {/* MANUEL DAKİKA AYARLAMA PANELİ */}
+      {/* MANUEL DAKİKA + SANİYE AYARLAMA PANELİ */}
       {showCustomPanel && (
         <div
           style={{
@@ -359,18 +373,18 @@ export default function ArkadasinlaOynaPage() {
           }}
         >
           <div style={{ fontSize: "11px", fontWeight: "900", color: "#1e3a8a", textAlign: "center" }}>
-            ⏱️ İstediğin Dakikayı Ayarla (Farklı Süre de Verebilirsin):
+            ⏱️ Dakika ve Hamle Başına Eklenecek Saniyeyi Seç:
           </div>
 
-          <div style={{ display: "flex", gap: "8px", justifyContent: "space-between" }}>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "8px" }}>
             {/* Beyaz Süresi */}
-            <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", backgroundColor: "#ffffff", padding: "6px", borderRadius: "12px", border: "1px solid #bfdbfe" }}>
-              <span style={{ fontSize: "10px", fontWeight: "800", color: "#475569" }}>🦁 Beyaz Dakikası</span>
+            <div style={{ display: "flex", flexDirection: "column", alignItems: "center", backgroundColor: "#ffffff", padding: "6px", borderRadius: "12px", border: "1px solid #bfdbfe" }}>
+              <span style={{ fontSize: "10px", fontWeight: "800", color: "#475569" }}>🦁 Beyaz (Dk)</span>
               <div style={{ display: "flex", alignItems: "center", gap: "4px", marginTop: "4px" }}>
                 <button
                   type="button"
                   onClick={() => setCustomWhiteMinutes((m) => Math.max(1, m - 1))}
-                  style={{ width: "24px", height: "24px", borderRadius: "6px", border: "none", backgroundColor: "#e2e8f0", fontWeight: "900", cursor: "pointer" }}
+                  style={{ width: "22px", height: "22px", borderRadius: "6px", border: "none", backgroundColor: "#e2e8f0", fontWeight: "900", cursor: "pointer" }}
                 >
                   -
                 </button>
@@ -380,12 +394,12 @@ export default function ArkadasinlaOynaPage() {
                   max="120"
                   value={customWhiteMinutes}
                   onChange={(e) => setCustomWhiteMinutes(parseInt(e.target.value) || 1)}
-                  style={{ width: "38px", textAlign: "center", fontWeight: "900", fontSize: "13px", border: "1px solid #cbd5e1", borderRadius: "6px", padding: "2px" }}
+                  style={{ width: "34px", textAlign: "center", fontWeight: "900", fontSize: "12px", border: "1px solid #cbd5e1", borderRadius: "6px", padding: "2px" }}
                 />
                 <button
                   type="button"
                   onClick={() => setCustomWhiteMinutes((m) => m + 1)}
-                  style={{ width: "24px", height: "24px", borderRadius: "6px", border: "none", backgroundColor: "#e2e8f0", fontWeight: "900", cursor: "pointer" }}
+                  style={{ width: "22px", height: "22px", borderRadius: "6px", border: "none", backgroundColor: "#e2e8f0", fontWeight: "900", cursor: "pointer" }}
                 >
                   +
                 </button>
@@ -393,13 +407,13 @@ export default function ArkadasinlaOynaPage() {
             </div>
 
             {/* Siyah Süresi */}
-            <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", backgroundColor: "#ffffff", padding: "6px", borderRadius: "12px", border: "1px solid #bfdbfe" }}>
-              <span style={{ fontSize: "10px", fontWeight: "800", color: "#475569" }}>🐯 Siyah Dakikası</span>
+            <div style={{ display: "flex", flexDirection: "column", alignItems: "center", backgroundColor: "#ffffff", padding: "6px", borderRadius: "12px", border: "1px solid #bfdbfe" }}>
+              <span style={{ fontSize: "10px", fontWeight: "800", color: "#475569" }}>🐯 Siyah (Dk)</span>
               <div style={{ display: "flex", alignItems: "center", gap: "4px", marginTop: "4px" }}>
                 <button
                   type="button"
                   onClick={() => setCustomBlackMinutes((m) => Math.max(1, m - 1))}
-                  style={{ width: "24px", height: "24px", borderRadius: "6px", border: "none", backgroundColor: "#e2e8f0", fontWeight: "900", cursor: "pointer" }}
+                  style={{ width: "22px", height: "22px", borderRadius: "6px", border: "none", backgroundColor: "#e2e8f0", fontWeight: "900", cursor: "pointer" }}
                 >
                   -
                 </button>
@@ -409,12 +423,12 @@ export default function ArkadasinlaOynaPage() {
                   max="120"
                   value={customBlackMinutes}
                   onChange={(e) => setCustomBlackMinutes(parseInt(e.target.value) || 1)}
-                  style={{ width: "38px", textAlign: "center", fontWeight: "900", fontSize: "13px", border: "1px solid #cbd5e1", borderRadius: "6px", padding: "2px" }}
+                  style={{ width: "34px", textAlign: "center", fontWeight: "900", fontSize: "12px", border: "1px solid #cbd5e1", borderRadius: "6px", padding: "2px" }}
                 />
                 <button
                   type="button"
                   onClick={() => setCustomBlackMinutes((m) => m + 1)}
-                  style={{ width: "24px", height: "24px", borderRadius: "6px", border: "none", backgroundColor: "#e2e8f0", fontWeight: "900", cursor: "pointer" }}
+                  style={{ width: "22px", height: "22px", borderRadius: "6px", border: "none", backgroundColor: "#e2e8f0", fontWeight: "900", cursor: "pointer" }}
                 >
                   +
                 </button>
@@ -422,11 +436,35 @@ export default function ArkadasinlaOynaPage() {
             </div>
           </div>
 
+          {/* Hamle Başına Eklenecek Saniye (Increment) */}
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", backgroundColor: "#ffffff", padding: "6px 10px", borderRadius: "12px", border: "1px solid #bfdbfe" }}>
+            <span style={{ fontSize: "10px", fontWeight: "800", color: "#1e3a8a" }}>➕ Hamle Başına Ekle:</span>
+            <div style={{ display: "flex", alignItems: "center", gap: "4px" }}>
+              <button
+                type="button"
+                onClick={() => setCustomIncrement((s) => Math.max(0, s - 1))}
+                style={{ width: "22px", height: "22px", borderRadius: "6px", border: "none", backgroundColor: "#e2e8f0", fontWeight: "900", cursor: "pointer" }}
+              >
+                -
+              </button>
+              <span style={{ minWidth: "48px", textAlign: "center", fontWeight: "900", fontSize: "12px", color: "#047857" }}>
+                +{customIncrement} sn
+              </span>
+              <button
+                type="button"
+                onClick={() => setCustomIncrement((s) => s + 1)}
+                style={{ width: "22px", height: "22px", borderRadius: "6px", border: "none", backgroundColor: "#e2e8f0", fontWeight: "900", cursor: "pointer" }}
+              >
+                +
+              </button>
+            </div>
+          </div>
+
           <button
             type="button"
             onClick={manuelSureyiUygula}
             style={{
-              padding: "6px 12px",
+              padding: "7px 12px",
               backgroundColor: "#2563eb",
               color: "#ffffff",
               fontWeight: "900",
@@ -436,7 +474,7 @@ export default function ArkadasinlaOynaPage() {
               cursor: "pointer",
             }}
           >
-            ✅ Süreyi Saate Yükle ve Başla
+            ✅ Saat Ayarını Yükle ve Başla
           </button>
         </div>
       )}
@@ -475,21 +513,28 @@ export default function ArkadasinlaOynaPage() {
         </div>
 
         {hasTimer && (
-          <div
-            style={{
-              padding: "6px 10px",
-              backgroundColor: currentTurn === "b" ? (blackTime < 30 ? "#fee2e2" : "#dcfce7") : "#ffffff",
-              color: blackTime < 30 ? "#dc2626" : "#0f172a",
-              border: `2px solid ${currentTurn === "b" ? (blackTime < 30 ? "#ef4444" : "#22c55e") : "#cbd5e1"}`,
-              borderRadius: "12px",
-              fontWeight: "900",
-              fontSize: "16px",
-              fontFamily: "monospace",
-              minWidth: "60px",
-              textAlign: "center",
-            }}
-          >
-            {formatTime(blackTime)}
+          <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: "2px" }}>
+            <div
+              style={{
+                padding: "4px 8px",
+                backgroundColor: currentTurn === "b" ? (blackTime < 30 ? "#fee2e2" : "#dcfce7") : "#ffffff",
+                color: blackTime < 30 ? "#dc2626" : "#0f172a",
+                border: `2px solid ${currentTurn === "b" ? (blackTime < 30 ? "#ef4444" : "#22c55e") : "#cbd5e1"}`,
+                borderRadius: "12px",
+                fontWeight: "900",
+                fontSize: "16px",
+                fontFamily: "monospace",
+                minWidth: "60px",
+                textAlign: "center",
+              }}
+            >
+              {formatTime(blackTime)}
+            </div>
+            {incrementSeconds > 0 && (
+              <span style={{ fontSize: "9px", fontWeight: "800", color: "#047857" }}>
+                +{incrementSeconds}sn
+              </span>
+            )}
           </div>
         )}
       </div>
@@ -638,21 +683,28 @@ export default function ArkadasinlaOynaPage() {
         </div>
 
         {hasTimer && (
-          <div
-            style={{
-              padding: "6px 10px",
-              backgroundColor: currentTurn === "w" ? (whiteTime < 30 ? "#fee2e2" : "#dcfce7") : "#ffffff",
-              color: whiteTime < 30 ? "#dc2626" : "#0f172a",
-              border: `2px solid ${currentTurn === "w" ? (whiteTime < 30 ? "#ef4444" : "#22c55e") : "#cbd5e1"}`,
-              borderRadius: "12px",
-              fontWeight: "900",
-              fontSize: "16px",
-              fontFamily: "monospace",
-              minWidth: "60px",
-              textAlign: "center",
-            }}
-          >
-            {formatTime(whiteTime)}
+          <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: "2px" }}>
+            <div
+              style={{
+                padding: "4px 8px",
+                backgroundColor: currentTurn === "w" ? (whiteTime < 30 ? "#fee2e2" : "#dcfce7") : "#ffffff",
+                color: whiteTime < 30 ? "#dc2626" : "#0f172a",
+                border: `2px solid ${currentTurn === "w" ? (whiteTime < 30 ? "#ef4444" : "#22c55e") : "#cbd5e1"}`,
+                borderRadius: "12px",
+                fontWeight: "900",
+                fontSize: "16px",
+                fontFamily: "monospace",
+                minWidth: "60px",
+                textAlign: "center",
+              }}
+            >
+              {formatTime(whiteTime)}
+            </div>
+            {incrementSeconds > 0 && (
+              <span style={{ fontSize: "9px", fontWeight: "800", color: "#047857" }}>
+                +{incrementSeconds}sn
+              </span>
+            )}
           </div>
         )}
       </div>
