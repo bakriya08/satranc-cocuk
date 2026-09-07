@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import Link from "next/link";
 
 interface SoruAnalizItem {
   soruId: number;
@@ -22,6 +21,15 @@ interface OdevKaydi {
   soruDetaylari?: SoruAnalizItem[];
 }
 
+interface OgrenciProfil {
+  id: string;
+  adSoyad: string;
+  sinifGrup: string;
+  avatar: string;
+  pin: string;
+  kayitTarihi: string;
+}
+
 interface SoruItem {
   id: number;
   title: string;
@@ -34,12 +42,16 @@ export default function OgretmenPage() {
   const [sifre, setSifre] = useState("");
   const [sifreHata, setSifreHata] = useState(false);
 
-  const [aktifSekme, setAktifSekme] = useState<"sonuclar" | "sorular">("sonuclar");
+  const [aktifSekme, setAktifSekme] = useState<"sonuclar" | "ogrenciler" | "sorular">("sonuclar");
   const [yukleniyor, setYukleniyor] = useState(false);
 
   const [odevler, setOdevler] = useState<OdevKaydi[]>([]);
+  const [ogrenciler, setOgrenciler] = useState<OgrenciProfil[]>([]);
   const [sorular, setSorular] = useState<SoruItem[]>([]);
   const [arsivSayisi, setArsivSayisi] = useState(0);
+
+  // Öğrenci arama filtresi
+  const [aramaMetni, setAramaMetni] = useState("");
 
   // Soru Ekleme Form Durumu
   const [yeniBaslik, setYeniBaslik] = useState("");
@@ -57,6 +69,7 @@ export default function OgretmenPage() {
       .then((res) => {
         if (res && res.success && res.data) {
           setOdevler(Array.isArray(res.data.aktifOdevler) ? res.data.aktifOdevler : []);
+          setOgrenciler(Array.isArray(res.data.ogrenciler) ? res.data.ogrenciler : []);
           setSorular(Array.isArray(res.data.sorular) ? res.data.sorular : []);
           setArsivSayisi(Number(res.data.arsivSayisi) || 0);
         }
@@ -80,6 +93,54 @@ export default function OgretmenPage() {
       setSifreHata(false);
     } else {
       setSifreHata(true);
+    }
+  }
+
+  // Öğrenci PIN Kodunu 1234 Yap
+  async function handlePinSifirla(ogrenci: OgrenciProfil) {
+    const onay = confirm(`${ogrenci.adSoyad} öğrencisinin PIN kodunu "1234" olarak sıfırlamak istiyor musunuz?`);
+    if (!onay) return;
+
+    try {
+      const res = await fetch("/api/odev", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          action: "pinSifirla",
+          ogrenciId: ogrenci.id,
+          yeniPin: "1234",
+        }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        alert(`✅ ${ogrenci.adSoyad} için yeni PIN: 1234`);
+        verileriGetir();
+      }
+    } catch {
+      alert("PIN sıfırlanırken hata oluştu.");
+    }
+  }
+
+  // Öğrenciyi Sil
+  async function handleOgrenciSil(ogrenci: OgrenciProfil) {
+    const onay = confirm(`${ogrenci.adSoyad} kaydını sistemden silmek istediğinize emin misiniz?`);
+    if (!onay) return;
+
+    try {
+      const res = await fetch("/api/odev", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          action: "ogrenciSil",
+          ogrenciId: ogrenci.id,
+        }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        verileriGetir();
+      }
+    } catch {
+      alert("Öğrenci silinirken hata oluştu.");
     }
   }
 
@@ -149,6 +210,11 @@ export default function OgretmenPage() {
       alert("Arşivleme hatası.");
     }
   }
+
+  const filtrelenmisOgrenciler = ogrenciler.filter((o) =>
+    o.adSoyad.toLowerCase().includes(aramaMetni.toLowerCase()) ||
+    (o.sinifGrup && o.sinifGrup.toLowerCase().includes(aramaMetni.toLowerCase()))
+  );
 
   if (!girisYapildi) {
     return (
@@ -222,7 +288,7 @@ export default function OgretmenPage() {
   return (
     <div
       style={{
-        maxWidth: "800px",
+        maxWidth: "850px",
         width: "100%",
         backgroundColor: "#ffffff",
         padding: "20px",
@@ -232,13 +298,14 @@ export default function OgretmenPage() {
         margin: "0 auto",
       }}
     >
+      {/* ÜST BAŞLIK & BUTONLAR */}
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "10px", marginBottom: "16px" }}>
         <div>
           <h1 style={{ fontSize: "20px", fontWeight: "900", color: "#1e293b", margin: 0 }}>
             ♟️ Öğretmen Kontrol Masası
           </h1>
           <span style={{ fontSize: "12px", color: "#64748b" }}>
-            Öğrenci ödev analizleri ve soru yönetim sistemi
+            Ödev analizleri, öğrenci şifreleri ve haftalık sorular
           </span>
         </div>
 
@@ -278,13 +345,13 @@ export default function OgretmenPage() {
         </div>
       </div>
 
-      {/* SEKME GEÇİŞLERİ */}
-      <div style={{ display: "flex", gap: "10px", marginBottom: "16px", borderBottom: "2px solid #f1f5f9", paddingBottom: "10px" }}>
+      {/* ÜÇLÜ SEKME GEÇİŞİ */}
+      <div style={{ display: "flex", gap: "8px", marginBottom: "16px", borderBottom: "2px solid #f1f5f9", paddingBottom: "10px", flexWrap: "wrap" }}>
         <button
           type="button"
           onClick={() => setAktifSekme("sonuclar")}
           style={{
-            padding: "8px 16px",
+            padding: "8px 14px",
             borderRadius: "12px",
             border: "none",
             backgroundColor: aktifSekme === "sonuclar" ? "#2563eb" : "#f1f5f9",
@@ -299,25 +366,42 @@ export default function OgretmenPage() {
 
         <button
           type="button"
-          onClick={() => setAktifSekme("sorular")}
+          onClick={() => setAktifSekme("ogrenciler")}
           style={{
-            padding: "8px 16px",
+            padding: "8px 14px",
             borderRadius: "12px",
             border: "none",
-            backgroundColor: aktifSekme === "sorular" ? "#2563eb" : "#f1f5f9",
+            backgroundColor: aktifSekme === "ogrenciler" ? "#8b5cf6" : "#f1f5f9",
+            color: aktifSekme === "ogrenciler" ? "#ffffff" : "#64748b",
+            fontWeight: "900",
+            fontSize: "12px",
+            cursor: "pointer",
+          }}
+        >
+          👥 Öğrenciler & PIN ({ogrenciler.length})
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setAktifSekme("sorular")}
+          style={{
+            padding: "8px 14px",
+            borderRadius: "12px",
+            border: "none",
+            backgroundColor: aktifSekme === "sorular" ? "#f59e0b" : "#f1f5f9",
             color: aktifSekme === "sorular" ? "#ffffff" : "#64748b",
             fontWeight: "900",
             fontSize: "12px",
             cursor: "pointer",
           }}
         >
-          ⚙️ Ödev Sorularını Yönet ({sorular.length})
+          ⚙️ Soruları Yönet ({sorular.length})
         </button>
       </div>
 
       {yukleniyor && (
-        <div style={{ textAlign: "center", padding: "20px", color: "#64748b", fontSize: "13px" }}>
-          Veriler güncelleniyor... ⏳
+        <div style={{ textAlign: "center", padding: "16px", color: "#64748b", fontSize: "12px" }}>
+          Veriler senkronize ediliyor... ⏳
         </div>
       )}
 
@@ -433,7 +517,134 @@ export default function OgretmenPage() {
         </div>
       )}
 
-      {/* SEKME 2: SORU YÖNETİMİ */}
+      {/* SEKME 2: ÖĞRENCİLER & PIN YÖNETİMİ */}
+      {aktifSekme === "ogrenciler" && (
+        <div>
+          <div style={{ marginBottom: "12px" }}>
+            <input
+              type="text"
+              placeholder="🔍 İsim veya gruba göre öğrenci ara..."
+              value={aramaMetni}
+              onChange={(e) => setAramaMetni(e.target.value)}
+              style={{
+                width: "100%",
+                padding: "8px 14px",
+                borderRadius: "12px",
+                border: "1px solid #cbd5e1",
+                fontSize: "12px",
+                boxSizing: "border-box",
+                outline: "none",
+              }}
+            />
+          </div>
+
+          {filtrelenmisOgrenciler.length === 0 ? (
+            <div
+              style={{
+                padding: "30px",
+                textAlign: "center",
+                backgroundColor: "#f8fafc",
+                borderRadius: "16px",
+                color: "#64748b",
+                fontSize: "13px",
+              }}
+            >
+              Kayıtlı öğrenci bulunamadı.
+            </div>
+          ) : (
+            <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+              {filtrelenmisOgrenciler.map((o) => (
+                <div
+                  key={o.id}
+                  style={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                    padding: "10px 14px",
+                    backgroundColor: "#f8fafc",
+                    borderRadius: "14px",
+                    border: "1px solid #e2e8f0",
+                    flexWrap: "wrap",
+                    gap: "8px",
+                  }}
+                >
+                  <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+                    <span style={{ fontSize: "26px" }}>{o.avatar || "🦁"}</span>
+                    <div>
+                      <div style={{ fontSize: "13px", fontWeight: "900", color: "#1e293b" }}>
+                        {o.adSoyad}
+                      </div>
+                      <div style={{ fontSize: "11px", color: "#64748b" }}>
+                        Grup: {o.sinifGrup || "Genel"} • Kayıt: {o.kayitTarihi}
+                      </div>
+                    </div>
+                  </div>
+
+                  <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                    {/* PIN KUTUSU */}
+                    <div
+                      style={{
+                        padding: "4px 10px",
+                        backgroundColor: "#fef3c7",
+                        borderRadius: "8px",
+                        border: "1px solid #fde68a",
+                        textAlign: "center",
+                      }}
+                    >
+                      <span style={{ fontSize: "10px", color: "#92400e", display: "block", fontWeight: "bold" }}>
+                        GİRİŞ PIN
+                      </span>
+                      <span style={{ fontSize: "13px", fontWeight: "900", color: "#b45309", letterSpacing: "1px" }}>
+                        {o.pin || "1234"}
+                      </span>
+                    </div>
+
+                    {/* PIN SIFIRLA BUTONU */}
+                    <button
+                      type="button"
+                      onClick={() => handlePinSifirla(o)}
+                      title="Şifreyi 1234 olarak sıfırla"
+                      style={{
+                        padding: "6px 10px",
+                        backgroundColor: "#f3e8ff",
+                        color: "#7e22ce",
+                        border: "1px solid #e9d5ff",
+                        borderRadius: "8px",
+                        fontSize: "11px",
+                        fontWeight: "bold",
+                        cursor: "pointer",
+                      }}
+                    >
+                      🔑 PIN Sıfırla (1234)
+                    </button>
+
+                    {/* SİL BUTONU */}
+                    <button
+                      type="button"
+                      onClick={() => handleOgrenciSil(o)}
+                      title="Öğrenciyi Sil"
+                      style={{
+                        padding: "6px 10px",
+                        backgroundColor: "#fee2e2",
+                        color: "#dc2626",
+                        border: "none",
+                        borderRadius: "8px",
+                        fontSize: "11px",
+                        fontWeight: "bold",
+                        cursor: "pointer",
+                      }}
+                    >
+                      🗑️
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* SEKME 3: SORU YÖNETİMİ */}
       {aktifSekme === "sorular" && (
         <div>
           <form
@@ -570,7 +781,7 @@ export default function OgretmenPage() {
         </div>
       )}
 
-      {/* MODAL: ÖĞRENCİ DETAYLI SORU KARNESİ */}
+      {/* MODAL: ÖĞRENCİ DETAYLI SORU ANALİZİ */}
       {seciliOgrenci && (
         <div
           style={{
