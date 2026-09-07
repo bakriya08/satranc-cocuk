@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Chess } from "chess.js";
 
 const PIECE_IMAGES: Record<string, string> = {
@@ -50,6 +50,8 @@ export default function ArkadasinlaOynaPage() {
   const [autoFlip, setAutoFlip] = useState(false);
   const [capturedByWhite, setCapturedByWhite] = useState<string[]>([]);
   const [capturedByBlack, setCapturedByBlack] = useState<string[]>([]);
+  const [moveHistory, setMoveHistory] = useState<string[]>([]);
+  const [copyFeedback, setCopyFeedback] = useState(false);
 
   // Zaman Sayacı Durumları
   const [selectedPresetId, setSelectedPresetId] = useState<string>("5+3");
@@ -65,13 +67,15 @@ export default function ArkadasinlaOynaPage() {
   const [customBlackMinutes, setCustomBlackMinutes] = useState<number>(5);
   const [customIncrement, setCustomIncrement] = useState<number>(3);
 
+  const notationEndRef = useRef<HTMLDivElement>(null);
+
   const defaultFiles = ["a", "b", "c", "d", "e", "f", "g", "h"];
   const defaultRanks = ["8", "7", "6", "5", "4", "3", "2", "1"];
 
   const files = isFlipped ? [...defaultFiles].reverse() : defaultFiles;
   const ranks = isFlipped ? [...defaultRanks].reverse() : defaultRanks;
 
-  const currentTurn = game.turn(); // 'w' veya 'b'
+  const currentTurn = game.turn();
 
   function sesCal(tur: "move" | "capture" | "check" | "gameEnd") {
     try {
@@ -81,7 +85,12 @@ export default function ArkadasinlaOynaPage() {
     } catch {}
   }
 
-  // ZAMAN SAYACI DÖNGÜSÜ
+  // Notasyon akışını her hamlede otomatik alta kaydır
+  useEffect(() => {
+    notationEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [moveHistory]);
+
+  // Sayaç Döngüsü
   useEffect(() => {
     if ((whiteTime === 0 && blackTime === 0) || !isClockRunning || isPaused || game.isGameOver()) {
       return;
@@ -153,7 +162,10 @@ export default function ArkadasinlaOynaPage() {
       });
 
       if (move) {
-        // Hamle yapıldığında saate saniye ekleme (Fischer Increment)
+        // Hamleyi notasyon geçmişine ekle (SAN: e4, Af3, O-O vb.)
+        setMoveHistory((prev) => [...prev, move.san]);
+
+        // Hamle yapıldığında saniye ekleme (Increment)
         if (isClockRunning && incrementSeconds > 0) {
           if (currentTurn === "w") {
             setWhiteTime((t) => t + incrementSeconds);
@@ -162,7 +174,6 @@ export default function ArkadasinlaOynaPage() {
           }
         }
 
-        // İlk geçerli hamlede saati başlat
         if (!isClockRunning && (whiteTime > 0 || blackTime > 0)) {
           setIsClockRunning(true);
         }
@@ -229,6 +240,7 @@ export default function ArkadasinlaOynaPage() {
       setGame(gameCopy);
       setSelectedSquare(null);
       setPossibleSquares([]);
+      setMoveHistory((prev) => prev.slice(0, -1));
       const player = gameCopy.turn() === "w" ? "Beyaz (🦁)" : "Siyah (🐯)";
       setDurumMesaji(`Son hamle geri alındı. Sıra ${player}'da.`);
       if (autoFlip) {
@@ -246,6 +258,7 @@ export default function ArkadasinlaOynaPage() {
     setPossibleSquares([]);
     setCapturedByWhite([]);
     setCapturedByBlack([]);
+    setMoveHistory([]);
     setIsFlipped(false);
     setIsClockRunning(false);
     setIsPaused(false);
@@ -260,6 +273,55 @@ export default function ArkadasinlaOynaPage() {
     setSelectedPresetId("custom");
     setShowCustomPanel(false);
     oyunuSifirla(wSeconds, bSeconds, customIncrement);
+  }
+
+  // Notasyonu standart satır çiftlerine çevir (Örn: 1. e4 e5)
+  const pairedMoves: { num: number; white: string; black?: string }[] = [];
+  for (let i = 0; i < moveHistory.length; i += 2) {
+    pairedMoves.push({
+      num: Math.floor(i / 2) + 1,
+      white: moveHistory[i],
+      black: moveHistory[i + 1],
+    });
+  }
+
+  // PGN Metnini Oluşturma
+  function generatePGN() {
+    const today = new Date().toISOString().split("T")[0];
+    let pgn = `[Event "Dostluk Maçı"]\n`;
+    pgn += `[Site "Cocuk Satranc"]\n`;
+    pgn += `[Date "${today}"]\n`;
+    pgn += `[White "Beyaz Oyuncu"]\n`;
+    pgn += `[Black "Siyah Oyuncu"]\n`;
+    pgn += `[Result "${game.isCheckmate() ? (game.turn() === "b" ? "1-0" : "0-1") : game.isDraw() ? "1/2-1/2" : "*"}"]\n\n`;
+
+    let movesStr = "";
+    pairedMoves.forEach((m) => {
+      movesStr += `${m.num}. ${m.white} ${m.black ? m.black + " " : ""}`;
+    });
+    return pgn + movesStr.trim();
+  }
+
+  // PGN Dosyası İndir
+  function downloadPGN() {
+    if (moveHistory.length === 0) return;
+    const pgnContent = generatePGN();
+    const blob = new Blob([pgnContent], { type: "text/plain;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `satranc_maci_${new Date().getTime()}.pgn`;
+    link.click();
+    URL.revokeObjectURL(url);
+  }
+
+  // Notasyonu Panoya Kopyala
+  function copyNotation() {
+    if (moveHistory.length === 0) return;
+    const pgnContent = generatePGN();
+    navigator.clipboard.writeText(pgnContent);
+    setCopyFeedback(true);
+    setTimeout(() => setCopyFeedback(false), 2000);
   }
 
   const hasTimer = whiteTime > 0 || blackTime > 0;
@@ -288,7 +350,7 @@ export default function ArkadasinlaOynaPage() {
           👥 İki Kişilik Turnuva Modu
         </h2>
         <span style={{ fontSize: "11px", color: "#3b82f6", fontWeight: "bold" }}>
-          Dakika + Saniye Ekleme (İncrement) Destekli Saat ⏱️
+          Ayarlanabilir Saat & Canlı Notasyon Kaydı 📝⏱️
         </span>
       </div>
 
@@ -335,7 +397,6 @@ export default function ArkadasinlaOynaPage() {
           );
         })}
 
-        {/* Manuel Özel Ayar */}
         <button
           type="button"
           onClick={() => setShowCustomPanel(!showCustomPanel)}
@@ -356,7 +417,7 @@ export default function ArkadasinlaOynaPage() {
         </button>
       </div>
 
-      {/* MANUEL DAKİKA + SANİYE AYARLAMA PANELİ */}
+      {/* MANUEL AYAR PANELİ */}
       {showCustomPanel && (
         <div
           style={{
@@ -377,7 +438,6 @@ export default function ArkadasinlaOynaPage() {
           </div>
 
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "8px" }}>
-            {/* Beyaz Süresi */}
             <div style={{ display: "flex", flexDirection: "column", alignItems: "center", backgroundColor: "#ffffff", padding: "6px", borderRadius: "12px", border: "1px solid #bfdbfe" }}>
               <span style={{ fontSize: "10px", fontWeight: "800", color: "#475569" }}>🦁 Beyaz (Dk)</span>
               <div style={{ display: "flex", alignItems: "center", gap: "4px", marginTop: "4px" }}>
@@ -406,7 +466,6 @@ export default function ArkadasinlaOynaPage() {
               </div>
             </div>
 
-            {/* Siyah Süresi */}
             <div style={{ display: "flex", flexDirection: "column", alignItems: "center", backgroundColor: "#ffffff", padding: "6px", borderRadius: "12px", border: "1px solid #bfdbfe" }}>
               <span style={{ fontSize: "10px", fontWeight: "800", color: "#475569" }}>🐯 Siyah (Dk)</span>
               <div style={{ display: "flex", alignItems: "center", gap: "4px", marginTop: "4px" }}>
@@ -436,7 +495,6 @@ export default function ArkadasinlaOynaPage() {
             </div>
           </div>
 
-          {/* Hamle Başına Eklenecek Saniye (Increment) */}
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", backgroundColor: "#ffffff", padding: "6px 10px", borderRadius: "12px", border: "1px solid #bfdbfe" }}>
             <span style={{ fontSize: "10px", fontWeight: "800", color: "#1e3a8a" }}>➕ Hamle Başına Ekle:</span>
             <div style={{ display: "flex", alignItems: "center", gap: "4px" }}>
@@ -797,6 +855,104 @@ export default function ArkadasinlaOynaPage() {
         >
           Sıfırla 🔄
         </button>
+      </div>
+
+      {/* CANLI NOTASYON & MAÇ KAYDETME PANELİ */}
+      <div
+        style={{
+          width: "100%",
+          marginTop: "16px",
+          backgroundColor: "#ffffff",
+          borderRadius: "18px",
+          border: "2px solid #cbd5e1",
+          padding: "12px",
+          boxSizing: "border-box",
+          boxShadow: "0 4px 6px -1px rgba(0,0,0,0.05)",
+        }}
+      >
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "8px" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+            <span style={{ fontSize: "16px" }}>📝</span>
+            <span style={{ fontSize: "12px", fontWeight: "900", color: "#1e293b" }}>
+              Hamle Notasyonu ({moveHistory.length} Hamle)
+            </span>
+          </div>
+
+          <div style={{ display: "flex", gap: "6px" }}>
+            <button
+              type="button"
+              onClick={copyNotation}
+              disabled={moveHistory.length === 0}
+              style={{
+                padding: "5px 10px",
+                borderRadius: "8px",
+                border: "none",
+                backgroundColor: copyFeedback ? "#10b981" : "#e2e8f0",
+                color: copyFeedback ? "#ffffff" : "#334155",
+                fontSize: "11px",
+                fontWeight: "800",
+                cursor: moveHistory.length === 0 ? "not-allowed" : "pointer",
+                transition: "all 0.2s ease",
+              }}
+            >
+              {copyFeedback ? "✅ Kopyalandı" : "📋 Kopyala"}
+            </button>
+
+            <button
+              type="button"
+              onClick={downloadPGN}
+              disabled={moveHistory.length === 0}
+              style={{
+                padding: "5px 10px",
+                borderRadius: "8px",
+                border: "none",
+                backgroundColor: "#3b82f6",
+                color: "#ffffff",
+                fontSize: "11px",
+                fontWeight: "900",
+                cursor: moveHistory.length === 0 ? "not-allowed" : "pointer",
+                boxShadow: "0 2px 4px rgba(59, 130, 246, 0.3)",
+              }}
+            >
+              📥 PGN İndir
+            </button>
+          </div>
+        </div>
+
+        {/* Notasyon Akış Kutusu */}
+        <div
+          style={{
+            maxHeight: "130px",
+            overflowY: "auto",
+            backgroundColor: "#f8fafc",
+            borderRadius: "12px",
+            padding: "8px 12px",
+            border: "1px solid #e2e8f0",
+            fontSize: "12px",
+            fontFamily: "monospace",
+          }}
+        >
+          {pairedMoves.length === 0 ? (
+            <div style={{ textAlign: "center", color: "#94a3b8", fontStyle: "italic", padding: "8px 0" }}>
+              Henüz hamle yapılmadı. Hamleler buraya notasyon olarak yazılır!
+            </div>
+          ) : (
+            <div style={{ display: "grid", gridTemplateColumns: "35px 1fr 1fr", rowGap: "4px", columnGap: "8px" }}>
+              {pairedMoves.map((m) => (
+                <div key={m.num} style={{ display: "contents" }}>
+                  <span style={{ color: "#64748b", fontWeight: "bold" }}>{m.num}.</span>
+                  <span style={{ color: "#0f172a", fontWeight: "800", backgroundColor: "#ffffff", padding: "2px 6px", borderRadius: "6px", border: "1px solid #e2e8f0", textAlign: "center" }}>
+                    {m.white}
+                  </span>
+                  <span style={{ color: "#0f172a", fontWeight: "800", backgroundColor: m.black ? "#ffffff" : "transparent", padding: "2px 6px", borderRadius: "6px", border: m.black ? "1px solid #e2e8f0" : "none", textAlign: "center" }}>
+                    {m.black || ""}
+                  </span>
+                </div>
+              ))}
+              <div ref={notationEndRef} />
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );
