@@ -1,5 +1,14 @@
 import { NextResponse } from "next/server";
 
+export interface OgrenciProfil {
+  id: string;
+  adSoyad: string;
+  sinifGrup: string;
+  avatar: string;
+  pin: string;
+  kayitTarihi: string;
+}
+
 export interface SoruItem {
   id: number;
   title: string;
@@ -16,6 +25,8 @@ export interface SoruAnalizItem {
 export interface OdevKaydi {
   id: string;
   ogrenciAdi: string;
+  sinifGrup?: string;
+  avatar?: string;
   toplamSoru: number;
   dogruSayisi: number;
   toplamHata: number;
@@ -24,7 +35,6 @@ export interface OdevKaydi {
   soruDetaylari: SoruAnalizItem[];
 }
 
-// Varsayılan Başlangıç Soruları
 const VARSAYILAN_SORULAR: SoruItem[] = [
   {
     id: 1,
@@ -58,13 +68,12 @@ const VARSAYILAN_SORULAR: SoruItem[] = [
   },
 ];
 
-// Global Veri Havuzu
-const globalStorage = (globalThis as any);
+const globalStorage = globalThis as any;
 if (!globalStorage.__odevSorulari) globalStorage.__odevSorulari = [...VARSAYILAN_SORULAR];
 if (!globalStorage.__aktifOdevler) globalStorage.__aktifOdevler = [];
 if (!globalStorage.__arsivlenmisOdevler) globalStorage.__arsivlenmisOdevler = [];
+if (!globalStorage.__kayitliOgrenciler) globalStorage.__kayitliOgrenciler = [];
 
-// GET: Soruları ve kayıtları getir
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const type = searchParams.get("type");
@@ -73,28 +82,58 @@ export async function GET(request: Request) {
     return NextResponse.json({ success: true, data: globalStorage.__odevSorulari });
   }
 
+  if (type === "ogrenciler") {
+    return NextResponse.json({ success: true, data: globalStorage.__kayitliOgrenciler });
+  }
+
   return NextResponse.json({
     success: true,
     data: {
       sorular: globalStorage.__odevSorulari,
       aktifOdevler: globalStorage.__aktifOdevler,
       arsivSayisi: globalStorage.__arsivlenmisOdevler.length,
+      ogrenciler: globalStorage.__kayitliOgrenciler,
     },
   });
 }
 
-// POST: Öğrenci teslimi VEYA Öğretmen soru ekleme VEYA Arşivleme
 export async function POST(request: Request) {
   try {
     const body = await request.json();
     const { action } = body;
 
-    // 1. Yeni Soru Ekleme
+    // ÖĞRENCİ KAYIT
+    if (action === "ogrenciKayit") {
+      const { adSoyad, sinifGrup, avatar, pin } = body;
+      if (!adSoyad || !adSoyad.trim()) {
+        return NextResponse.json({ success: false, message: "İsim gereklidir" }, { status: 400 });
+      }
+
+      const yeniOgrenci: OgrenciProfil = {
+        id: Date.now().toString(),
+        adSoyad: adSoyad.trim(),
+        sinifGrup: (sinifGrup || "Genel").trim(),
+        avatar: avatar || "🦁",
+        pin: pin || "1234",
+        kayitTarihi: new Date().toLocaleDateString("tr-TR"),
+      };
+
+      // Varsa güncelle, yoksa ekle
+      const mevcutIndex = globalStorage.__kayitliOgrenciler.findIndex(
+        (o: OgrenciProfil) => o.adSoyad.toLowerCase() === yeniOgrenci.adSoyad.toLowerCase()
+      );
+      if (mevcutIndex >= 0) {
+        globalStorage.__kayitliOgrenciler[mevcutIndex] = yeniOgrenci;
+      } else {
+        globalStorage.__kayitliOgrenciler.push(yeniOgrenci);
+      }
+
+      return NextResponse.json({ success: true, data: yeniOgrenci });
+    }
+
+    // YENİ SORU EKLEME
     if (action === "soruEkle") {
       const { title, fen, hint } = body;
-      if (!fen || !title) {
-        return NextResponse.json({ success: false, message: "FEN ve başlık zorunludur" }, { status: 400 });
-      }
       const yeniId = globalStorage.__odevSorulari.length > 0
         ? Math.max(...globalStorage.__odevSorulari.map((s: SoruItem) => s.id)) + 1
         : 1;
@@ -109,20 +148,14 @@ export async function POST(request: Request) {
       return NextResponse.json({ success: true, data: globalStorage.__odevSorulari });
     }
 
-    // 2. Soru Silme
+    // SORU SİLME
     if (action === "soruSil") {
       const { id } = body;
       globalStorage.__odevSorulari = globalStorage.__odevSorulari.filter((s: SoruItem) => s.id !== id);
       return NextResponse.json({ success: true, data: globalStorage.__odevSorulari });
     }
 
-    // 3. Soruları Sıfırlama (Varsayılana dön)
-    if (action === "sorulariSifirla") {
-      globalStorage.__odevSorulari = [...VARSAYILAN_SORULAR];
-      return NextResponse.json({ success: true, data: globalStorage.__odevSorulari });
-    }
-
-    // 4. Haftayı Arşivle / Yeni Hafta Başlat
+    // HAFTAYI ARŞİVLE
     if (action === "haftayiArsivle") {
       if (globalStorage.__aktifOdevler.length > 0) {
         globalStorage.__arsivlenmisOdevler.push({
@@ -131,19 +164,17 @@ export async function POST(request: Request) {
         });
         globalStorage.__aktifOdevler = [];
       }
-      return NextResponse.json({ success: true, message: "Hafta arşivlendi, yeni hafta başladı!" });
+      return NextResponse.json({ success: true, message: "Hafta arşivlendi!" });
     }
 
-    // 5. Öğrenci Ödev Teslimi (Varsayılan POST)
-    const { ogrenciAdi, toplamSoru, dogruSayisi, toplamHata, gecenSureSaniye, soruDetaylari } = body;
-
-    if (!ogrenciAdi || ogrenciAdi.trim() === "") {
-      return NextResponse.json({ success: false, message: "Öğrenci adı gerekli" }, { status: 400 });
-    }
+    // ÖDEV TESLİMİ
+    const { ogrenciAdi, sinifGrup, avatar, toplamSoru, dogruSayisi, toplamHata, gecenSureSaniye, soruDetaylari } = body;
 
     const yeniTeslim: OdevKaydi = {
       id: Date.now().toString(),
-      ogrenciAdi: ogrenciAdi.trim(),
+      ogrenciAdi: (ogrenciAdi || "İsimsiz").trim(),
+      sinifGrup: sinifGrup || "Genel",
+      avatar: avatar || "🦁",
       toplamSoru: toplamSoru || 0,
       dogruSayisi: dogruSayisi || 0,
       toplamHata: toplamHata || 0,
