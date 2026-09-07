@@ -8,6 +8,7 @@ interface Soru {
   kategori: string;
   soruMetni: string;
   ipucu: string;
+  tahtaTipi?: "baslangic" | "kaleYolu" | "filCapraz" | "atL" | "sahAdim" | "piyonIleri" | "matVurusu";
   secenekler: { id: string; metin: string; dogru: boolean }[];
 }
 
@@ -17,6 +18,7 @@ const SEVIYE_TESTI_SORULARI: Soru[] = [
     kategori: "1. Taş Tanıma",
     soruMetni: "1. Aşağıdaki taşların adları ile şekilleri eşleştirildiğinde, 'At' taşı tahtada hangi özgün hareketiyle bilinir?",
     ipucu: "L harfi şeklinde zıplar ve diğer taşların üzerinden atlayabilir.",
+    tahtaTipi: "atL",
     secenekler: [
       { id: "a", metin: "Sadece düz hatlarda birer kare ilerler", dogru: false },
       { id: "b", metin: "L harfi şeklinde zıplayarak ilerler ve taşların üzerinden atlar", dogru: true },
@@ -25,108 +27,190 @@ const SEVIYE_TESTI_SORULARI: Soru[] = [
   },
   {
     id: 2,
-    kategori: "2. Atın Hamleleri",
-    soruMetni: "2. Atın bulunduğu kareden gidebileceği kareler işaretlendiğinde, atın rotası hangi geometrik şekli oluşturur?",
-    ipucu: "İki adım düz, bir adım yana doğru çizilen harftir.",
+    kategori: "2. Başlangıç Konumu",
+    soruMetni: "2. Beyaz taşlarla oynayacak olan bir oyuncunun, taşlarını doğru yerleştirmiş olması için Vezir hangi karede yer almalıdır?",
+    ipucu: "Vezir kendi rengindeki kareyi sever (Beyaz vezir beyaz karede).",
+    tahtaTipi: "baslangic",
     secenekler: [
-      { id: "a", metin: "L harfi", dogru: true },
-      { id: "b", metin: "X harfi", dogru: false },
-      { id: "c", metin: "Daire", dogru: false },
+      { id: "a", metin: "Kendi rengindeki karede (d1 karesi)", dogru: true },
+      { id: "b", metin: "Köşede (a1 karesi)", dogru: false },
+      { id: "c", metin: "Şahın yanında herhangi bir karede", dogru: false },
     ],
   },
   {
     id: 3,
-    kategori: "3. Şah Çekme",
-    soruMetni: "3. Beyazın şah çekme hamlesi incelendiğinde, şah çekmek ne anlama gelir?",
-    ipucu: "Rakip şahın doğrudan tehdit altında olması durumudur.",
+    kategori: "3. Taş Değerleri",
+    soruMetni: "3. Satranç tahtasında normal taşlar içinde en yüksek puan değerine sahip olan taş hangisidir?",
+    ipucu: "9 puan değerindeki süper taştır.",
+    tahtaTipi: "baslangic",
     secenekler: [
-      { id: "a", metin: "Rakip şahın doğrudan saldırı ve tehdit altında bırakılması", dogru: true },
-      { id: "b", metin: "Oyunun berabere bitmesi", dogru: false },
-      { id: "c", metin: "Rok yapılması", dogru: false },
+      { id: "a", metin: "Kale (5 Puan)", dogru: false },
+      { id: "b", metin: "Vezir (9 Puan)", dogru: true },
+      { id: "c", metin: "At (3 Puan)", dogru: false },
     ],
   },
   {
     id: 4,
-    kategori: "4. Vezir Hamleleri",
-    soruMetni: "4. Vezirin hamleleri diyagram üzerinde incelendiğinde, vezir hangi yönlerde hareket edebilir?",
-    ipucu: "Hem kale gibi düz hem fil gibi çapraz gidebilir.",
+    kategori: "4. Geçerken Alma",
+    soruMetni: "4. Siyah piyonunu iki kare ilerletirse, beyaz 'Geçerken Alma' (En Passant) kuralına göre bu piyonu nasıl alabilir?",
+    ipucu: "Piyon sanki bir kare çıkmış gibi çaprazından vurarak alır.",
+    tahtaTipi: "piyonIleri",
     secenekler: [
-      { id: "a", metin: "Sadece düz (yatay ve dikey)", dogru: false },
-      { id: "b", metin: "Sadece çapraz", dogru: false },
-      { id: "c", metin: "Hem düz hem de çapraz (her yöne)", dogru: true },
+      { id: "a", metin: "Çapraz arkasındaki kareye inerek alır", dogru: true },
+      { id: "b", metin: "Önünden düz bir hamleyle alır", dogru: false },
+      { id: "c", metin: "Geçerken alma kuralı sadece kaleler içindir", dogru: false },
     ],
   },
   {
     id: 5,
-    kategori: "5. Geçerken Alma",
-    soruMetni: "5. Siyah piyonunu iki kare ilerletirse, beyaz 'Geçerken Alma' (En Passant) kuralına göre bu piyonu nasıl alabilir?",
-    ipucu: "Piyon sanki tek kare çıkmış gibi çapraz arkasından vurur.",
+    kategori: "5. Taktik Motifler",
+    soruMetni: "5. Aynı anda iki veya daha fazla taşı birden tehdit etme hamlesine ne ad verilir?",
+    ipucu: "Genellikle at veya vezir tarafından yapılır.",
+    tahtaTipi: "atL",
     secenekler: [
-      { id: "a", metin: "Piyon bir kare çıkmış gibi çaprazdan vurarak alır", dogru: true },
-      { id: "b", metin: "Önünden düz bir hamleyle alır", dogru: false },
-      { id: "c", metin: "Geçerken alma sadece kalelere uygulanır", dogru: false },
+      { id: "a", metin: "Çatal hamlesi", dogru: true },
+      { id: "b", metin: "Rok hamlesi", dogru: false },
+      { id: "c", metin: "Pat durumu", dogru: false },
     ],
   },
   {
     id: 6,
-    kategori: "6. Mat Hamleleri",
-    soruMetni: "6. Siyah oyuncunun mat hamlesi bulmacasında, mat pozisyonunun temel özelliği nedir?",
-    ipucu: "Şahın hiçbir kaçış ve kurtulma yolunun kalmamasıdır.",
+    kategori: "6. Çifte Şah",
+    soruMetni: "6. Aynı anda iki taşla birden şah çekilmesi durumuna ne ad verilir?",
+    ipucu: "Kurtulması en zor şah çekiş türüdür.",
+    tahtaTipi: "sahAdim",
     secenekler: [
-      { id: "a", metin: "Şahın tehdit altında olması ve hiçbir kurtuluş yolunun bulunmaması", dogru: true },
-      { id: "b", metin: "Piyonun terfi etmesi", dogru: false },
-      { id: "c", metin: "Oyunun berabere ilan edilmesi", dogru: false },
+      { id: "a", metin: "Çifte şah", dogru: true },
+      { id: "b", metin: "Açmaz", dogru: false },
+      { id: "c", metin: "Şiş", dogru: false },
     ],
   },
   {
     id: 7,
-    kategori: "7. Mat Hamleleri",
-    soruMetni: "7. Beyaz oyuncunun mat hamlesi incelendiğinde, arka sıra (koridor) matı hangi taşla sıklıkla yapılır?",
-    ipucu: "Kale veya vezir son yataya inerek şahı sıkıştırır.",
+    kategori: "7. Pat Durumu",
+    soruMetni: "7. Şah tehdit altında değilken oynayacak yasal hamlesi kalmayan tarafın durumu nedir?",
+    ipucu: "Maç berabere biter.",
+    tahtaTipi: "baslangic",
     secenekler: [
-      { id: "a", metin: "Kale veya Vezir", dogru: true },
-      { id: "b", metin: "At", dogru: false },
-      { id: "c", metin: "Piyon", dogru: false },
+      { id: "a", metin: "Pat", dogru: true },
+      { id: "b", metin: "Mat", dogru: false },
+      { id: "c", metin: "Terfi", dogru: false },
     ],
   },
   {
     id: 8,
-    kategori: "8. Koordinat Sistemi",
-    soruMetni: "8. Aşağıdaki diyagramda işaretli karelerin adları (koordinatları) okunurken hangi sıra takip edilir?",
-    ipucu: "Önce dikey harf (dosya), sonra yatay sayı (yatay sıra).",
+    kategori: "8. Açılışlar",
+    soruMetni: "8. 1.e4 e5 2.Nf3 Nc6 3.Bb5 hamleleriyle başlayan dünyaca ünlü klasik açılış hangisidir?",
+    ipucu: "İspanyol kökenli bir açılıştır.",
+    tahtaTipi: "baslangic",
     secenekler: [
-      { id: "a", metin: "Önce harf, sonra sayı (Örn: e4)", dogru: true },
-      { id: "b", metin: "Önce sayı, sonra harf (Örn: 4e)", dogru: false },
-      { id: "c", metin: "Sadece sayılar okunur", dogru: false },
+      { id: "a", metin: "İspanyol Açılışı (Ruy Lopez)", dogru: true },
+      { id: "b", metin: "Vezir Gambiti", dogru: false },
+      { id: "c", metin: "Sicilya Savunması", dogru: false },
     ],
   },
   {
     id: 9,
-    kategori: "9. Taş Güçleri",
-    soruMetni: "9. Taşların güçleri puan olarak yazıldığında, en değerli taş ile piyon arasındaki puan oranı nedir?",
-    ipucu: "Vezir 9 puan, piyon 1 puandır.",
+    kategori: "9. Kale Hamleleri",
+    soruMetni: "9. Kale tahtada hangi yönde hareket eder ve önü kapalıysa ne yapar?",
+    ipucu: "Artı (+) biçiminde düz caddelerde kayar.",
+    tahtaTipi: "kaleYolu",
     secenekler: [
-      { id: "a", metin: "Vezir 9 puan, Piyon 1 puandır", dogru: true },
-      { id: "b", metin: "İkisi de eşittir", dogru: false },
-      { id: "c", metin: "Kale 9 puandır", dogru: false },
+      { id: "a", metin: "Artı şeklinde düz gider, önü kapalıysa durur", dogru: true },
+      { id: "b", metin: "Sadece çapraz gider", dogru: false },
+      { id: "c", metin: "Taşların üzerinden atlar", dogru: false },
     ],
   },
   {
     id: 10,
-    kategori: "10. Başlangıç Konumu",
-    soruMetni: "10. Beyaz taşlarla oynayacak bir oyuncunun Şah, Vezir ve Kaleleri doğru yerleştirmesi için Vezir hangi kareye konmalıdır?",
-    ipucu: "Beyaz vezir d1 karesine, kendi rengine konur.",
+    kategori: "10. Fil Hamleleri",
+    soruMetni: "10. Fil tahtada hangi yönde hareket eder ve oyun boyunca rengini değiştirir mi?",
+    ipucu: "Çarpı (X) şeklinde çapraz gider, rengini asla değiştirmez.",
+    tahtaTipi: "filCapraz",
     secenekler: [
-      { id: "a", metin: "d1 karesi (Kendi renginde)", dogru: true },
-      { id: "b", metin: "e1 karesi", dogru: false },
-      { id: "c", metin: "a1 karesi", dogru: false },
+      { id: "a", metin: "Çapraz gider, başladığı rengi asla değiştirmez", dogru: true },
+      { id: "b", metin: "Düz gider ve renk değiştirir", dogru: false },
+      { id: "c", metin: "Her yöne birer adım atar", dogru: false },
     ],
   },
   {
     id: 11,
-    kategori: "11. Merkez Kareler",
-    soruMetni: "11. Satranç tahtasının tam merkezinde yer alan 4 kritik kare hangileridir?",
-    ipucu: "d4, d5, e4, e5 kareleri tahtanın kalbidir.",
+    kategori: "11. Vezir Hamleleri",
+    soruMetni: "11. Vezir tahtada hangi yönlere gidebilir?",
+    ipucu: "Hem kale gibi düz hem fil gibi çapraz.",
+    tahtaTipi: "baslangic",
+    secenekler: [
+      { id: "a", metin: "Hem düz hem de çapraz (her yöne)", dogru: true },
+      { id: "b", metin: "Sadece düz hatlarda", dogru: false },
+      { id: "c", metin: "Sadece L harfiyle", dogru: false },
+    ],
+  },
+  {
+    id: 12,
+    kategori: "12. Şah Hamleleri",
+    soruMetni: "12. Şah tahtada kaç kare ilerleyebilir?",
+    ipucu: "Her yöne sadece 1 adım.",
+    tahtaTipi: "sahAdim",
+    secenekler: [
+      { id: "a", metin: "Her yöne sadece 1 adım", dogru: true },
+      { id: "b", metin: "İstediği kadar uzağa", dogru: false },
+      { id: "c", metin: "Sadece iki kare", dogru: false },
+    ],
+  },
+  {
+    id: 13,
+    kategori: "13. Piyon Hamleleri",
+    soruMetni: "13. Piyon düz yürürken rakip taşı nasıl alır?",
+    ipucu: "Düz yürür, çapraz yer.",
+    tahtaTipi: "piyonIleri",
+    secenekler: [
+      { id: "a", metin: "Çapraz yönde", dogru: true },
+      { id: "b", metin: "Düz öne doğru", dogru: false },
+      { id: "c", metin: "Geriye doğru", dogru: false },
+    ],
+  },
+  {
+    id: 14,
+    kategori: "14. Terfi Kuralları",
+    soruMetni: "14. Karşı en son sıraya ulaşan piyon neye dönüşebilir?",
+    ipucu: "Vezir, kale, fil veya ata dönüşebilir.",
+    tahtaTipi: "baslangic",
+    secenekler: [
+      { id: "a", metin: "Vezir, Kale, Fil veya At'a dönüşebilir", dogru: true },
+      { id: "b", metin: "Sadece şah olabilir", dogru: false },
+      { id: "c", metin: "Oyundan çıkarılır", dogru: false },
+    ],
+  },
+  {
+    id: 15,
+    kategori: "15. Mat Bulmacası",
+    soruMetni: "15. Şah tehdit altındayken kaçamıyor, tehdit eden alınamıyor ve araya taş konamıyorsa bu nedir?",
+    ipucu: "Oyunun bittiği zafer anı.",
+    tahtaTipi: "matVurusu",
+    secenekler: [
+      { id: "a", metin: "Şah ve Mat", dogru: true },
+      { id: "b", metin: "Pat", dogru: false },
+      { id: "c", metin: "Rok", dogru: false },
+    ],
+  },
+  {
+    id: 16,
+    kategori: "16. Koordinat Okuma",
+    soruMetni: "16. Satranç tahtasında koordinatlar okunurken önce ne yazılır?",
+    ipucu: "Önce dikey harf, sonra yatay sayı.",
+    tahtaTipi: "baslangic",
+    secenekler: [
+      { id: "a", metin: "Önce dikey harf, sonra yatay sayı (Örn: e4)", dogru: true },
+      { id: "b", metin: "Önce sayı, sonra harf", dogru: false },
+      { id: "c", metin: "Sadece sayılar", dogru: false },
+    ],
+  },
+  {
+    id: 17,
+    kategori: "17. Merkez Kareler",
+    soruMetni: "17. Tahtanın kalbi olan 4 merkez kare hangileridir?",
+    ipucu: "d4, d5, e4, e5 kareleri.",
+    tahtaTipi: "baslangic",
     secenekler: [
       { id: "a", metin: "d4, d5, e4, e5", dogru: true },
       { id: "b", metin: "a1, a8, h1, h8", dogru: false },
@@ -134,160 +218,201 @@ const SEVIYE_TESTI_SORULARI: Soru[] = [
     ],
   },
   {
-    id: 12,
-    kategori: "12. Şiş Hamlesi",
-    soruMetni: "12. Şiş hamlesi (Skewer) taktiğinde, değerli bir taşa (örneğin şah veya vezir) saldırılarak kaçırtılır ve arkasındaki daha az değerli taş kazanılır. Bu hamleyi en iyi hangi taşlar yapar?",
-    ipucu: "Uzun menzilli taşlar (Vezir, Kale, Fil).",
-    secenekler: [
-      { id: "a", metin: "Vezir, Kale ve Fil", dogru: true },
-      { id: "b", metin: "Sadece Piyon", dogru: false },
-      { id: "c", metin: "Sadece At", dogru: false },
-    ],
-  },
-  {
-    id: 13,
-    kategori: "13. Çatal Hamlesi",
-    soruMetni: "13. Çatal hamlesi yaparken aynı anda iki taşı birden tehdit eden en ünlü taş hangisidir?",
-    ipucu: "At çatalları çok tehlikelidir.",
-    secenekler: [
-      { id: "a", metin: "At", dogru: true },
-      { id: "b", metin: "Şah", dogru: false },
-      { id: "c", metin: "Kale", dogru: false },
-    ],
-  },
-  {
-    id: 14,
-    kategori: "14. Cebirsel Notasyon",
-    soruMetni: "14. '1.Ve4+' hamle yazılışı neyi ifade eder?",
-    ipucu: "Vezir e4 karesine gelir ve şah çeker (+).",
-    secenekler: [
-      { id: "a", metin: "Vezirin e4 karesine giderek şah çekmesi", dogru: true },
-      { id: "b", metin: "Vezirin oyundan çıkması", dogru: false },
-      { id: "c", metin: "Rok yapılması", dogru: false },
-    ],
-  },
-  {
-    id: 15,
-    kategori: "15. Çifte Şah",
-    soruMetni: "15. Çifte şah çekme konumunda şhattan nasıl kurtulunabilir?",
-    ipucu: "İki taşa birden perde çekilemeyeceği için şah mutlaka kaçmalıdır.",
-    secenekler: [
-      { id: "a", metin: "Şah mutlaka kaçmak zorundadır (Perdeleme veya alma yapılamaz)", dogru: true },
-      { id: "b", metin: "Araya taş konarak perde yapılır", dogru: false },
-      { id: "c", saldiran: "Saldıran taşlar alınır", dogru: false } as any,
-    ],
-  },
-  {
-    id: 16,
-    kategori: "16. Rok Kuralları",
-    soruMetni: "16. Uzun rok (Vezir kanadı roku) hangi taraftaki kale ile yapılır ve aradaki boşluk kaç karedir?",
-    ipucu: "Vezir tarafındaki kale ile yapılır, şah ile kale arasında 3 boş kare vardır.",
-    secenekler: [
-      { id: "a", metin: "Vezir kanadı kalesiyle, 3 boş kare varken", dogru: true },
-      { id: "b", metin: "Şah kanadı kalesiyle, 2 boş kare varken", dogru: false },
-      { id: "c", metin: "Herhangi bir kale ile", dogru: false },
-    ],
-  },
-  {
-    id: 17,
-    kategori: "17. Piyon Terfisi",
-    soruMetni: "17. Son sıraya ulaşan piyonun en akıllıca tercihi genellikle ne olmalıdır?",
-    ipucu: "Tahtanın en güçlü taşına dönüşmek.",
-    secenekler: [
-      { id: "a", metin: "Vezire terfi etmek", dogru: true },
-      { id: "b", metin: "Piyon olarak kalmak", dogru: false },
-      { id: "c", metin: "Oyundan çıkmak", dogru: false },
-    ],
-  },
-  {
     id: 18,
-    kategori: "18. Pat Durumu",
-    soruMetni: "18. Pat (Beraberlik) ile Mat arasındaki en temel fark nedir?",
-    ipucu: "Pat durumunda şah tehdit altında değildir.",
+    kategori: "18. Şiş Taktikleri",
+    soruMetni: "18. Değerli bir taşa saldırıp arkasındaki taşı kazanma taktiğine ne denir?",
+    ipucu: "Skewer olarak da bilinir.",
     secenekler: [
-      { id: "a", metin: "Pat durumunda şah saldırı altında değildir ve hamlesi kalmamıştır", dogru: true },
-      { id: "b", metin: "Pat olunca oyun siyahın galibiyetiyle biter", dogru: false },
-      { id: "c", metin: "Pat ile mat tamamen aynı şeydir", dogru: false },
+      { id: "a", metin: "Şiş hamlesi", dogru: true },
+      { id: "b", metin: "Çatal", dogru: false },
+      { id: "c", metin: "Rok", dogru: false },
     ],
   },
   {
     id: 19,
-    kategori: "19. Hesaplama ve Mat",
-    soruMetni: "19. İki hamlede mat bulmacalarında oyuncu neyi hesaplamalıdır?",
-    ipucu: "Kendi hamlesi, rakibin zorunlu cevabı ve ikinci hamlede mat.",
+    kategori: "19. Notasyon",
+    soruMetni: "19. '1.Ve4+' ne anlama gelir?",
+    ipucu: "Vezir e4'e gider ve şah çeker.",
+    tahtaTipi: "baslangic",
     secenekler: [
-      { id: "a", metin: "Kendi hamlesi ve rakibin olası zorunlu yanıtına karşılık mat hamlesini", dogru: true },
-      { id: "b", metin: "Sadece rastgele hamleleri", dogru: false },
-      { id: "c", metin: "Taşları tahtadan kaldırmayı", dogru: false },
+      { id: "a", metin: "Vezir e4 karesine gider ve şah çeker", dogru: true },
+      { id: "b", metin: "Vezir oyundan çıkar", dogru: false },
+      { id: "c", metin: "Rok yapılır", dogru: false },
     ],
   },
   {
     id: 20,
-    kategori: "20. Açılışlar",
-    soruMetni: "20. İspanyol Açılışı (Ruy Lopez) hangi hamlelerle başlar?",
-    ipucu: "1.e4 e5 2.Nf3 Nc6 3.Bb5",
+    kategori: "20. Rok Kuralları",
+    soruMetni: "20. Rok yaparken önce hangi taşa dokunulmalıdır?",
+    ipucu: "Rok şah hamlesidir.",
+    tahtaTipi: "baslangic",
     secenekler: [
-      { id: "a", metin: "1.e4 e5 2.Nf3 Nc6 3.Bb5", dogru: true },
-      { id: "b", metin: "1.d4 d5 2.c4", dogru: false },
-      { id: "c", metin: "1.c4 e5", dogru: false },
+      { id: "a", metin: "Önce Şaha dokunulur", dogru: true },
+      { id: "b", metin: "Önce Kaleye dokunulur", dogru: false },
+      { id: "c", metin: "İkisine aynı anda", dogru: false },
     ],
   },
   {
     id: 21,
     kategori: "21. Taş Değişimi",
-    soruMetni: "21. Eşit taş değişimi (Örn: 3 puanlık atı 3 puanlık fille almak) ne olarak değerlendirilir?",
-    ipucu: "Madeni paraların değerinin eşit olması gibi.",
+    soruMetni: "21. Aynı puan değerindeki taşların karşılıklı değişimine ne denir?",
+    ipucu: "Adil ve eşit değişim.",
+    tahtaTipi: "baslangic",
     secenekler: [
-      { id: "a", metin: "Eşit ve adil taş değişimi", dogru: true },
-      { id: "b", metin: "Büyük hata", dogru: false },
-      { id: "c", metin: "Mat hamlesi", dogru: false },
+      { id: "a", metin: "Eşit taş değişimi", dogru: true },
+      { id: "b", metin: "Kötü alış", dogru: false },
+      { id: "c", metin: "Mat", dogru: false },
     ],
   },
   {
     id: 22,
     kategori: "22. Açmaz Taktikleri",
-    soruMetni: "22. Açmazda (Pin) kalan bir taş oynatılamaz veya oynatıldığında arkasındaki daha değerli taş (şah veya vezir) tehlikeye girer. Açmazdan yararlanmak için ne yapılır?",
-    ipucu: "Açmazdaki taşa baskı artırılır.",
+    soruMetni: "22. Arkasındaki değerli taşı korumak zorunda olduğu için oynatılamayan taşa ne denir?",
+    ipucu: "Pin durumu.",
     secenekler: [
-      { id: "a", metin: "Açmazdaki taşa ek baskı yapılarak taş kazanılmaya çalışılır", dogru: true },
-      { id: "b", metin: "Taş görmezden gelinir", dogru: false },
-      { id: "c", metin: "Oyun berabere bitirilir", dogru: false },
+      { id: "a", metin: "Açmazda kalan taş", dogru: true },
+      { id: "b", metin: "Serbest taş", dogru: false },
+      { id: "c", metin: "Korunmasız taş", dogru: false },
     ],
   },
   {
     id: 23,
     kategori: "23. Geçer Piyon",
-    soruMetni: "23. Önünde rakip piyon bulunmayan ve terfi etmesine rakip piyonların engel olamayacağı piyonlara ne denir?",
-    ipucu: "Karşısında durabilen kimse olmayan ilerlemiş piyon.",
+    soruMetni: "23. Önünde rakip piyon engeli kalmayan ilerlemiş piyonun adı nedir?",
+    ipucu: "Zirveye koşan piyon.",
+    tahtaTipi: "piyonIleri",
     secenekler: [
       { id: "a", metin: "Geçer piyon", dogru: true },
-      { id: "b", metin: "Korumasız piyon", dogru: false },
-      { id: "c", metin: "Zayıf piyon", dogru: false },
+      { id: "b", metin: "Zayıf piyon", dogru: false },
+      { id: "c", metin: "Geri kalmış piyon", dogru: false },
     ],
   },
   {
     id: 24,
     kategori: "24. Kare Kuralı",
-    soruMetni: "24. Oyun sonlarında piyonun vezir olup olamayacağını hesaplamakta kullanılan kuralın adı nedir?",
-    ipucu: "Köşegen bir geometri alanı çizilerek hesaplanır.",
+    soruMetni: "24. Piyonun vezir olup olamayacağını hesaplamak için kullanılan yöntemin adı nedir?",
+    ipucu: "Köşegen kare alanı.",
     secenekler: [
-      { id: "a", metin: "Kare Kuralı (Square Rule)", dogru: true },
+      { id: "a", metin: "Kare Kuralı", dogru: true },
       { id: "b", metin: "Üçgen Kuralı", dogru: false },
-      { id: "c", metin: "50 Hamle Kuralı", dogru: false },
+      { id: "c", metin: "Çember Kuralı", dogru: false },
     ],
   },
   {
     id: 25,
     kategori: "25. Yetersiz Güç",
-    soruMetni: "25. Aşağıdaki son oyun konumlarından hangisinde mat yapmak OLANAKSIZDIR (Yetersiz Güç)?",
-    ipucu: "Sadece Şah ile tek At veya tek Fil mat edemez.",
+    soruMetni: "25. Tahtada sadece iki şah ve tek at kalırsa oyunun sonucu ne olur?",
+    ipucu: "Mat yapmak olanaksızdır.",
+    tahtaTipi: "baslangic",
     secenekler: [
-      { id: "a", metin: "Tek Şah ve Tek At (veya Tek Fil) kalması", dogru: true },
-      { id: "b", metin: "Şah ve Vezir kalması", dogru: false },
-      { id: "c", metin: "Şah ve Kale kalması", dogru: false },
+      { id: "a", metin: "Yetersiz güç nedeniyle berabere biter", dogru: true },
+      { id: "b", metin: "At olan taraf kazanır", dogru: false },
+      { id: "c", metin: "Şah olan kazanır", dogru: false },
     ],
   },
 ];
+
+function SatrançTahtasiGorseli({ tip }: { tip: string }) {
+  return (
+    <div
+      style={{
+        width: "100%",
+        maxWidth: "220px",
+        margin: "10px auto",
+        backgroundColor: "#292524",
+        padding: "6px",
+        borderRadius: "12px",
+        boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+      }}
+    >
+      <svg viewBox="0 0 200 200" style={{ width: "100%", height: "auto", borderRadius: "6px" }}>
+        {Array.from({ length: 8 }).map((_, row) =>
+          Array.from({ length: 8 }).map((_, col) => {
+            const isWhite = (row + col) % 2 === 0;
+            return (
+              <rect
+                key={`${row}-${col}`}
+                x={col * 25}
+                y={row * 25}
+                width={25}
+                height={25}
+                fill={isWhite ? "#fef08a" : "#ca8a04"}
+              />
+            );
+          })
+        )}
+
+        {tip === "baslangic" && (
+          <>
+            <text x="12" y="145" fontSize="16" textAnchor="middle">♖</text>
+            <text x="100" y="105" fontSize="18" textAnchor="middle" fill="#dc2626">♔</text>
+            <rect x="175" y="175" width="25" height="25" fill="#22c55e" opacity="0.7" />
+            <text x="187" y="192" fontSize="12" textAnchor="middle" fill="#ffffff">✔</text>
+          </>
+        )}
+
+        {tip === "kaleYolu" && (
+          <>
+            <text x="100" y="105" fontSize="18" textAnchor="middle">♜</text>
+            <line x1="100" y1="100" x2="100" y2="25" stroke="#ef4444" strokeWidth="4" strokeDasharray="4" />
+            <line x1="100" y1="100" x2="100" y2="175" stroke="#ef4444" strokeWidth="4" strokeDasharray="4" />
+            <line x1="100" y1="100" x2="25" y2="100" stroke="#ef4444" strokeWidth="4" strokeDasharray="4" />
+            <line x1="100" y1="100" x2="175" y2="100" stroke="#ef4444" strokeWidth="4" strokeDasharray="4" />
+          </>
+        )}
+
+        {tip === "filCapraz" && (
+          <>
+            <text x="100" y="105" fontSize="18" textAnchor="middle">♝</text>
+            <line x1="100" y1="100" x2="25" y2="25" stroke="#3b82f6" strokeWidth="4" strokeDasharray="4" />
+            <line x1="100" y1="100" x2="175" y2="175" stroke="#3b82f6" strokeWidth="4" strokeDasharray="4" />
+            <line x1="100" y1="100" x2="25" y2="175" stroke="#3b82f6" strokeWidth="4" strokeDasharray="4" />
+            <line x1="100" y1="100" x2="175" y2="25" stroke="#3b82f6" strokeWidth="4" strokeDasharray="4" />
+          </>
+        )}
+
+        {tip === "atL" && (
+          <>
+            <text x="100" y="105" fontSize="18" textAnchor="middle">♞</text>
+            <path d="M 100 100 L 100 50 L 125 50" stroke="#a855f7" strokeWidth="4" fill="none" />
+            <circle cx="125" cy="50" r="6" fill="#22c55e" />
+          </>
+        )}
+
+        {tip === "sahAdim" && (
+          <>
+            <text x="100" y="105" fontSize="18" textAnchor="middle">♚</text>
+            <circle cx="100" cy="80" r="4" fill="#ef4444" />
+            <circle cx="120" cy="80" r="4" fill="#ef4444" />
+            <circle cx="120" cy="100" r="4" fill="#ef4444" />
+            <circle cx="100" cy="120" r="4" fill="#ef4444" />
+            <circle cx="80" cy="120" r="4" fill="#ef4444" />
+            <circle cx="80" cy="100" r="4" fill="#ef4444" />
+          </>
+        )}
+
+        {tip === "piyonIleri" && (
+          <>
+            <text x="100" y="125" fontSize="18" textAnchor="middle">♟️</text>
+            <line x1="100" y1="110" x2="100" y2="60" stroke="#eab308" strokeWidth="4" />
+            <polygon points="100,50 95,65 105,65" fill="#eab308" />
+          </>
+        )}
+
+        {tip === "matVurusu" && (
+          <>
+            <text x="100" y="105" fontSize="18" textAnchor="middle">👑</text>
+            <text x="100" y="55" fontSize="16" textAnchor="middle" fill="#ef4444">💥</text>
+            <rect x="87" y="37" width="25" height="25" fill="none" stroke="#ef4444" strokeWidth="3" />
+          </>
+        )}
+      </svg>
+    </div>
+  );
+}
 
 export default function SeviyeTespitPage() {
   const [aktifSoruIndex, setAktifSoruIndex] = useState(0);
@@ -334,7 +459,7 @@ export default function SeviyeTespitPage() {
   return (
     <div
       style={{
-        maxWidth: "800px",
+        maxWidth: "840px",
         width: "100%",
         backgroundColor: "#ffffff",
         padding: "24px",
@@ -350,7 +475,7 @@ export default function SeviyeTespitPage() {
           Satranç Seviye Tespit Sınavı
         </h1>
         <p style={{ fontSize: "13px", color: "#64748b", margin: 0 }}>
-          Çoklu Zeka & Satranç Değerlendirme Envanteri (25 Soru)
+          Çoklu Zeka & Satranç Değerlendirme Envanteri (25 Soru & Görsel Diyagramlar)
         </p>
       </div>
 
@@ -371,40 +496,60 @@ export default function SeviyeTespitPage() {
             />
           </div>
 
-          <div style={{ backgroundColor: "#ecfdf5", padding: "18px", borderRadius: "16px", border: "2px solid #a7f3d0", marginBottom: "16px" }}>
-            <div style={{ fontSize: "12px", fontWeight: "bold", color: "#047857", marginBottom: "6px" }}>
-              💡 İpucu: {soru.ipucu}
-            </div>
-            <h2 style={{ fontSize: "16px", fontWeight: "900", color: "#064e3b", margin: "0 0 14px 0" }}>
-              {soru.soruMetni}
-            </h2>
+          <div
+            style={{
+              backgroundColor: "#ecfdf5",
+              padding: "18px",
+              borderRadius: "16px",
+              border: "2px solid #a7f3d0",
+              marginBottom: "16px",
+              display: "grid",
+              gridTemplateColumns: soru.tahtaTipi ? "1fr auto" : "1fr",
+              gap: "16px",
+              alignItems: "center",
+            }}
+          >
+            <div>
+              <div style={{ fontSize: "12px", fontWeight: "bold", color: "#047857", marginBottom: "6px" }}>
+                💡 İpucu: {soru.ipucu}
+              </div>
+              <h2 style={{ fontSize: "16px", fontWeight: "900", color: "#064e3b", margin: "0 0 14px 0" }}>
+                {soru.soruMetni}
+              </h2>
 
-            <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
-              {soru.secenekler.map((secenek) => {
-                const secili = secilenCevaplar[soru.id] === secenek.id;
-                return (
-                  <button
-                    key={secenek.id}
-                    type="button"
-                    onClick={() => handleCevapSec(secenek.id)}
-                    style={{
-                      textAlign: "left",
-                      padding: "12px 14px",
-                      borderRadius: "12px",
-                      border: secili ? "2px solid #059669" : "1px solid #cbd5e1",
-                      backgroundColor: secili ? "#d1fae5" : "#ffffff",
-                      color: "#1e293b",
-                      fontSize: "13px",
-                      fontWeight: "bold",
-                      cursor: "pointer",
-                      transition: "all 0.15s ease",
-                    }}
-                  >
-                    {secenek.id.toUpperCase()}) {secenek.metin}
-                  </button>
-                );
-              })}
+              <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+                {soru.secenekler.map((secenek) => {
+                  const secili = secilenCevaplar[soru.id] === secenek.id;
+                  return (
+                    <button
+                      key={secenek.id}
+                      type="button"
+                      onClick={() => handleCevapSec(secenek.id)}
+                      style={{
+                        textAlign: "left",
+                        padding: "12px 14px",
+                        borderRadius: "12px",
+                        border: secili ? "2px solid #059669" : "1px solid #cbd5e1",
+                        backgroundColor: secili ? "#d1fae5" : "#ffffff",
+                        color: "#1e293b",
+                        fontSize: "13px",
+                        fontWeight: "bold",
+                        cursor: "pointer",
+                        transition: "all 0.15s ease",
+                      }}
+                    >
+                      {secenek.id.toUpperCase()}) {secenek.metin}
+                    </button>
+                  );
+                })}
+              </div>
             </div>
+
+            {soru.tahtaTipi && (
+              <div>
+                <SatrançTahtasiGorseli tip={soru.tahtaTipi} />
+              </div>
+            )}
           </div>
 
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
