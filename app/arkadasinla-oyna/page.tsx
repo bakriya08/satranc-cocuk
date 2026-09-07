@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Chess } from "chess.js";
 
 const PIECE_IMAGES: Record<string, string> = {
@@ -34,20 +34,38 @@ const PIECE_VALUES: Record<string, number> = {
   k: 100,
 };
 
+const PRESET_OPTIONS = [
+  { label: "Süresiz ♾️", seconds: 0 },
+  { label: "3 Dk ⚡", seconds: 180 },
+  { label: "5 Dk ⭐", seconds: 300 },
+  { label: "10 Dk ⏳", seconds: 600 },
+];
+
 export default function ArkadasinlaOynaPage() {
   const [game, setGame] = useState(new Chess());
   const [selectedSquare, setSelectedSquare] = useState<string | null>(null);
   const [possibleSquares, setPossibleSquares] = useState<string[]>([]);
   const [durumMesaji, setDurumMesaji] = useState("Sıra Beyaz Oyuncuda! (🦁)");
-  const [isFlipped, setIsFlipped] = useState(false); // Tahtayı 180 derece ters çevirme
-  const [autoFlip, setAutoFlip] = useState(false); // Her hamlede otomatik dönsün mü?
+  const [isFlipped, setIsFlipped] = useState(false);
+  const [autoFlip, setAutoFlip] = useState(false);
   const [capturedByWhite, setCapturedByWhite] = useState<string[]>([]);
   const [capturedByBlack, setCapturedByBlack] = useState<string[]>([]);
+
+  // Zaman Sayacı Durumları
+  const [selectedTimeMode, setSelectedTimeMode] = useState<number | "custom">(300);
+  const [whiteTime, setWhiteTime] = useState<number>(300);
+  const [blackTime, setBlackTime] = useState<number>(300);
+  const [isClockRunning, setIsClockRunning] = useState<boolean>(false);
+  const [isPaused, setIsPaused] = useState<boolean>(false);
+
+  // Manuel Ayar Paneli Durumu
+  const [showCustomPanel, setShowCustomPanel] = useState<boolean>(false);
+  const [customWhiteMinutes, setCustomWhiteMinutes] = useState<number>(5);
+  const [customBlackMinutes, setCustomBlackMinutes] = useState<number>(5);
 
   const defaultFiles = ["a", "b", "c", "d", "e", "f", "g", "h"];
   const defaultRanks = ["8", "7", "6", "5", "4", "3", "2", "1"];
 
-  // Tahta ters çevrilmişse sıralamayı tersine alıyoruz
   const files = isFlipped ? [...defaultFiles].reverse() : defaultFiles;
   const ranks = isFlipped ? [...defaultRanks].reverse() : defaultRanks;
 
@@ -61,11 +79,55 @@ export default function ArkadasinlaOynaPage() {
     } catch {}
   }
 
+  // ZAMAN SAYACI DÖNGÜSÜ
+  useEffect(() => {
+    if ((whiteTime === 0 && blackTime === 0) || !isClockRunning || isPaused || game.isGameOver()) {
+      return;
+    }
+
+    const interval = setInterval(() => {
+      if (currentTurn === "w" && whiteTime > 0) {
+        setWhiteTime((prev) => {
+          if (prev <= 1) {
+            clearInterval(interval);
+            sesCal("gameEnd");
+            setDurumMesaji("⏱️ Süre bitti! 🐯 Siyah Oyuncu Kazandı! 🏆");
+            return 0;
+          }
+          return prev - 1;
+        });
+      } else if (currentTurn === "b" && blackTime > 0) {
+        setBlackTime((prev) => {
+          if (prev <= 1) {
+            clearInterval(interval);
+            sesCal("gameEnd");
+            setDurumMesaji("⏱️ Süre bitti! 🦁 Beyaz Oyuncu Kazandı! 🏆");
+            return 0;
+          }
+          return prev - 1;
+        });
+      }
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, [isClockRunning, isPaused, currentTurn, game, whiteTime, blackTime]);
+
+  function formatTime(seconds: number) {
+    if (seconds <= 0) return "00:00";
+    const m = Math.floor(seconds / 60);
+    const s = seconds % 60;
+    return `${m.toString().padStart(2, "0")}:${s.toString().padStart(2, "0")}`;
+  }
+
   const whiteScore = capturedByWhite.reduce((acc, p) => acc + (PIECE_VALUES[p.toLowerCase()] || 0), 0);
   const blackScore = capturedByBlack.reduce((acc, p) => acc + (PIECE_VALUES[p.toLowerCase()] || 0), 0);
 
   function handleSquareClick(square: string) {
     if (game.isGameOver()) return;
+    const hasTimer = whiteTime > 0 || blackTime > 0;
+    if (hasTimer && isClockRunning && ((currentTurn === "w" && whiteTime === 0) || (currentTurn === "b" && blackTime === 0) || isPaused)) {
+      return;
+    }
 
     if (!selectedSquare) {
       const piece = game.get(square as any);
@@ -89,6 +151,10 @@ export default function ArkadasinlaOynaPage() {
       });
 
       if (move) {
+        if (!isClockRunning && (whiteTime > 0 || blackTime > 0)) {
+          setIsClockRunning(true);
+        }
+
         setGame(gameCopy);
         setSelectedSquare(null);
         setPossibleSquares([]);
@@ -121,7 +187,6 @@ export default function ArkadasinlaOynaPage() {
         const sah = gameCopy.inCheck() ? " (ŞAH ÇEKİLDİ! ⚠️)" : "";
         setDurumMesaji(`Sıra ${nextPlayer}'da!${sah}`);
 
-        // Eğer otomatik döndürme açıksa tahtayı çevir
         if (autoFlip) {
           setIsFlipped(gameCopy.turn() === "b");
         }
@@ -160,15 +225,31 @@ export default function ArkadasinlaOynaPage() {
     }
   }
 
-  function oyunuSifirla() {
+  function oyunuSifirla(yeniBeyaz?: number, yeniSiyah?: number) {
+    const w = yeniBeyaz !== undefined ? yeniBeyaz : whiteTime;
+    const b = yeniSiyah !== undefined ? yeniSiyah : blackTime;
     setGame(new Chess());
     setSelectedSquare(null);
     setPossibleSquares([]);
     setCapturedByWhite([]);
     setCapturedByBlack([]);
     setIsFlipped(false);
+    setIsClockRunning(false);
+    setIsPaused(false);
+    setWhiteTime(w);
+    setBlackTime(b);
     setDurumMesaji("Yeni oyun başladı! Sıra Beyaz Oyuncuda (🦁)");
   }
+
+  function manuelSureyiUygula() {
+    const wSeconds = Math.max(1, customWhiteMinutes) * 60;
+    const bSeconds = Math.max(1, customBlackMinutes) * 60;
+    setSelectedTimeMode("custom");
+    setShowCustomPanel(false);
+    oyunuSifirla(wSeconds, bSeconds);
+  }
+
+  const hasTimer = whiteTime > 0 || blackTime > 0;
 
   return (
     <div
@@ -191,44 +272,226 @@ export default function ArkadasinlaOynaPage() {
     >
       <div style={{ textAlign: "center", marginBottom: "8px" }}>
         <h2 style={{ margin: "0 0 2px 0", fontSize: "18px", fontWeight: "900", color: "#1e3a8a" }}>
-          👥 İki Kişilik Arkadaş Modu
+          👥 İki Kişilik Turnuva Modu
         </h2>
         <span style={{ fontSize: "11px", color: "#3b82f6", fontWeight: "bold" }}>
-          Aynı ekranda yan yana veya karşılıklı oynayın!
+          Özel Ayarlanabilir Dijital Satranç Saati ⏱️
         </span>
       </div>
 
-      {/* SİYAH OYUNCU BİLGİ KARTI */}
+      {/* SÜRE SEÇİM BARLARI */}
+      <div
+        style={{
+          display: "flex",
+          gap: "4px",
+          width: "100%",
+          marginBottom: "6px",
+          backgroundColor: "#f0fdf4",
+          padding: "4px",
+          borderRadius: "14px",
+          border: "1px solid #bbf7d0",
+        }}
+      >
+        {PRESET_OPTIONS.map((opt) => {
+          const isSelected = selectedTimeMode === opt.seconds;
+          return (
+            <button
+              key={opt.seconds}
+              type="button"
+              onClick={() => {
+                setSelectedTimeMode(opt.seconds);
+                setShowCustomPanel(false);
+                oyunuSifirla(opt.seconds, opt.seconds);
+              }}
+              style={{
+                flex: 1,
+                padding: "6px 2px",
+                borderRadius: "10px",
+                border: "none",
+                fontSize: "10.5px",
+                fontWeight: "900",
+                cursor: "pointer",
+                backgroundColor: isSelected ? "#10b981" : "transparent",
+                color: isSelected ? "#ffffff" : "#166534",
+                transition: "all 0.15s ease",
+              }}
+            >
+              {opt.label}
+            </button>
+          );
+        })}
+
+        {/* Özel Süre Butonu */}
+        <button
+          type="button"
+          onClick={() => setShowCustomPanel(!showCustomPanel)}
+          style={{
+            flex: 1.1,
+            padding: "6px 2px",
+            borderRadius: "10px",
+            border: "none",
+            fontSize: "10.5px",
+            fontWeight: "900",
+            cursor: "pointer",
+            backgroundColor: selectedTimeMode === "custom" || showCustomPanel ? "#3b82f6" : "transparent",
+            color: selectedTimeMode === "custom" || showCustomPanel ? "#ffffff" : "#1e40af",
+            transition: "all 0.15s ease",
+          }}
+        >
+          Özel ⚙️
+        </button>
+      </div>
+
+      {/* MANUEL DAKİKA AYARLAMA PANELİ */}
+      {showCustomPanel && (
+        <div
+          style={{
+            width: "100%",
+            backgroundColor: "#eff6ff",
+            border: "2px dashed #60a5fa",
+            borderRadius: "16px",
+            padding: "10px 12px",
+            marginBottom: "8px",
+            boxSizing: "border-box",
+            display: "flex",
+            flexDirection: "column",
+            gap: "8px",
+          }}
+        >
+          <div style={{ fontSize: "11px", fontWeight: "900", color: "#1e3a8a", textAlign: "center" }}>
+            ⏱️ İstediğin Dakikayı Ayarla (Farklı Süre de Verebilirsin):
+          </div>
+
+          <div style={{ display: "flex", gap: "8px", justifyContent: "space-between" }}>
+            {/* Beyaz Süresi */}
+            <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", backgroundColor: "#ffffff", padding: "6px", borderRadius: "12px", border: "1px solid #bfdbfe" }}>
+              <span style={{ fontSize: "10px", fontWeight: "800", color: "#475569" }}>🦁 Beyaz Dakikası</span>
+              <div style={{ display: "flex", alignItems: "center", gap: "4px", marginTop: "4px" }}>
+                <button
+                  type="button"
+                  onClick={() => setCustomWhiteMinutes((m) => Math.max(1, m - 1))}
+                  style={{ width: "24px", height: "24px", borderRadius: "6px", border: "none", backgroundColor: "#e2e8f0", fontWeight: "900", cursor: "pointer" }}
+                >
+                  -
+                </button>
+                <input
+                  type="number"
+                  min="1"
+                  max="120"
+                  value={customWhiteMinutes}
+                  onChange={(e) => setCustomWhiteMinutes(parseInt(e.target.value) || 1)}
+                  style={{ width: "38px", textAlign: "center", fontWeight: "900", fontSize: "13px", border: "1px solid #cbd5e1", borderRadius: "6px", padding: "2px" }}
+                />
+                <button
+                  type="button"
+                  onClick={() => setCustomWhiteMinutes((m) => m + 1)}
+                  style={{ width: "24px", height: "24px", borderRadius: "6px", border: "none", backgroundColor: "#e2e8f0", fontWeight: "900", cursor: "pointer" }}
+                >
+                  +
+                </button>
+              </div>
+            </div>
+
+            {/* Siyah Süresi */}
+            <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", backgroundColor: "#ffffff", padding: "6px", borderRadius: "12px", border: "1px solid #bfdbfe" }}>
+              <span style={{ fontSize: "10px", fontWeight: "800", color: "#475569" }}>🐯 Siyah Dakikası</span>
+              <div style={{ display: "flex", alignItems: "center", gap: "4px", marginTop: "4px" }}>
+                <button
+                  type="button"
+                  onClick={() => setCustomBlackMinutes((m) => Math.max(1, m - 1))}
+                  style={{ width: "24px", height: "24px", borderRadius: "6px", border: "none", backgroundColor: "#e2e8f0", fontWeight: "900", cursor: "pointer" }}
+                >
+                  -
+                </button>
+                <input
+                  type="number"
+                  min="1"
+                  max="120"
+                  value={customBlackMinutes}
+                  onChange={(e) => setCustomBlackMinutes(parseInt(e.target.value) || 1)}
+                  style={{ width: "38px", textAlign: "center", fontWeight: "900", fontSize: "13px", border: "1px solid #cbd5e1", borderRadius: "6px", padding: "2px" }}
+                />
+                <button
+                  type="button"
+                  onClick={() => setCustomBlackMinutes((m) => m + 1)}
+                  style={{ width: "24px", height: "24px", borderRadius: "6px", border: "none", backgroundColor: "#e2e8f0", fontWeight: "900", cursor: "pointer" }}
+                >
+                  +
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <button
+            type="button"
+            onClick={manuelSureyiUygula}
+            style={{
+              padding: "6px 12px",
+              backgroundColor: "#2563eb",
+              color: "#ffffff",
+              fontWeight: "900",
+              fontSize: "11px",
+              borderRadius: "10px",
+              border: "none",
+              cursor: "pointer",
+            }}
+          >
+            ✅ Süreyi Saate Yükle ve Başla
+          </button>
+        </div>
+      )}
+
+      {/* SİYAH OYUNCU BİLGİ KARTI VE SAATİ */}
       <div
         style={{
           width: "100%",
           display: "flex",
           alignItems: "center",
           justifyContent: "space-between",
-          padding: "6px 12px",
+          padding: "8px 12px",
           backgroundColor: currentTurn === "b" ? "#fef08a" : "#f1f5f9",
-          borderRadius: "14px",
+          borderRadius: "16px",
           marginBottom: "8px",
-          border: currentTurn === "b" ? "2px solid #eab308" : "1px solid #cbd5e1",
+          border: currentTurn === "b" ? "3px solid #eab308" : "1px solid #cbd5e1",
           boxSizing: "border-box",
+          boxShadow: currentTurn === "b" ? "0 4px 10px rgba(234, 179, 8, 0.25)" : "none",
         }}
       >
         <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-          <span style={{ fontSize: "20px" }}>🐯</span>
+          <span style={{ fontSize: "22px" }}>🐯</span>
           <div style={{ display: "flex", flexDirection: "column" }}>
             <span style={{ fontWeight: "900", fontSize: "12px", color: "#0f172a" }}>
-              2. Oyuncu (Siyah) {currentTurn === "b" && "👈 Hamle Sırası"}
+              2. Oyuncu (Siyah) {currentTurn === "b" && "👈"}
             </span>
-            <span style={{ fontSize: "10px", color: "#64748b", fontWeight: "bold" }}>
-              ⭐ {blackScore} Puan
-            </span>
+            <div style={{ display: "flex", alignItems: "center", gap: "2px", marginTop: "2px" }}>
+              {capturedByBlack.map((p, idx) => (
+                <img key={idx} src={PIECE_IMAGES[`w${p.toUpperCase()}`]} alt={p} style={{ width: "16px", height: "16px" }} />
+              ))}
+              <span style={{ fontSize: "10px", color: "#64748b", fontWeight: "bold", marginLeft: "4px" }}>
+                ({blackScore} P)
+              </span>
+            </div>
           </div>
         </div>
-        <div style={{ display: "flex", alignItems: "center", gap: "2px" }}>
-          {capturedByBlack.map((p, idx) => (
-            <img key={idx} src={PIECE_IMAGES[`w${p.toUpperCase()}`]} alt={p} style={{ width: "18px", height: "18px" }} />
-          ))}
-        </div>
+
+        {hasTimer && (
+          <div
+            style={{
+              padding: "6px 10px",
+              backgroundColor: currentTurn === "b" ? (blackTime < 30 ? "#fee2e2" : "#dcfce7") : "#ffffff",
+              color: blackTime < 30 ? "#dc2626" : "#0f172a",
+              border: `2px solid ${currentTurn === "b" ? (blackTime < 30 ? "#ef4444" : "#22c55e") : "#cbd5e1"}`,
+              borderRadius: "12px",
+              fontWeight: "900",
+              fontSize: "16px",
+              fontFamily: "monospace",
+              minWidth: "60px",
+              textAlign: "center",
+            }}
+          >
+            {formatTime(blackTime)}
+          </div>
+        )}
       </div>
 
       {/* DURUM MESAJI */}
@@ -240,7 +503,7 @@ export default function ArkadasinlaOynaPage() {
           borderRadius: "9999px",
           textAlign: "center",
           fontWeight: "900",
-          fontSize: "13px",
+          fontSize: "12px",
           color: "#1e3a8a",
           marginBottom: "8px",
           minHeight: "36px",
@@ -251,7 +514,7 @@ export default function ArkadasinlaOynaPage() {
           border: "2px solid #bfdbfe",
         }}
       >
-        {durumMesaji}
+        {isPaused ? "⏸️ OYUN DURAKLATILDI" : durumMesaji}
       </div>
 
       {/* SATRANÇ TAHTASI (352x352 px) */}
@@ -267,6 +530,8 @@ export default function ArkadasinlaOynaPage() {
           border: "4px solid #1e3a8a",
           boxShadow: "0 10px 15px -3px rgba(0,0,0,0.2)",
           backgroundColor: "#1e3a8a",
+          opacity: isPaused ? 0.6 : 1,
+          pointerEvents: isPaused ? "none" : "auto",
         }}
       >
         {ranks.map((rank, rankIndex) =>
@@ -339,41 +604,80 @@ export default function ArkadasinlaOynaPage() {
         )}
       </div>
 
-      {/* BEYAZ OYUNCU BİLGİ KARTI */}
+      {/* BEYAZ OYUNCU BİLGİ KARTI VE SAATİ */}
       <div
         style={{
           width: "100%",
           display: "flex",
           alignItems: "center",
           justifyContent: "space-between",
-          padding: "6px 12px",
+          padding: "8px 12px",
           backgroundColor: currentTurn === "w" ? "#fef08a" : "#f1f5f9",
-          borderRadius: "14px",
+          borderRadius: "16px",
           marginTop: "8px",
-          border: currentTurn === "w" ? "2px solid #eab308" : "1px solid #cbd5e1",
+          border: currentTurn === "w" ? "3px solid #eab308" : "1px solid #cbd5e1",
           boxSizing: "border-box",
+          boxShadow: currentTurn === "w" ? "0 4px 10px rgba(234, 179, 8, 0.25)" : "none",
         }}
       >
         <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-          <span style={{ fontSize: "20px" }}>🦁</span>
+          <span style={{ fontSize: "22px" }}>🦁</span>
           <div style={{ display: "flex", flexDirection: "column" }}>
             <span style={{ fontWeight: "900", fontSize: "12px", color: "#0f172a" }}>
-              1. Oyuncu (Beyaz) {currentTurn === "w" && "👈 Hamle Sırası"}
+              1. Oyuncu (Beyaz) {currentTurn === "w" && "👈"}
             </span>
-            <span style={{ fontSize: "10px", color: "#64748b", fontWeight: "bold" }}>
-              ⭐ {whiteScore} Puan
-            </span>
+            <div style={{ display: "flex", alignItems: "center", gap: "2px", marginTop: "2px" }}>
+              {capturedByWhite.map((p, idx) => (
+                <img key={idx} src={PIECE_IMAGES[`b${p.toUpperCase()}`]} alt={p} style={{ width: "16px", height: "16px" }} />
+              ))}
+              <span style={{ fontSize: "10px", color: "#64748b", fontWeight: "bold", marginLeft: "4px" }}>
+                ({whiteScore} P)
+              </span>
+            </div>
           </div>
         </div>
-        <div style={{ display: "flex", alignItems: "center", gap: "2px" }}>
-          {capturedByWhite.map((p, idx) => (
-            <img key={idx} src={PIECE_IMAGES[`b${p.toUpperCase()}`]} alt={p} style={{ width: "18px", height: "18px" }} />
-          ))}
-        </div>
+
+        {hasTimer && (
+          <div
+            style={{
+              padding: "6px 10px",
+              backgroundColor: currentTurn === "w" ? (whiteTime < 30 ? "#fee2e2" : "#dcfce7") : "#ffffff",
+              color: whiteTime < 30 ? "#dc2626" : "#0f172a",
+              border: `2px solid ${currentTurn === "w" ? (whiteTime < 30 ? "#ef4444" : "#22c55e") : "#cbd5e1"}`,
+              borderRadius: "12px",
+              fontWeight: "900",
+              fontSize: "16px",
+              fontFamily: "monospace",
+              minWidth: "60px",
+              textAlign: "center",
+            }}
+          >
+            {formatTime(whiteTime)}
+          </div>
+        )}
       </div>
 
-      {/* KONTROL VE YÖNETİM BUTONLARI */}
-      <div style={{ display: "flex", flexWrap: "wrap", gap: "8px", width: "100%", marginTop: "12px", justifyContent: "center" }}>
+      {/* YÖNETİM VE KONTROL BUTONLARI */}
+      <div style={{ display: "flex", flexWrap: "wrap", gap: "6px", width: "100%", marginTop: "12px", justifyContent: "center" }}>
+        {hasTimer && isClockRunning && (
+          <button
+            type="button"
+            onClick={() => setIsPaused(!isPaused)}
+            style={{
+              padding: "8px 12px",
+              backgroundColor: isPaused ? "#10b981" : "#f59e0b",
+              color: "white",
+              fontWeight: "900",
+              borderRadius: "12px",
+              border: "none",
+              fontSize: "11px",
+              cursor: "pointer",
+            }}
+          >
+            {isPaused ? "▶️ Devam Et" : "⏸️ Duraklat"}
+          </button>
+        )}
+
         <button
           type="button"
           onClick={() => setIsFlipped(!isFlipped)}
@@ -384,11 +688,11 @@ export default function ArkadasinlaOynaPage() {
             fontWeight: "800",
             borderRadius: "12px",
             border: "none",
-            fontSize: "12px",
+            fontSize: "11px",
             cursor: "pointer",
           }}
         >
-          🔄 Tahtayı Çevir
+          🔄 Çevir
         </button>
 
         <button
@@ -401,11 +705,11 @@ export default function ArkadasinlaOynaPage() {
             fontWeight: "800",
             borderRadius: "12px",
             border: "none",
-            fontSize: "12px",
+            fontSize: "11px",
             cursor: "pointer",
           }}
         >
-          {autoFlip ? "✅ Otomatik Dönüş: Açık" : "⭕ Otomatik Dönüş: Kapalı"}
+          {autoFlip ? "✅ Otomatik Çevir" : "⭕ Sabit Tahta"}
         </button>
 
         <button
@@ -413,21 +717,21 @@ export default function ArkadasinlaOynaPage() {
           onClick={hamleGeriAl}
           style={{
             padding: "8px 12px",
-            backgroundColor: "#f59e0b",
+            backgroundColor: "#64748b",
             color: "white",
             fontWeight: "800",
             borderRadius: "12px",
             border: "none",
-            fontSize: "12px",
+            fontSize: "11px",
             cursor: "pointer",
           }}
         >
-          ↩️ Hamle Geri Al
+          ↩️ Geri Al
         </button>
 
         <button
           type="button"
-          onClick={oyunuSifirla}
+          onClick={() => oyunuSifirla()}
           style={{
             padding: "8px 12px",
             backgroundColor: "#ef4444",
@@ -435,11 +739,11 @@ export default function ArkadasinlaOynaPage() {
             fontWeight: "800",
             borderRadius: "12px",
             border: "none",
-            fontSize: "12px",
+            fontSize: "11px",
             cursor: "pointer",
           }}
         >
-          Yeni Oyun 🔄
+          Sıfırla 🔄
         </button>
       </div>
     </div>
