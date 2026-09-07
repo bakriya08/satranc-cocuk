@@ -1,6 +1,5 @@
 import { NextResponse } from "next/server";
 
-// Next.js build hatasını önleyen en kritik ayar:
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
@@ -171,7 +170,27 @@ export async function POST(request: Request) {
       return NextResponse.json({ success: true, data: yeniOgrenci });
     }
 
-    // 2. YENİ SORU EKLEME
+    // 2. ÖĞRETMEN: PIN SIFIRLAMA
+    if (action === "pinSifirla") {
+      const { ogrenciId, yeniPin } = body;
+      let ogrenciler = await redisGet<OgrenciProfil[]>("kayitli_ogrenciler", []);
+      ogrenciler = ogrenciler.map((o) =>
+        o.id === ogrenciId ? { ...o, pin: String(yeniPin || "1234") } : o
+      );
+      await redisSet("kayitli_ogrenciler", ogrenciler);
+      return NextResponse.json({ success: true, message: "PIN başarıyla güncellendi!" });
+    }
+
+    // 3. ÖĞRETMEN: ÖĞRENCİ SİLME
+    if (action === "ogrenciSil") {
+      const { ogrenciId } = body;
+      let ogrenciler = await redisGet<OgrenciProfil[]>("kayitli_ogrenciler", []);
+      ogrenciler = ogrenciler.filter((o) => o.id !== ogrenciId);
+      await redisSet("kayitli_ogrenciler", ogrenciler);
+      return NextResponse.json({ success: true, message: "Öğrenci silindi!" });
+    }
+
+    // 4. YENİ SORU EKLEME
     if (action === "soruEkle") {
       const { title, fen, hint } = body;
       const sorular = await redisGet<SoruItem[]>("odev_sorulari", VARSAYILAN_SORULAR);
@@ -188,7 +207,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ success: true, data: sorular });
     }
 
-    // 3. SORU SİLME
+    // 5. SORU SİLME
     if (action === "soruSil") {
       const { id } = body;
       let sorular = await redisGet<SoruItem[]>("odev_sorulari", VARSAYILAN_SORULAR);
@@ -197,7 +216,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ success: true, data: sorular });
     }
 
-    // 4. HAFTAYI ARŞİVLE
+    // 6. HAFTAYI ARŞİVLE
     if (action === "haftayiArsivle") {
       const aktifOdevler = await redisGet<OdevKaydi[]>("aktif_odevler", []);
       if (aktifOdevler.length > 0) {
@@ -212,7 +231,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ success: true, message: "Hafta arşivlendi!" });
     }
 
-    // 5. ÖDEV TESLİMİ
+    // 7. ÖĞRENCİ ÖDEV TESLİMİ
     const { ogrenciAdi, sinifGrup, avatar, toplamSoru, dogruSayisi, toplamHata, gecenSureSaniye, soruDetaylari } = body;
 
     const aktifOdevler = await redisGet<OdevKaydi[]>("aktif_odevler", []);
