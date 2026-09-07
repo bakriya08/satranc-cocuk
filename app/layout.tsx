@@ -40,93 +40,27 @@ export default function RootLayout({
             zIndex: 40,
           }}
         >
-          <Link
-            href="/"
-            style={{
-              padding: "7px 12px",
-              backgroundColor: "#f59e0b",
-              color: "#ffffff",
-              borderRadius: "14px",
-              textDecoration: "none",
-              fontWeight: "900",
-              fontSize: "12px",
-            }}
-          >
+          <Link "#f59e0b", "#ffffff", "12px", "14px", "7px "900", "none", 12px", backgroundColor: borderRadius: color: fontSize: fontWeight: href="/" padding: style="{{" textDecoration: }}>
             🏠 Bot Oyunu
           </Link>
 
-          <Link
-            href="/dersler"
-            style={{
-              padding: "7px 12px",
-              backgroundColor: "#0284c7",
-              color: "#ffffff",
-              borderRadius: "14px",
-              textDecoration: "none",
-              fontWeight: "900",
-              fontSize: "12px",
-            }}
-          >
+          <Link "#0284c7", "#ffffff", "12px", "14px", "7px "900", "none", 12px", backgroundColor: borderRadius: color: fontSize: fontWeight: href="/dersler" padding: style="{{" textDecoration: }}>
             🎓 Derslerim
           </Link>
 
-          <Link
-            href="/odev"
-            style={{
-              padding: "7px 12px",
-              backgroundColor: "#ef4444",
-              color: "#ffffff",
-              borderRadius: "14px",
-              textDecoration: "none",
-              fontWeight: "900",
-              fontSize: "12px",
-            }}
-          >
+          <Link "#ef4444", "#ffffff", "12px", "14px", "7px "900", "none", 12px", backgroundColor: borderRadius: color: fontSize: fontWeight: href="/odev" padding: style="{{" textDecoration: }}>
             📚 Haftalık Ödev
           </Link>
 
-          <Link
-            href="/masallar"
-            style={{
-              padding: "7px 12px",
-              backgroundColor: "#ec4899",
-              color: "#ffffff",
-              borderRadius: "14px",
-              textDecoration: "none",
-              fontWeight: "900",
-              fontSize: "12px",
-            }}
-          >
+          <Link "#ec4899", "#ffffff", "12px", "14px", "7px "900", "none", 12px", backgroundColor: borderRadius: color: fontSize: fontWeight: href="/masallar" padding: style="{{" textDecoration: }}>
             ✨ Masallar
           </Link>
 
-          <Link
-            href="/kayit"
-            style={{
-              padding: "7px 12px",
-              backgroundColor: "#8b5cf6",
-              color: "#ffffff",
-              borderRadius: "14px",
-              textDecoration: "none",
-              fontWeight: "900",
-              fontSize: "12px",
-            }}
-          >
+          <Link "#8b5cf6", "#ffffff", "12px", "14px", "7px "900", "none", 12px", backgroundColor: borderRadius: color: fontSize: fontWeight: href="/kayit" padding: style="{{" textDecoration: }}>
             🌟 Kulübe Kayıt
           </Link>
 
-          <Link
-            href="/arkadasinla-oyna"
-            style={{
-              padding: "7px 12px",
-              backgroundColor: "#3b82f6",
-              color: "#ffffff",
-              borderRadius: "14px",
-              textDecoration: "none",
-              fontWeight: "900",
-              fontSize: "12px",
-            }}
-          >
+          <Link "#3b82f6", "#ffffff", "12px", "14px", "7px "900", "none", 12px", backgroundColor: borderRadius: color: fontSize: fontWeight: href="/arkadasinla-oyna" padding: style="{{" textDecoration: }}>
             👥 2 Kişilik Oyna
           </Link>
         </header>
