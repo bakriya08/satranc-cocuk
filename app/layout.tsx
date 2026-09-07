@@ -4,7 +4,7 @@ import "./globals.css";
 
 export const metadata: Metadata = {
   title: "Çocuklar İçin Sevimli Satranç ♟️",
-  description: "Çocuklar için eğlenceli satranç oyunu, botlar, ödevler ve taktik bulmacalar.",
+  description: "Çocuklar için eğlenceli satranç oyunu, botlar, ödevler, masallar ve taktik bulmacalar.",
 };
 
 export default function RootLayout({
@@ -68,6 +68,21 @@ export default function RootLayout({
             }}
           >
             📚 Haftalık Ödev
+          </Link>
+
+          <Link
+            href="/masallar"
+            style={{
+              padding: "7px 12px",
+              backgroundColor: "#ec4899",
+              color: "#ffffff",
+              borderRadius: "14px",
+              textDecoration: "none",
+              fontWeight: "900",
+              fontSize: "12px",
+            }}
+          >
+            ✨ Masallar
           </Link>
 
           <Link
