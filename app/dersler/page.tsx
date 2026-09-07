@@ -314,9 +314,6 @@ export default function DerslerPage() {
     >
       {/* ÜST BAŞLIK & İLERLEME ÇUBUĞU */}
       <div style={{ textAlign: "center", marginBottom: "20px" }}>
-        <div style={{ fontSize: "11px", fontWeight: "900", color: "#0369a1", letterSpacing: "1.5px" }}>
-          T.C. MİLLÎ EĞİTİM BAKANLIĞI • TEMEL EĞİTİM GENEL MÜDÜRLÜĞÜ
-        </div>
         <h1 style={{ fontSize: "22px", fontWeight: "900", color: "#1e293b", margin: "6px 0" }}>
           Satranç Okul Öncesi Öğretim Programı
         </h1>
@@ -476,7 +473,7 @@ export default function DerslerPage() {
               }}
             >
               <div style={{ fontSize: "11px", fontWeight: "900", color: "#0369a1", marginBottom: "6px" }}>
-                📖 MEB Öğretim Programı Açıklaması:
+                📖 Öğretim Programı Açıklaması:
               </div>
               {seciliKazanim.aciklama}
             </div>
