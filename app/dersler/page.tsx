@@ -8,7 +8,6 @@ interface InteraktifOrnek {
   karakter: string;
   karakterAdi: string;
   soruMetni: string;
-  // Tahta görselleştirme türü ve oklar
   tahtaTipi: "baslangic" | "kaleYolu" | "filCapraz" | "atL" | "sahAdim" | "piyonIleri" | "matVurusu";
   okYonu?: "duz" | "capraz" | "lSekli" | "etraf";
   secenekler: { id: string; sembol: string; aciklama: string; dogru: boolean }[];
@@ -203,7 +202,7 @@ const KAZANIMLAR_VERISI: KazanimDetay[] = [
         secenekler: [
           { id: "a", sembol: "❌", aciklama: "Hayır, Atlayamaz!", dogru: true },
           { id: "b", sembol: "✅", aciklama: "Evet, Atlar", dogru: false },
-          { id: "c", sembol: "🛸", ap: "Uçar", aciklama: "Uçar", dogru: false },
+          { id: "c", sembol: "🛸", aciklama: "Uçar", dogru: false },
         ],
         dogruMesaj: "Doğru! Kale önü kapalıysa durmak zorundadır.",
       },
@@ -624,9 +623,9 @@ const KAZANIMLAR_VERISI: KazanimDetay[] = [
         soruMetni: "1 puanlık piyon verip 9 puanlık vezir almak karlı bir alış mıdır?",
         tahtaTipi: "baslangic",
         secenekler: [
-          { id: "a", sembol: " ✅ ", aciklama: "Evet, Çok Karlı Alış!", dogru: true },
-          { id: "b", sembol: " ❌ ", aciklama: "Kötü Alış", dogru: false },
-          { id: "c", sembol: " ⚠️ ", aciklama: "Zararlı", dogru: false },
+          { id: "a", sembol: "✅", aciklama: "Evet, Çok Karlı Alış!", dogru: true },
+          { id: "b", sembol: "❌", aciklama: "Kötü Alış", dogru: false },
+          { id: "c", sembol: "⚠️", aciklama: "Zararlı", dogru: false },
         ],
         dogruMesaj: "Muazzam kazanç! Az puan verip çok puan aldın.",
       },
@@ -637,9 +636,9 @@ const KAZANIMLAR_VERISI: KazanimDetay[] = [
         soruMetni: "5 puanlık kaleyi korumasız bırakıp kaptırmak iyi bir şey midir?",
         tahtaTipi: "baslangic",
         secenekler: [
-          { id: "a", sembol: " ❌ ", aciklama: "Hayır, Büyük Hata!", dogru: true },
-          { id: "b", sembol: " ✅ ", aciklama: "Çok İyi", dogru: false },
-          { id: "c", sembol: " 🎉 ", aciklama: "Harika", dogru: false },
+          { id: "a", sembol: "❌", aciklama: "Hayır, Büyük Hata!", dogru: true },
+          { id: "b", sembol: "✅", aciklama: "Çok İyi", dogru: false },
+          { id: "c", sembol: "🎉", aciklama: "Harika", dogru: false },
         ],
         dogruMesaj: "Doğru! Değerli taşlarımızı korumalıyız.",
       },
@@ -650,9 +649,9 @@ const KAZANIMLAR_VERISI: KazanimDetay[] = [
         soruMetni: "3 puanlık file karşılık rakibin 3 puanlık filini almak nasıl bir değişimdir?",
         tahtaTipi: "baslangic",
         secenekler: [
-          { id: "a", sembol: " 🟰 ", aciklama: "Eşit Değişim", dogru: true },
-          { id: "b", sembol: " 🚀 ", aciklama: "Uçurur", dogru: false },
-          { id: "c", sembol: " 📉 ", aciklama: "Zarar", dogru: false },
+          { id: "a", sembol: "🟰", aciklama: "Eşit Değişim", dogru: true },
+          { id: "b", sembol: "🚀", aciklama: "Uçurur", dogru: false },
+          { id: "c", sembol: "📉", aciklama: "Zarar", dogru: false },
         ],
         dogruMesaj: "Eşit güçte karşılıklı değişim!",
       },
@@ -795,7 +794,7 @@ const KAZANIMLAR_VERISI: KazanimDetay[] = [
         tahtaTipi: "baslangic",
         secenekler: [
           { id: "a", sembol: "⚔️", aciklama: "Uygunsa Alınabilir", dogru: true },
-          { id: "b", sembol: "❌", ad: "Asla", aciklama: "Asla Alınamaz", dogru: false },
+          { id: "b", sembol: "❌", aciklama: "Asla Alınamaz", dogru: false },
           { id: "c", sembol: "🔒", aciklama: "Kilitlenir", dogru: false },
         ],
         dogruMesaj: "Evet! Tehdit eden taş vurularak şah kurtarılabilir.",
@@ -1167,7 +1166,7 @@ const KAZANIMLAR_VERISI: KazanimDetay[] = [
         secenekler: [
           { id: "a", sembol: "🛡️", aciklama: "Taşımızı Kurtarma Şansı", dogru: true },
           { id: "b", sembol: "😴", aciklama: "Uyku", dogru: false },
-          { id: "c", sembol: "💤", sd: "Hiç", aciklama: "Hiç", dogru: false },
+          { id: "c", sembol: "💤", aciklama: "Hiç", dogru: false },
         ],
         dogruMesaj: "Zamanında savunma yapmanı sağlar.",
       },
@@ -1611,7 +1610,7 @@ const KAZANIMLAR_VERISI: KazanimDetay[] = [
         tahtaTipi: "baslangic",
         secenekler: [
           { id: "a", sembol: "⭐", aciklama: "Tertemiz ve Düzenli", dogru: true },
-          { id: "b", sembol: "🗑️", acikli: "Dağınık", aciklama: "Çöplü", dogru: false },
+          { id: "b", sembol: "🗑️", aciklama: "Çöplü", dogru: false },
           { id: "c", sembol: "🔥", aciklama: "Kötü", dogru: false },
         ],
         dogruMesaj: "Masayı temiz ve düzenli bırakırız.",
@@ -1668,8 +1667,7 @@ const KAZANIMLAR_VERISI: KazanimDetay[] = [
   },
 ];
 
-// İNTERAKTİF SVG SATRANÇ TAHTASI VE OKLAR BİLEŞENİ
-function SatrançTahtasiGorseli({ tip, okYonu }: { tip: string; okYonu?: string }) {
+function SatrançTahtasiGorseli({ tip }: { tip: string }) {
   return (
     <div
       style={{
@@ -1686,7 +1684,6 @@ function SatrançTahtasiGorseli({ tip, okYonu }: { tip: string; okYonu?: string 
       }}
     >
       <svg viewBox="0 0 200 200" style={{ width: "100%", height: "auto", borderRadius: "8px" }}>
-        {/* 8x8 Tahta Kareleri */}
         {Array.from({ length: 8 }).map((_, row) =>
           Array.from({ length: 8 }).map((_, col) => {
             const isWhite = (row + col) % 2 === 0;
@@ -1703,7 +1700,6 @@ function SatrançTahtasiGorseli({ tip, okYonu }: { tip: string; okYonu?: string 
           })
         )}
 
-        {/* Taş ve Ok Görselleştirmeleri */}
         {tip === "baslangic" && (
           <>
             <text x="12" y="145" fontSize="16" textAnchor="middle">♖</text>
@@ -1840,7 +1836,7 @@ export default function DerslerPage() {
         margin: "0 auto",
       }}
     >
-      {/* ÜST GEZİNME VE KAZANIM SEÇİCİ */}
+      {/* 1. ÜST BAŞLIK VE AÇILIR LİSTE */}
       <div
         style={{
           display: "flex",
@@ -1866,10 +1862,10 @@ export default function DerslerPage() {
               marginBottom: "4px",
             }}
           >
-            {aktifKazanim.uniteBaslik}
+            📚 {aktifKazanim.uniteBaslik}
           </span>
           <h1 style={{ fontSize: "18px", fontWeight: "900", color: "#0f172a", margin: 0 }}>
-            {aktifKazanim.kod} {aktifKazanim.baslik}
+            🎯 {aktifKazanim.kod} {aktifKazanim.baslik}
           </h1>
         </div>
 
@@ -1888,16 +1884,15 @@ export default function DerslerPage() {
             maxWidth: "280px",
           }}
         >
-          {KAZANIMLAR_VERISI.map((k) => (
+          {KAZANIMLAR_VERISI.map((k, index) => (
             <option key={k.kod} value={k.kod}>
-              {tamamlananKazanimlar.includes(k.kod) ? "✅ " : "⚪ "}
-              {k.kod} {k.baslik}
+              {index + 1}. {tamamlananKazanimlar.includes(k.kod) ? "✅ " : "⚪ "} {k.kod} {k.baslik}
             </option>
           ))}
         </select>
       </div>
 
-      {/* PEDAGOJİK RESMİ KAZANIM AÇIKLAMASI */}
+      {/* 2. RESMİ KAZANIM AÇIKLAMASI */}
       <div
         style={{
           backgroundColor: "#f8fafc",
@@ -1914,7 +1909,7 @@ export default function DerslerPage() {
       >
         <div style={{ flex: 1 }}>
           <div style={{ fontSize: "11px", fontWeight: "900", color: "#0284c7", marginBottom: "4px" }}>
-            📖 Kazanım Açıklaması:
+            📖 Resmi Kazanım Açıklaması:
           </div>
           <p style={{ fontSize: "13px", lineHeight: "1.6", color: "#334155", margin: 0 }}>
             {aktifKazanim.resmiAciklama}
@@ -1939,17 +1934,17 @@ export default function DerslerPage() {
           }}
         >
           {tamamlananKazanimlar.includes(aktifKazanim.kod)
-            ? "Kazanım Tamamlandı ✨"
-            : "Kazanımı Tamamla ⚪"}
+            ? "✨ Kazanım Tamamlandı"
+            : "⚪ Kazanımı Tamamla"}
         </button>
       </div>
 
-      {/* ÇİZGİ FİLM VE TAHTA ÜZERİNDE GÖRSEL ÖRNEKLER */}
+      {/* 3. ÇİZGİ FİLM VE TAHTA ÜZERİNDE GÖRSEL ÖRNEKLER */}
       <div style={{ marginBottom: "24px" }}>
         <div style={{ textAlign: "center", marginBottom: "16px" }}>
           <span style={{ fontSize: "28px" }}>♟️🗺️✨</span>
           <h2 style={{ fontSize: "16px", fontWeight: "900", color: "#1e293b", margin: "4px 0" }}>
-            Satranç Tahtası Üzerinde Görsel Örnekler & Görevler
+            Satranç Tahtası Üzerinde 3 Örnek Görev
           </h2>
           <p style={{ fontSize: "12px", color: "#64748b", margin: 0 }}>
             Tahta üzerindeki okları ve taş konumlarını incele, doğru cevaba tıkla!
@@ -1977,7 +1972,6 @@ export default function DerslerPage() {
                   alignItems: "center",
                 }}
               >
-                {/* Sol Taraf: Karakter ve Soru */}
                 <div>
                   <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "8px" }}>
                     <span style={{ fontSize: "28px" }}>{ornek.karakter}</span>
@@ -1990,7 +1984,6 @@ export default function DerslerPage() {
                     {ornek.soruMetni}
                   </div>
 
-                  {/* Seçenek Butonları */}
                   <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
                     {ornek.secenekler.map((s) => {
                       const secili = secilenSecenekId === s.id;
@@ -2046,9 +2039,8 @@ export default function DerslerPage() {
                   )}
                 </div>
 
-                {/* Sağ Taraf: İnteraktif Tahta Görseli ve Oklar */}
                 <div>
-                  <SatrançTahtasiGorseli tip={ornek.tahtaTipi} okYonu={ornek.okYonu} />
+                  <SatrançTahtasiGorseli tip={ornek.tahtaTipi} />
                 </div>
               </div>
             );
@@ -2056,7 +2048,7 @@ export default function DerslerPage() {
         </div>
       </div>
 
-      {/* ALT GEÇİŞLER */}
+      {/* 4. ALT GEÇİŞLER */}
       <div
         style={{
           display: "flex",
@@ -2083,7 +2075,7 @@ export default function DerslerPage() {
               cursor: "pointer",
             }}
           >
-            ⬅️ Önceki: {oncekiKazanim.kod}
+            ⬅️ Önceki Kazanım
           </button>
         ) : (
           <div />
@@ -2135,7 +2127,7 @@ export default function DerslerPage() {
               cursor: "pointer",
             }}
           >
-            Sonraki: {sonrakiKazanim.kod} ➡️
+            Sonraki Kazanım ➡️
           </button>
         ) : (
           <div />
