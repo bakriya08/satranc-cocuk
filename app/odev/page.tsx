@@ -36,6 +36,8 @@ export default function OdevPage() {
   const [sorular, setSorular] = useState<SoruItem[]>([]);
   const [yukleniyor, setYukleniyor] = useState(true);
   const [ogrenciAdi, setOgrenciAdi] = useState("");
+  const [sinifGrup, setSinifGrup] = useState("");
+  const [avatar, setAvatar] = useState("🦁");
   const [odevBasladi, setOdevBasladi] = useState(false);
   const [currentIdx, setCurrentIdx] = useState(0);
 
@@ -44,7 +46,6 @@ export default function OdevPage() {
   const [possibleSquares, setPossibleSquares] = useState<string[]>([]);
   const [durumMesaji, setDurumMesaji] = useState("Beyaz oynar, tek hamlede mat yapar!");
   
-  // Soru Başı Hata Analizi Takibi
   const [soruHatalari, setSoruHatalari] = useState<Record<number, number>>({});
   const [baslamaZamani, setBaslamaZamani] = useState<number>(0);
   const [tamamlandi, setTamamlandi] = useState(false);
@@ -53,8 +54,19 @@ export default function OdevPage() {
   const files = ["a", "b", "c", "d", "e", "f", "g", "h"];
   const ranks = ["8", "7", "6", "5", "4", "3", "2", "1"];
 
-  // Soruları API'den çek
   useEffect(() => {
+    // 1. Tarayıcıda kayıtlı öğrenci profilini ara
+    try {
+      const kayitli = localStorage.getItem("satranc_ogrenci");
+      if (kayitli) {
+        const parsed = JSON.parse(kayitli);
+        setOgrenciAdi(parsed.adSoyad || "");
+        setSinifGrup(parsed.sinifGrup || "");
+        setAvatar(parsed.avatar || "🦁");
+      }
+    } catch {}
+
+    // 2. Soruları çek
     fetch("/api/odev?type=sorular")
       .then((r) => r.json())
       .then((res) => {
@@ -107,7 +119,7 @@ export default function OdevPage() {
           sesCal("gameEnd");
 
           if (currentIdx + 1 < sorular.length) {
-            setDurumMesaji("🌟 Doğru Hamle! Sıradaki soruya geçiliyor...");
+            setDurumMesaji("🌟 Harika! Sıradaki soruya geçiliyor...");
             setTimeout(() => {
               const nextIdx = currentIdx + 1;
               setCurrentIdx(nextIdx);
@@ -115,19 +127,17 @@ export default function OdevPage() {
               setDurumMesaji("Beyaz oynar, tek hamlede mat yapar!");
             }, 1500);
           } else {
-            // ÖDEV BİTTİ
             setTamamlandi(true);
             odeviGonder();
           }
         } else {
-          // Hamle geçerli ama mat değil
           setSelectedSquare(null);
           setPossibleSquares([]);
           setSoruHatalari((prev) => ({
             ...prev,
             [currentSoru.id]: (prev[currentSoru.id] || 0) + 1,
           }));
-          setDurumMesaji("❌ Bu hamle güzel ama mat yapmadı! Tekrar dene.");
+          setDurumMesaji("❌ Bu hamle mat yapmadı! Tekrar dene.");
           sesCal("move");
         }
       } else {
@@ -162,6 +172,8 @@ export default function OdevPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           ogrenciAdi,
+          sinifGrup,
+          avatar,
           toplamSoru: sorular.length,
           dogruSayisi: sorular.length,
           toplamHata,
@@ -177,16 +189,7 @@ export default function OdevPage() {
     return <div style={{ textAlign: "center", padding: "40px", fontWeight: "900", color: "#78350f" }}>Ödev Yükleniyor... ⏳</div>;
   }
 
-  if (sorular.length === 0) {
-    return (
-      <div style={{ textAlign: "center", padding: "40px", backgroundColor: "#fff", borderRadius: "20px", border: "2px solid #cbd5e1" }}>
-        <h3>Bu hafta için henüz ödev sorusu atanmadı. 😴</h3>
-        <p style={{ color: "#64748b", fontSize: "12px" }}>Öğretmeniniz yeni sorular eklediğinde burada görünecek!</p>
-      </div>
-    );
-  }
-
-  // 1. İSİM GİRİŞİ
+  // 1. GİRİŞ EKRANI
   if (!odevBasladi) {
     return (
       <div
@@ -202,36 +205,44 @@ export default function OdevPage() {
           margin: "20px auto",
         }}
       >
-        <span style={{ fontSize: "48px" }}>📚</span>
-        <h1 style={{ fontSize: "20px", fontWeight: "900", color: "#78350f", margin: "10px 0 4px 0" }}>
-          Haftalık Satranç Ödevi
+        <span style={{ fontSize: "50px" }}>{avatar}</span>
+        <h1 style={{ fontSize: "20px", fontWeight: "900", color: "#78350f", margin: "8px 0 4px 0" }}>
+          Haftalık Satranç Görevi
         </h1>
-        <p style={{ fontSize: "12px", color: "#92400e", marginBottom: "16px", fontWeight: "600" }}>
-          Bu hafta toplam <strong>{sorular.length}</strong> taktik görev seni bekliyor!
-        </p>
 
-        <div style={{ marginBottom: "16px" }}>
-          <label style={{ display: "block", fontSize: "11px", fontWeight: "800", color: "#78350f", marginBottom: "6px" }}>
-            Adın ve Soyadın:
-          </label>
-          <input
-            type="text"
-            placeholder="Örn: Zeynep Kaya"
-            value={ogrenciAdi}
-            onChange={(e) => setOgrenciAdi(e.target.value)}
-            style={{
-              width: "100%",
-              padding: "10px 14px",
-              borderRadius: "14px",
-              border: "2px solid #fcd34d",
-              fontSize: "14px",
-              fontWeight: "bold",
-              textAlign: "center",
-              outline: "none",
-              boxSizing: "border-box",
-            }}
-          />
-        </div>
+        {ogrenciAdi ? (
+          <div style={{ backgroundColor: "#fef3c7", padding: "10px", borderRadius: "14px", marginBottom: "14px" }}>
+            <span style={{ fontSize: "11px", color: "#92400e", fontWeight: "bold" }}>Giriş Yapılan Profil:</span>
+            <div style={{ fontSize: "16px", fontWeight: "900", color: "#451a03" }}>
+              {avatar} {ogrenciAdi}
+            </div>
+            {sinifGrup && <span style={{ fontSize: "11px", color: "#b45309" }}>({sinifGrup})</span>}
+          </div>
+        ) : (
+          <div style={{ marginBottom: "14px" }}>
+            <input
+              type="text"
+              placeholder="Adın ve Soyadın"
+              value={ogrenciAdi}
+              onChange={(e) => setOgrenciAdi(e.target.value)}
+              style={{
+                width: "100%",
+                padding: "10px 14px",
+                borderRadius: "14px",
+                border: "2px solid #fcd34d",
+                fontSize: "14px",
+                fontWeight: "bold",
+                textAlign: "center",
+                outline: "none",
+                boxSizing: "border-box",
+                marginBottom: "8px",
+              }}
+            />
+            <Link href="/kayit" style={{ fontSize: "11px", color: "#2563eb", fontWeight: "800", textDecoration: "none" }}>
+              ✨ Henüz kayıt olmadın mı? Kulüp Kartı Oluştur ➔
+            </Link>
+          </div>
+        )}
 
         <button
           type="button"
@@ -262,7 +273,7 @@ export default function OdevPage() {
     );
   }
 
-  // 3. TEBRİK EKRANI
+  // 3. BİTİŞ EKRANI
   if (tamamlandi) {
     return (
       <div
@@ -280,7 +291,7 @@ export default function OdevPage() {
       >
         <span style={{ fontSize: "56px" }}>🏆</span>
         <h2 style={{ fontSize: "20px", fontWeight: "900", color: "#1e293b", margin: "8px 0" }}>
-          Tebrikler, {ogrenciAdi}!
+          Harikasın, {ogrenciAdi}!
         </h2>
         <p style={{ fontSize: "13px", color: "#047857", fontWeight: "bold", margin: "0 0 16px 0" }}>
           Tüm ödev sorularını başarıyla çözdün!
@@ -298,7 +309,7 @@ export default function OdevPage() {
             fontWeight: "700",
           }}
         >
-          {kaydediliyor ? "Sonuç öğretmene iletiliyor... ⏳" : "✅ Ödevin öğretmenin kontrol paneline ulaştı!"}
+          {kaydediliyor ? "Sonuç öğretmenine iletiliyor... ⏳" : "✅ Ödevin öğretmeninin kontrol paneline ulaştı!"}
         </div>
 
         <Link
@@ -320,7 +331,7 @@ export default function OdevPage() {
     );
   }
 
-  // 2. TAHTA EKRANI
+  // 2. TAHTA
   return (
     <div
       style={{
@@ -340,7 +351,9 @@ export default function OdevPage() {
       }}
     >
       <div style={{ display: "flex", justifyContent: "space-between", width: "100%", alignItems: "center", marginBottom: "6px" }}>
-        <span style={{ fontSize: "11px", fontWeight: "900", color: "#78350f" }}>👤 {ogrenciAdi}</span>
+        <span style={{ fontSize: "12px", fontWeight: "900", color: "#78350f" }}>
+          {avatar} {ogrenciAdi}
+        </span>
         <span style={{ fontSize: "11px", fontWeight: "900", color: "#d97706" }}>
           Soru: {currentIdx + 1} / {sorular.length}
         </span>
@@ -375,7 +388,6 @@ export default function OdevPage() {
         {currentSoru.hint}
       </div>
 
-      {/* TAHTA */}
       <div
         style={{
           width: "352px",
