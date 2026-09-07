@@ -24,7 +24,7 @@ const MASALLAR: Masal[] = [
     karakter: "♟️",
     ozet: "En önde yürüyen, asla geri adım atmayan ve son kareye ulaştığında bir vezire dönüşen cesur piyon.",
     renk: "#f59e0b",
-    youtubeId: "-Ws00SzwT1U", // 64 Kare Ülkesi TRT Çocuk Çizgi Dizi
+    youtubeId: https://youtube.com/shorts/1KY3vHScGdg?feature=share
     videoBaslik: "64 Kare Ülkesi: Minik Piyonların Serüveni",
     hikaye: [
       "Bir zamanlar 64 karelik Büyülü Krallık'ta minik bir piyon yaşarmış. Diğer taşlar ona bazen 'sen küçücüksün, sadece bir adım atabilirsin' derlermiş.",
