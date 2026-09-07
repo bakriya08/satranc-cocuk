@@ -3,13 +3,6 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 
-interface SoruItem {
-  id: number;
-  title: string;
-  fen: string;
-  hint: string;
-}
-
 interface SoruAnalizItem {
   soruId: number;
   soruBaslik: string;
@@ -19,41 +12,59 @@ interface SoruAnalizItem {
 interface OdevKaydi {
   id: string;
   ogrenciAdi: string;
+  sinifGrup?: string;
+  avatar?: string;
   toplamSoru: number;
   dogruSayisi: number;
   toplamHata: number;
   gecenSureSaniye: number;
   tamamlanmaTarihi: string;
-  soruDetaylari: SoruAnalizItem[];
+  soruDetaylari?: SoruAnalizItem[];
+}
+
+interface SoruItem {
+  id: number;
+  title: string;
+  fen: string;
+  hint: string;
 }
 
 export default function OgretmenPage() {
-  const [sifre, setSifre] = useState("");
   const [girisYapildi, setGirisYapildi] = useState(false);
-  const [aktifTab, setAktifTab] = useState<"ogrenciler" | "sorular" | "analiz">("ogrenciler");
+  const [sifre, setSifre] = useState("");
+  const [sifreHata, setSifreHata] = useState(false);
 
-  const [kayitlar, setKayitlar] = useState<OdevKaydi[]>([]);
+  const [aktifSekme, setAktifSekme] = useState<"sonuclar" | "sorular">("sonuclar");
+  const [yukleniyor, setYukleniyor] = useState(false);
+
+  const [odevler, setOdevler] = useState<OdevKaydi[]>([]);
   const [sorular, setSorular] = useState<SoruItem[]>([]);
   const [arsivSayisi, setArsivSayisi] = useState(0);
-  const [seciliKarne, setSeciliKarne] = useState<OdevKaydi | null>(null);
 
-  // Yeni Soru Formu
+  // Soru Ekleme Form Durumu
   const [yeniBaslik, setYeniBaslik] = useState("");
   const [yeniFen, setYeniFen] = useState("");
   const [yeniIpucu, setYeniIpucu] = useState("");
+  const [islemMesaji, setIslemMesaji] = useState("");
 
-  const DOGRU_SIFRE = "satranc123";
+  // Öğrenci Detay Modalı
+  const [seciliOgrenci, setSeciliOgrenci] = useState<OdevKaydi | null>(null);
 
-  async function verileriGetir() {
-    try {
-      const res = await fetch("/api/odev");
-      const json = await res.json();
-      if (json.success) {
-        setKayitlar(json.data.aktifOdevler || []);
-        setSorular(json.data.sorular || []);
-        setArsivSayisi(json.data.arsivSayisi || 0);
-      }
-    } catch {}
+  function verileriGetir() {
+    setYukleniyor(true);
+    fetch("/api/odev", { cache: "no-store" })
+      .then((r) => r.json())
+      .then((res) => {
+        if (res && res.success && res.data) {
+          setOdevler(Array.isArray(res.data.aktifOdevler) ? res.data.aktifOdevler : []);
+          setSorular(Array.isArray(res.data.sorular) ? res.data.sorular : []);
+          setArsivSayisi(Number(res.data.arsivSayisi) || 0);
+        }
+        setYukleniyor(false);
+      })
+      .catch(() => {
+        setYukleniyor(false);
+      });
   }
 
   useEffect(() => {
@@ -62,378 +73,459 @@ export default function OgretmenPage() {
     }
   }, [girisYapildi]);
 
-  // Yeni Soru Ekleme
-  async function handleSoruEkle(e: React.FormEvent) {
+  function handleLogin(e: React.FormEvent) {
     e.preventDefault();
-    if (!yeniFen.trim() || !yeniBaslik.trim()) {
-      alert("Lütfen başlık ve FEN kodunu girin!");
-      return;
-    }
-
-    const res = await fetch("/api/odev", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        action: "soruEkle",
-        title: yeniBaslik,
-        fen: yeniFen,
-        hint: yeniIpucu,
-      }),
-    });
-    const data = await res.json();
-    if (data.success) {
-      setSorular(data.data);
-      setYeniBaslik("");
-      setYeniFen("");
-      setYeniIpucu("");
-      alert("✅ Yeni soru ödev listesine eklendi!");
+    if (sifre === "satranc123") {
+      setGirisYapildi(true);
+      setSifreHata(false);
+    } else {
+      setSifreHata(true);
     }
   }
 
-  // Soru Silme
+  async function handleSoruEkle(e: React.FormEvent) {
+    e.preventDefault();
+    if (!yeniBaslik.trim() || !yeniFen.trim()) {
+      alert("Lütfen başlık ve FEN kodunu doldurun!");
+      return;
+    }
+
+    try {
+      const res = await fetch("/api/odev", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          action: "soruEkle",
+          title: yeniBaslik,
+          fen: yeniFen,
+          hint: yeniIpucu,
+        }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        setIslemMesaji("✅ Soru başarıyla eklendi!");
+        setYeniBaslik("");
+        setYeniFen("");
+        setYeniIpucu("");
+        verileriGetir();
+        setTimeout(() => setIslemMesaji(""), 3000);
+      }
+    } catch {
+      alert("Soru eklenirken hata oluştu.");
+    }
+  }
+
   async function handleSoruSil(id: number) {
-    if (confirm("Bu soruyu ödev listesinden silmek istediğinize emin misiniz?")) {
+    if (!confirm("Bu soruyu silmek istediğinize emin misiniz?")) return;
+    try {
       const res = await fetch("/api/odev", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ action: "soruSil", id }),
       });
       const data = await res.json();
-      if (data.success) setSorular(data.data);
+      if (data.success) {
+        verileriGetir();
+      }
+    } catch {
+      alert("Soru silinirken hata oluştu.");
     }
   }
 
-  // Haftayı Arşivleme & Sıfırlama
   async function handleHaftayiArsivle() {
-    if (confirm("Mevcut teslimler arşive aktarılacak ve yeni hafta başlayacak. Emin misiniz?")) {
-      await fetch("/api/odev", {
+    if (!confirm("Bu haftaki tüm öğrenci ödevlerini arşivleyip yeni haftaya başlamak istiyor musunuz?")) return;
+    try {
+      const res = await fetch("/api/odev", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ action: "haftayiArsivle" }),
       });
-      verileriGetir();
-      alert("📁 Hafta arşivlendi! Yeni ödev dönemi başladı.");
+      const data = await res.json();
+      if (data.success) {
+        alert("Hafta başarıyla arşivlendi!");
+        verileriGetir();
+      }
+    } catch {
+      alert("Arşivleme hatası.");
     }
   }
 
-  // CSV İndirme
-  function csvIndir() {
-    if (kayitlar.length === 0) return;
-    let csv = "Öğrenci,Doğru,Toplam Soru,Hata Sayısı,Süre (sn),Teslim Tarihi\n";
-    kayitlar.forEach((k) => {
-      csv += `"${k.ogrenciAdi}",${k.dogruSayisi},${k.toplamSoru},${k.toplamHata},${k.gecenSureSaniye},"${k.tamamlanmaTarihi}"\n`;
-    });
-    const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `satranc_odev_raporu_${new Date().toISOString().split("T")[0]}.csv`;
-    a.click();
-  }
-
-  // Soru Bazlı Hata Hesaplama
-  const soruHataSayilari: Record<number, { baslik: string; toplamHata: number }> = {};
-  sorular.forEach((s) => {
-    soruHataSayilari[s.id] = { baslik: s.title, toplamHata: 0 };
-  });
-  kayitlar.forEach((k) => {
-    k.soruDetaylari?.forEach((sd) => {
-      if (soruHataSayilari[sd.soruId]) {
-        soruHataSayilari[sd.soruId].toplamHata += sd.hataliDeneme;
-      }
-    });
-  });
-
-  // 1. ŞİFRE GİRİŞ EKRANI
   if (!girisYapildi) {
     return (
       <div
         style={{
-          maxWidth: "360px",
+          maxWidth: "380px",
           width: "100%",
           backgroundColor: "#ffffff",
           padding: "24px",
           borderRadius: "20px",
-          border: "3px solid #cbd5e1",
+          border: "4px solid #f59e0b",
+          boxShadow: "0 10px 25px rgba(0,0,0,0.1)",
           textAlign: "center",
           margin: "40px auto",
-          boxShadow: "0 10px 20px rgba(0,0,0,0.08)",
         }}
       >
-        <span style={{ fontSize: "44px" }}>🔒</span>
-        <h2 style={{ fontSize: "18px", fontWeight: "900", color: "#1e293b", margin: "8px 0" }}>Öğretmen Girişi</h2>
-        <p style={{ fontSize: "11px", color: "#64748b", marginBottom: "16px" }}>Ödev yönetim paneline erişmek için şifrenizi girin.</p>
-        <input
-          type="password"
-          placeholder="Şifre"
-          value={sifre}
-          onChange={(e) => setSifre(e.target.value)}
-          onKeyDown={(e) => {
-            if (e.key === "Enter") {
-              if (sifre === DOGRU_SIFRE) setGirisYapildi(true);
-              else alert("Hatalı şifre!");
-            }
-          }}
-          style={{
-            width: "100%",
-            padding: "10px",
-            borderRadius: "12px",
-            border: "2px solid #cbd5e1",
-            textAlign: "center",
-            fontSize: "14px",
-            outline: "none",
-            marginBottom: "12px",
-            boxSizing: "border-box",
-          }}
-        />
-        <button
-          type="button"
-          onClick={() => {
-            if (sifre === DOGRU_SIFRE) setGirisYapildi(true);
-            else alert("Hatalı şifre! (Varsayılan: satranc123)");
-          }}
-          style={{
-            width: "100%",
-            padding: "10px",
-            backgroundColor: "#2563eb",
-            color: "#ffffff",
-            fontWeight: "900",
-            borderRadius: "12px",
-            border: "none",
-            cursor: "pointer",
-          }}
-        >
-          Giriş Yap ➔
-        </button>
+        <span style={{ fontSize: "48px" }}>🔐</span>
+        <h1 style={{ fontSize: "18px", fontWeight: "900", color: "#1e293b", margin: "10px 0" }}>
+          Öğretmen Yönetim Paneli
+        </h1>
+        <p style={{ fontSize: "12px", color: "#64748b", marginBottom: "16px" }}>
+          Lütfen devam etmek için öğretmen şifresini girin.
+        </p>
+
+        <form onSubmit={handleLogin}>
+          <input
+            type="password"
+            placeholder="Öğretmen Şifresi (satranc123)"
+            value={sifre}
+            onChange={(e) => setSifre(e.target.value)}
+            style={{
+              width: "100%",
+              padding: "10px 14px",
+              borderRadius: "12px",
+              border: "2px solid #cbd5e1",
+              fontSize: "14px",
+              textAlign: "center",
+              marginBottom: "10px",
+              outline: "none",
+              boxSizing: "border-box",
+            }}
+          />
+
+          {sifreHata && (
+            <div style={{ color: "#dc2626", fontSize: "11px", fontWeight: "bold", marginBottom: "8px" }}>
+              ❌ Hatalı şifre! Tekrar deneyin.
+            </div>
+          )}
+
+          <button
+            type="submit"
+            style={{
+              width: "100%",
+              padding: "10px",
+              backgroundColor: "#2563eb",
+              color: "#ffffff",
+              fontWeight: "900",
+              fontSize: "13px",
+              borderRadius: "12px",
+              border: "none",
+              cursor: "pointer",
+            }}
+          >
+            Giriş Yap 🚀
+          </button>
+        </form>
       </div>
     );
   }
 
-  // 2. YÖNETİCİ PANELİ
   return (
     <div
       style={{
         maxWidth: "800px",
         width: "100%",
         backgroundColor: "#ffffff",
-        borderRadius: "24px",
         padding: "20px",
-        boxShadow: "0 10px 25px rgba(0,0,0,0.08)",
-        border: "2px solid #e2e8f0",
-        margin: "10px auto",
+        borderRadius: "24px",
+        border: "3px solid #fde68a",
+        boxShadow: "0 10px 25px rgba(0,0,0,0.05)",
+        margin: "0 auto",
       }}
     >
-      {/* ÜST BAŞLIK & İŞLEM BUTONLARI */}
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "10px", marginBottom: "16px" }}>
         <div>
-          <h1 style={{ fontSize: "18px", fontWeight: "900", color: "#0f172a", margin: 0 }}>
-            ♟️ Antrenör & Ödev Kontrol Merkezi
+          <h1 style={{ fontSize: "20px", fontWeight: "900", color: "#1e293b", margin: 0 }}>
+            ♟️ Öğretmen Kontrol Masası
           </h1>
-          <span style={{ fontSize: "11px", color: "#64748b" }}>
-            Haftalık ödev yönetimi, canlı öğrenci karneleri ve taktik hata analizleri
+          <span style={{ fontSize: "12px", color: "#64748b" }}>
+            Öğrenci ödev analizleri ve soru yönetim sistemi
           </span>
         </div>
 
-        <div style={{ display: "flex", gap: "6px" }}>
+        <div style={{ display: "flex", gap: "8px" }}>
           <button
             type="button"
-            onClick={csvIndir}
-            disabled={kayitlar.length === 0}
-            style={{ padding: "6px 12px", backgroundColor: "#10b981", color: "#ffffff", borderRadius: "10px", border: "none", fontSize: "11px", fontWeight: "800", cursor: "pointer" }}
+            onClick={verileriGetir}
+            style={{
+              padding: "6px 12px",
+              backgroundColor: "#f1f5f9",
+              color: "#334155",
+              border: "1px solid #cbd5e1",
+              borderRadius: "10px",
+              fontSize: "11px",
+              fontWeight: "bold",
+              cursor: "pointer",
+            }}
           >
-            📥 Excel/CSV İndir
+            🔄 Yenile
           </button>
           <button
             type="button"
-            onClick={handleHaftayiArsivle}
-            style={{ padding: "6px 12px", backgroundColor: "#3b82f6", color: "#ffffff", borderRadius: "10px", border: "none", fontSize: "11px", fontWeight: "800", cursor: "pointer" }}
+            onClick={() => setGirisYapildi(false)}
+            style={{
+              padding: "6px 12px",
+              backgroundColor: "#fee2e2",
+              color: "#dc2626",
+              border: "none",
+              borderRadius: "10px",
+              fontSize: "11px",
+              fontWeight: "bold",
+              cursor: "pointer",
+            }}
           >
-            📁 Yeni Haftayı Başlat ({arsivSayisi} Arşiv)
+            Çıkış Yap
           </button>
         </div>
       </div>
 
-      {/* SEKMELER */}
-      <div style={{ display: "flex", gap: "8px", borderBottom: "2px solid #e2e8f0", paddingBottom: "8px", marginBottom: "16px" }}>
+      {/* SEKME GEÇİŞLERİ */}
+      <div style={{ display: "flex", gap: "10px", marginBottom: "16px", borderBottom: "2px solid #f1f5f9", paddingBottom: "10px" }}>
         <button
           type="button"
-          onClick={() => setAktifTab("ogrenciler")}
+          onClick={() => setAktifSekme("sonuclar")}
           style={{
-            padding: "8px 14px",
-            borderRadius: "10px",
+            padding: "8px 16px",
+            borderRadius: "12px",
             border: "none",
-            backgroundColor: aktifTab === "ogrenciler" ? "#2563eb" : "#f1f5f9",
-            color: aktifTab === "ogrenciler" ? "#ffffff" : "#475569",
-            fontWeight: "800",
+            backgroundColor: aktifSekme === "sonuclar" ? "#2563eb" : "#f1f5f9",
+            color: aktifSekme === "sonuclar" ? "#ffffff" : "#64748b",
+            fontWeight: "900",
             fontSize: "12px",
             cursor: "pointer",
           }}
         >
-          👥 Öğrenci Teslimleri ({kayitlar.length})
+          📊 Ödev Teslimleri ({odevler.length})
         </button>
 
         <button
           type="button"
-          onClick={() => setAktifTab("sorular")}
+          onClick={() => setAktifSekme("sorular")}
           style={{
-            padding: "8px 14px",
-            borderRadius: "10px",
+            padding: "8px 16px",
+            borderRadius: "12px",
             border: "none",
-            backgroundColor: aktifTab === "sorular" ? "#2563eb" : "#f1f5f9",
-            color: aktifTab === "sorular" ? "#ffffff" : "#475569",
-            fontWeight: "800",
+            backgroundColor: aktifSekme === "sorular" ? "#2563eb" : "#f1f5f9",
+            color: aktifSekme === "sorular" ? "#ffffff" : "#64748b",
+            fontWeight: "900",
             fontSize: "12px",
             cursor: "pointer",
           }}
         >
-          ⚙️ Ödev Sorularını Yönet ({sorular.length} Soru)
-        </button>
-
-        <button
-          type="button"
-          onClick={() => setAktifTab("analiz")}
-          style={{
-            padding: "8px 14px",
-            borderRadius: "10px",
-            border: "none",
-            backgroundColor: aktifTab === "analiz" ? "#2563eb" : "#f1f5f9",
-            color: aktifTab === "analiz" ? "#ffffff" : "#475569",
-            fontWeight: "800",
-            fontSize: "12px",
-            cursor: "pointer",
-          }}
-        >
-          📊 Soru Zorluk & Hata Analizi
+          ⚙️ Ödev Sorularını Yönet ({sorular.length})
         </button>
       </div>
 
-      {/* 1. SEKME: ÖĞRENCİ TESLİMLERİ LİSTESİ */}
-      {aktifTab === "ogrenciler" && (
-        <div style={{ overflowX: "auto" }}>
-          <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "12px", textAlign: "left" }}>
-            <thead>
-              <tr style={{ backgroundColor: "#f8fafc", borderBottom: "2px solid #e2e8f0" }}>
-                <th style={{ padding: "10px", color: "#334155" }}>Öğrenci Adı</th>
-                <th style={{ padding: "10px", color: "#334155" }}>Başarı</th>
-                <th style={{ padding: "10px", color: "#334155" }}>Hatalı Hamle</th>
-                <th style={{ padding: "10px", color: "#334155" }}>Süre</th>
-                <th style={{ padding: "10px", color: "#334155" }}>Tarih</th>
-                <th style={{ padding: "10px", color: "#334155" }}>Karne</th>
-              </tr>
-            </thead>
-            <tbody>
-              {kayitlar.length === 0 ? (
-                <tr>
-                  <td colSpan={6} style={{ padding: "24px", textAlign: "center", color: "#94a3b8", fontStyle: "italic" }}>
-                    Bu hafta henüz ödev teslim eden öğrenci bulunmuyor.
-                  </td>
-                </tr>
-              ) : (
-                kayitlar.map((k) => (
-                  <tr key={k.id} style={{ borderBottom: "1px solid #f1f5f9" }}>
-                    <td style={{ padding: "10px", fontWeight: "800", color: "#0f172a" }}>👤 {k.ogrenciAdi}</td>
-                    <td style={{ padding: "10px", fontWeight: "800", color: "#16a34a" }}>
-                      ⭐ {k.dogruSayisi} / {k.toplamSoru}
-                    </td>
-                    <td style={{ padding: "10px", color: k.toplamHata > 0 ? "#dc2626" : "#64748b", fontWeight: "700" }}>
-                      {k.toplamHata} Hata
-                    </td>
-                    <td style={{ padding: "10px", color: "#64748b" }}>{k.gecenSureSaniye} sn</td>
-                    <td style={{ padding: "10px", color: "#64748b" }}>{k.tamamlanmaTarihi}</td>
-                    <td style={{ padding: "10px" }}>
-                      <button
-                        type="button"
-                        onClick={() => setSeciliKarne(k)}
-                        style={{
-                          padding: "4px 8px",
-                          backgroundColor: "#fef3c7",
-                          color: "#b45309",
-                          border: "1px solid #fde68a",
-                          borderRadius: "8px",
-                          fontSize: "10.5px",
-                          fontWeight: "800",
-                          cursor: "pointer",
-                        }}
-                      >
-                        🔍 İncele
-                      </button>
-                    </td>
-                  </tr>
-                ))
-              )}
-            </tbody>
-          </table>
+      {yukleniyor && (
+        <div style={{ textAlign: "center", padding: "20px", color: "#64748b", fontSize: "13px" }}>
+          Veriler güncelleniyor... ⏳
         </div>
       )}
 
-      {/* 2. SEKME: KODSUZ SORU YÖNETİCİSİ */}
-      {aktifTab === "sorular" && (
+      {/* SEKME 1: ÖDEV SONUÇLARI */}
+      {aktifSekme === "sonuclar" && (
         <div>
-          {/* Yeni Soru Ekleme Formu */}
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "12px" }}>
+            <span style={{ fontSize: "13px", fontWeight: "800", color: "#334155" }}>
+              Aktif Hafta Teslimleri
+            </span>
+            <button
+              type="button"
+              onClick={handleHaftayiArsivle}
+              style={{
+                padding: "6px 12px",
+                backgroundColor: "#f59e0b",
+                color: "#ffffff",
+                border: "none",
+                borderRadius: "10px",
+                fontSize: "11px",
+                fontWeight: "bold",
+                cursor: "pointer",
+              }}
+            >
+              📦 Haftayı Arşivle ({arsivSayisi} Arşiv)
+            </button>
+          </div>
+
+          {odevler.length === 0 ? (
+            <div
+              style={{
+                padding: "30px",
+                textAlign: "center",
+                backgroundColor: "#f8fafc",
+                borderRadius: "16px",
+                color: "#64748b",
+                fontSize: "13px",
+              }}
+            >
+              Henüz bu hafta ödev teslim eden öğrenci bulunmuyor.
+            </div>
+          ) : (
+            <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
+              {odevler.map((item) => (
+                <div
+                  key={item.id}
+                  style={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                    padding: "12px 16px",
+                    backgroundColor: "#f8fafc",
+                    borderRadius: "16px",
+                    border: "1px solid #e2e8f0",
+                    flexWrap: "wrap",
+                    gap: "8px",
+                  }}
+                >
+                  <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+                    <span style={{ fontSize: "28px" }}>{item.avatar || "🦁"}</span>
+                    <div>
+                      <div style={{ fontSize: "14px", fontWeight: "900", color: "#1e293b" }}>
+                        {item.ogrenciAdi}
+                      </div>
+                      <div style={{ fontSize: "11px", color: "#64748b" }}>
+                        {item.sinifGrup || "Genel"} • {item.tamamlanmaTarihi}
+                      </div>
+                    </div>
+                  </div>
+
+                  <div style={{ display: "flex", alignItems: "center", gap: "14px" }}>
+                    <div style={{ textAlign: "center" }}>
+                      <div style={{ fontSize: "11px", color: "#64748b" }}>Süre</div>
+                      <div style={{ fontSize: "13px", fontWeight: "900", color: "#0284c7" }}>
+                        {item.gecenSureSaniye} sn
+                      </div>
+                    </div>
+
+                    <div style={{ textAlign: "center" }}>
+                      <div style={{ fontSize: "11px", color: "#64748b" }}>Hata</div>
+                      <div
+                        style={{
+                          fontSize: "13px",
+                          fontWeight: "900",
+                          color: item.toplamHata > 0 ? "#dc2626" : "#16a34a",
+                        }}
+                      >
+                        {item.toplamHata}
+                      </div>
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={() => setSeciliOgrenci(item)}
+                      style={{
+                        padding: "6px 12px",
+                        backgroundColor: "#eff6ff",
+                        color: "#2563eb",
+                        border: "1px solid #bfdbfe",
+                        borderRadius: "10px",
+                        fontSize: "11px",
+                        fontWeight: "bold",
+                        cursor: "pointer",
+                      }}
+                    >
+                      🔍 İncele
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* SEKME 2: SORU YÖNETİMİ */}
+      {aktifSekme === "sorular" && (
+        <div>
           <form
             onSubmit={handleSoruEkle}
             style={{
               backgroundColor: "#f8fafc",
               padding: "16px",
               borderRadius: "16px",
-              border: "2px dashed #93c5fd",
-              marginBottom: "16px",
-              display: "flex",
-              flexDirection: "column",
-              gap: "8px",
+              border: "1px solid #e2e8f0",
+              marginBottom: "20px",
             }}
           >
-            <span style={{ fontSize: "12px", fontWeight: "900", color: "#1e3a8a" }}>
-              ➕ Lichess / Chess.com'dan Yeni Soru Ekle:
-            </span>
+            <h3 style={{ fontSize: "14px", fontWeight: "900", color: "#1e293b", margin: "0 0 10px 0" }}>
+              ➕ Yeni Soru Ekle
+            </h3>
 
             <input
               type="text"
-              placeholder="Soru Başlığı (Örn: 3. Görev: Çifte Şah Tuzağı 🎯)"
+              placeholder="Soru Başlığı (Örn: 1. Görev: Çoban Matı Taktik Darbesi 🎯)"
               value={yeniBaslik}
               onChange={(e) => setYeniBaslik(e.target.value)}
-              style={{ padding: "8px 12px", borderRadius: "10px", border: "1px solid #cbd5e1", fontSize: "12px" }}
-              required
+              style={{
+                width: "100%",
+                padding: "8px 12px",
+                borderRadius: "10px",
+                border: "1px solid #cbd5e1",
+                fontSize: "12px",
+                marginBottom: "8px",
+                boxSizing: "border-box",
+              }}
             />
 
             <input
               type="text"
-              placeholder="FEN Kodu (Örn: 6k1/5ppp/8/8/8/8/8/4R1K1 w - - 0 1)"
+              placeholder="FEN Kodu (Örn: r1bqkb1r/pppp1ppp/2n5/4p3/2B1n3/5Q2/PPPP1PPP/RNB1K1NR w KQkq - 0 4)"
               value={yeniFen}
               onChange={(e) => setYeniFen(e.target.value)}
-              style={{ padding: "8px 12px", borderRadius: "10px", border: "1px solid #cbd5e1", fontSize: "12px", fontFamily: "monospace" }}
-              required
+              style={{
+                width: "100%",
+                padding: "8px 12px",
+                borderRadius: "10px",
+                border: "1px solid #cbd5e1",
+                fontSize: "12px",
+                marginBottom: "8px",
+                boxSizing: "border-box",
+              }}
             />
 
             <input
               type="text"
-              placeholder="Çocuklar İçin İpucu (Örn: İpucu: Kaleyi son yataya indir!)"
+              placeholder="Çocuklar İçin İpucu (Örn: İpucu: Vezir zayıf f7 karesine saldırabilir!)"
               value={yeniIpucu}
               onChange={(e) => setYeniIpucu(e.target.value)}
-              style={{ padding: "8px 12px", borderRadius: "10px", border: "1px solid #cbd5e1", fontSize: "12px" }}
+              style={{
+                width: "100%",
+                padding: "8px 12px",
+                borderRadius: "10px",
+                border: "1px solid #cbd5e1",
+                fontSize: "12px",
+                marginBottom: "10px",
+                boxSizing: "border-box",
+              }}
             />
+
+            {islemMesaji && (
+              <div style={{ color: "#16a34a", fontSize: "12px", fontWeight: "bold", marginBottom: "8px" }}>
+                {islemMesaji}
+              </div>
+            )}
 
             <button
               type="submit"
               style={{
                 padding: "8px 16px",
-                backgroundColor: "#2563eb",
+                backgroundColor: "#16a34a",
                 color: "#ffffff",
-                fontWeight: "900",
-                borderRadius: "10px",
                 border: "none",
+                borderRadius: "10px",
                 fontSize: "12px",
+                fontWeight: "900",
                 cursor: "pointer",
-                marginTop: "4px",
               }}
             >
-              ✅ Bu Soruyu Ödeve Ekle
+              Soruyu Kaydet 💾
             </button>
           </form>
 
-          {/* Mevcut Sorular Listesi */}
+          <h3 style={{ fontSize: "14px", fontWeight: "900", color: "#1e293b", marginBottom: "10px" }}>
+            Mevcut Ödev Soruları
+          </h3>
+
           <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
-            <span style={{ fontSize: "12px", fontWeight: "800", color: "#334155" }}>Bu Haftanın Aktif Soruları:</span>
             {sorular.map((s, idx) => (
               <div
                 key={s.id}
@@ -442,17 +534,20 @@ export default function OgretmenPage() {
                   justifyContent: "space-between",
                   alignItems: "center",
                   padding: "10px 14px",
-                  backgroundColor: "#ffffff",
+                  backgroundColor: "#f8fafc",
                   borderRadius: "12px",
                   border: "1px solid #e2e8f0",
                 }}
               >
                 <div>
-                  <div style={{ fontWeight: "800", fontSize: "12px", color: "#0f172a" }}>
-                    {idx + 1}. {s.title}
+                  <div style={{ fontSize: "12px", fontWeight: "900", color: "#1e293b" }}>
+                    #{idx + 1} {s.title}
                   </div>
-                  <div style={{ fontSize: "10px", color: "#64748b", fontFamily: "monospace" }}>{s.fen}</div>
+                  <div style={{ fontSize: "11px", color: "#64748b", fontStyle: "italic" }}>
+                    {s.hint}
+                  </div>
                 </div>
+
                 <button
                   type="button"
                   onClick={() => handleSoruSil(s.id)}
@@ -461,13 +556,13 @@ export default function OgretmenPage() {
                     backgroundColor: "#fee2e2",
                     color: "#dc2626",
                     border: "none",
-                    borderRadius: "6px",
+                    borderRadius: "8px",
                     fontSize: "11px",
+                    fontWeight: "bold",
                     cursor: "pointer",
-                    fontWeight: "800",
                   }}
                 >
-                  Sil 🗑️
+                  Sil
                 </button>
               </div>
             ))}
@@ -475,134 +570,99 @@ export default function OgretmenPage() {
         </div>
       )}
 
-      {/* 3. SEKME: SORU BAZLI ZORLUK ANALİZİ */}
-      {aktifTab === "analiz" && (
-        <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
-          <p style={{ fontSize: "12px", color: "#64748b", margin: 0 }}>
-            Öğrencilerin en çok hangi soruda hatalı hamle yaptığını gösterir. Yüksek hata oranı olan konuları derste tekrar edebilirsiniz!
-          </p>
-
-          {Object.entries(soruHataSayilari).map(([sId, val]) => (
-            <div
-              key={sId}
-              style={{
-                backgroundColor: "#f8fafc",
-                padding: "12px",
-                borderRadius: "14px",
-                border: "1px solid #e2e8f0",
-                display: "flex",
-                justifyContent: "space-between",
-                alignItems: "center",
-              }}
-            >
-              <div>
-                <div style={{ fontWeight: "800", fontSize: "12px", color: "#1e293b" }}>{val.baslik}</div>
-                <span style={{ fontSize: "11px", color: "#64748b" }}>Tüm sınıf toplam hata sayısı</span>
-              </div>
-              <div
-                style={{
-                  padding: "6px 14px",
-                  borderRadius: "10px",
-                  backgroundColor: val.toplamHata > 5 ? "#fee2e2" : "#f0fdf4",
-                  color: val.toplamHata > 5 ? "#dc2626" : "#166534",
-                  fontWeight: "900",
-                  fontSize: "13px",
-                }}
-              >
-                {val.toplamHata} Hata {val.toplamHata > 5 ? "⚠️ Zorlanıldı" : "✅ Rahat Çözüldü"}
-              </div>
-            </div>
-          ))}
-        </div>
-      )}
-
-      {/* ÖĞRENCİ KARNESİ MODAL AÇILIR PENCERESİ */}
-      {seciliKarne && (
+      {/* MODAL: ÖĞRENCİ DETAYLI SORU KARNESİ */}
+      {seciliOgrenci && (
         <div
           style={{
             position: "fixed",
             inset: 0,
-            backgroundColor: "rgba(0,0,0,0.6)",
+            backgroundColor: "rgba(0,0,0,0.5)",
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
-            zIndex: 100,
             padding: "16px",
+            zIndex: 50,
           }}
         >
           <div
             style={{
               backgroundColor: "#ffffff",
-              borderRadius: "20px",
               padding: "20px",
-              maxWidth: "420px",
+              borderRadius: "20px",
+              maxWidth: "450px",
               width: "100%",
               boxShadow: "0 20px 25px rgba(0,0,0,0.2)",
             }}
           >
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "12px" }}>
-              <h3 style={{ margin: 0, fontSize: "16px", fontWeight: "900", color: "#0f172a" }}>
-                📜 Öğrenci Ödev Karnesi
-              </h3>
+              <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                <span style={{ fontSize: "24px" }}>{seciliOgrenci.avatar || "🦁"}</span>
+                <span style={{ fontSize: "15px", fontWeight: "900", color: "#1e293b" }}>
+                  {seciliOgrenci.ogrenciAdi} - Soru Analizi
+                </span>
+              </div>
               <button
                 type="button"
-                onClick={() => setSeciliKarne(null)}
-                style={{ background: "none", border: "none", fontSize: "16px", cursor: "pointer" }}
+                onClick={() => setSeciliOgrenci(null)}
+                style={{
+                  background: "none",
+                  border: "none",
+                  fontSize: "18px",
+                  cursor: "pointer",
+                  color: "#64748b",
+                }}
               >
-                ✖
+                ✕
               </button>
             </div>
 
-            <div style={{ backgroundColor: "#f8fafc", padding: "12px", borderRadius: "12px", marginBottom: "12px" }}>
-              <div style={{ fontWeight: "900", fontSize: "14px", color: "#1e3a8a" }}>{seciliKarne.ogrenciAdi}</div>
-              <div style={{ fontSize: "11px", color: "#64748b", marginTop: "2px" }}>
-                Teslim: {seciliKarne.tamamlanmaTarihi} • Toplam Süre: {seciliKarne.gecenSureSaniye} sn
-              </div>
-              <div style={{ fontSize: "12px", fontWeight: "800", color: "#16a34a", marginTop: "4px" }}>
-                Başarı: {seciliKarne.dogruSayisi} / {seciliKarne.toplamSoru} Soru (%100)
-              </div>
-            </div>
-
-            <div style={{ fontSize: "11px", fontWeight: "800", color: "#334155", marginBottom: "6px" }}>
-              Soru Başına Denemeler:
-            </div>
-
-            <div style={{ display: "flex", flexDirection: "column", gap: "6px", maxHeight: "180px", overflowY: "auto" }}>
-              {seciliKarne.soruDetaylari?.map((sd, i) => (
-                <div
-                  key={i}
-                  style={{
-                    display: "flex",
-                    justifyContent: "space-between",
-                    padding: "8px 10px",
-                    backgroundColor: "#ffffff",
-                    border: "1px solid #e2e8f0",
-                    borderRadius: "8px",
-                    fontSize: "11px",
-                  }}
-                >
-                  <span style={{ fontWeight: "700", color: "#1e293b" }}>{sd.soruBaslik}</span>
-                  <span style={{ fontWeight: "900", color: sd.hataliDeneme === 0 ? "#16a34a" : "#dc2626" }}>
-                    {sd.hataliDeneme === 0 ? "İlk Seferde Doğru ⭐" : `${sd.hataliDeneme} Hatalı Deneme`}
-                  </span>
+            <div style={{ display: "flex", flexDirection: "column", gap: "8px", marginBottom: "16px" }}>
+              {seciliOgrenci.soruDetaylari && seciliOgrenci.soruDetaylari.length > 0 ? (
+                seciliOgrenci.soruDetaylari.map((detay, i) => (
+                  <div
+                    key={i}
+                    style={{
+                      display: "flex",
+                      justifyContent: "space-between",
+                      padding: "8px 12px",
+                      backgroundColor: "#f8fafc",
+                      borderRadius: "10px",
+                      fontSize: "12px",
+                    }}
+                  >
+                    <span style={{ fontWeight: "700", color: "#334155" }}>
+                      {detay.soruBaslik || `Soru #${i + 1}`}
+                    </span>
+                    <span
+                      style={{
+                        fontWeight: "900",
+                        color: detay.hataliDeneme === 0 ? "#16a34a" : "#dc2626",
+                      }}
+                    >
+                      {detay.hataliDeneme === 0 ? "İlk Seferde Doğru ✨" : `${detay.hataliDeneme} Hatalı Hamle`}
+                    </span>
+                  </div>
+                ))
+              ) : (
+                <div style={{ fontSize: "12px", color: "#64748b", textAlign: "center" }}>
+                  Detaylı soru verisi bulunamadı.
                 </div>
-              ))}
+              )}
             </div>
 
             <button
               type="button"
-              onClick={() => setSeciliKarne(null)}
+              onClick={() => setSeciliOgrenci(null)}
               style={{
                 width: "100%",
-                padding: "10px",
+                padding: "8px",
                 backgroundColor: "#2563eb",
                 color: "#ffffff",
-                fontWeight: "900",
-                borderRadius: "12px",
                 border: "none",
+                borderRadius: "10px",
+                fontWeight: "900",
                 fontSize: "12px",
                 cursor: "pointer",
-                marginTop: "14px",
               }}
             >
               Kapat
@@ -610,20 +670,6 @@ export default function OgretmenPage() {
           </div>
         </div>
       )}
-
-      {/* ALT LİNKLER */}
-      <div style={{ marginTop: "16px", display: "flex", justifyContent: "space-between" }}>
-        <Link href="/" style={{ fontSize: "11px", color: "#2563eb", fontWeight: "800", textDecoration: "none" }}>
-          ⬅️ Ana Sayfaya Dön
-        </Link>
-        <button
-          type="button"
-          onClick={() => setGirisYapildi(false)}
-          style={{ background: "none", border: "none", color: "#dc2626", fontSize: "11px", fontWeight: "800", cursor: "pointer" }}
-        >
-          Çıkış Yap ✖
-        </button>
-      </div>
     </div>
   );
 }
