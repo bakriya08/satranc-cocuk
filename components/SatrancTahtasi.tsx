@@ -155,8 +155,7 @@ export default function SatrancTahtasi() {
         setPossibleSquares([]);
 
         if (move.captured) {
-          const capName = String(move.captured);
-          setCapturedByWhite((prev) => [...prev, capName]);
+          setCapturedByWhite((prev) => [...prev, String(move.captured)]);
           sesCal("capture");
         } else if (gameCopy.inCheck()) {
           sesCal("check");
@@ -186,8 +185,7 @@ export default function SatrancTahtasi() {
             setGame(botCopy);
 
             if (chosenMove.captured) {
-              const botCapName = String(chosenMove.captured);
-              setCapturedByBlack((prev) => [...prev, botCapName]);
+              setCapturedByBlack((prev) => [...prev, String(chosenMove.captured)]);
               sesCal("capture");
             } else if (botCopy.inCheck()) {
               sesCal("check");
@@ -241,11 +239,26 @@ export default function SatrancTahtasi() {
   }
 
   return (
-    <div className="flex flex-col items-center justify-center p-5 bg-amber-50 rounded-3xl shadow-2xl max-w-md w-full border-4 border-amber-300 select-none">
-      <div 
-        style={{ width: "360px", height: "360px", display: "grid", gridTemplateColumns: "repeat(8, 1fr)", gridTemplateRows: "repeat(8, 1fr)" }}
-        className="rounded-2xl overflow-hidden border-4 border-amber-900 shadow-xl bg-amber-900"
-      >
+    <div
+      style={{
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        justifyContent: "center",
+        padding: "20px",
+        backgroundColor: "#fffbeb",
+        borderRadius: "24px",
+        boxShadow: "0 20px 25px -5px rgba(0, 0, 0, 0.15)",
+        maxWidth: "400px",
+        width: "100%",
+        border: "4px solid #fcd34d",
+        boxSizing: "border-box",
+        userSelect: "none",
+        margin: "0 auto",
+      }}
+    >
+      {/* Bot Seçim Butonları */}
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "8px", width: "100%", marginBottom: "12px" }}>
         {BOTS.map((bot) => {
           const isActive = activeBot.id === bot.id;
           return (
@@ -257,50 +270,99 @@ export default function SatrancTahtasi() {
                 setActiveBot(bot);
                 oyunuSifirla(bot);
               }}
-              className={`flex flex-col items-center justify-center py-2 px-1 rounded-2xl border-2 transition-all cursor-pointer ${
-                isActive
-                  ? "bg-amber-400 border-amber-600 shadow-md scale-105"
-                  : "bg-amber-100/70 border-amber-200 hover:bg-amber-200/80 opacity-75"
-              }`}
+              style={{
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center",
+                justifyContent: "center",
+                padding: "8px 4px",
+                borderRadius: "16px",
+                border: isActive ? "2px solid #d97706" : "2px solid #fde68a",
+                backgroundColor: isActive ? "#fbbf24" : "#fef3c7",
+                cursor: "pointer",
+                transform: isActive ? "scale(1.04)" : "scale(1)",
+                transition: "all 0.15s ease",
+              }}
             >
-              <span className="text-2xl">{bot.avatar}</span>
-              <span className="text-xs font-black text-amber-950 mt-0.5">{bot.name}</span>
-              <span className="text-[10px] font-bold text-amber-800">({bot.title})</span>
+              <span style={{ fontSize: "24px" }}>{bot.avatar}</span>
+              <span style={{ fontSize: "11px", fontWeight: "900", color: "#451a03", marginTop: "2px" }}>{bot.name}</span>
+              <span style={{ fontSize: "10px", fontWeight: "bold", color: "#92400e" }}>({bot.title})</span>
             </button>
           );
         })}
       </div>
 
-      <div className="text-sm md:text-base font-black mb-3 text-amber-950 bg-amber-200 px-5 py-2 rounded-full shadow-sm text-center min-h-[44px] flex items-center justify-center w-full">
+      {/* Durum Mesajı */}
+      <div
+        style={{
+          width: "100%",
+          padding: "8px 12px",
+          backgroundColor: "#fde68a",
+          borderRadius: "9999px",
+          textAlign: "center",
+          fontWeight: "900",
+          fontSize: "14px",
+          color: "#451a03",
+          marginBottom: "12px",
+          minHeight: "40px",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          boxSizing: "border-box",
+        }}
+      >
         {durumMesaji}
       </div>
 
-      <div className="w-full flex items-center justify-between px-3 py-2 bg-amber-100/80 rounded-2xl mb-2 border border-amber-200">
-        <div className="flex items-center gap-2">
-          <span className="text-2xl">{activeBot.avatar}</span>
-          <div className="flex flex-col text-left">
-            <span className="font-extrabold text-xs text-amber-900">{activeBot.name}</span>
-            <span className="text-[10px] text-amber-700 font-bold">{activeBot.title} Rakip</span>
+      {/* Rakip Bot Bilgisi */}
+      <div
+        style={{
+          width: "100%",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          padding: "8px 12px",
+          backgroundColor: "#fef3c7",
+          borderRadius: "16px",
+          marginBottom: "8px",
+          border: "1px solid #fde68a",
+          boxSizing: "border-box",
+        }}
+      >
+        <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+          <span style={{ fontSize: "24px" }}>{activeBot.avatar}</span>
+          <div style={{ display: "flex", flexDirection: "column" }}>
+            <span style={{ fontWeight: "800", fontSize: "12px", color: "#78350f" }}>{activeBot.name}</span>
+            <span style={{ fontSize: "10px", color: "#b45309", fontWeight: "bold" }}>{activeBot.title} Rakip</span>
           </div>
         </div>
-        <div className="flex items-center gap-1 min-h-[26px] overflow-x-auto max-w-[180px]">
+        <div style={{ display: "flex", alignItems: "center", gap: "4px" }}>
           {capturedByBlack.map((p, idx) => (
-            <img
-              key={idx}
-              src={PIECE_IMAGES[`w${p.toUpperCase()}`]}
-              alt={p}
-              className="w-5 h-5 object-contain"
-            />
+            <img key={idx} src={PIECE_IMAGES[`w${p.toUpperCase()}`]} alt={p} style={{ width: "20px", height: "20px" }} />
           ))}
           {scoreDiff < 0 && (
-            <span className="text-xs font-black text-rose-700 bg-rose-100 px-1.5 py-0.5 rounded-md ml-1">
+            <span style={{ fontSize: "11px", fontWeight: "900", color: "#be123c", backgroundColor: "#ffe4e6", padding: "2px 6px", borderRadius: "6px" }}>
               +{Math.abs(scoreDiff)}
             </span>
           )}
         </div>
       </div>
 
-      <div className="grid grid-cols-8 grid-rows-8 w-[360px] h-[360px] rounded-2xl overflow-hidden border-4 border-amber-900 shadow-xl bg-amber-900">
+      {/* Satranç Tahtası (Sabit 352x352 px) */}
+      <div
+        style={{
+          width: "352px",
+          height: "352px",
+          display: "grid",
+          gridTemplateColumns: "repeat(8, 44px)",
+          gridTemplateRows: "repeat(8, 44px)",
+          borderRadius: "16px",
+          overflow: "hidden",
+          border: "4px solid #78350f",
+          boxShadow: "0 10px 15px -3px rgba(0,0,0,0.2)",
+          backgroundColor: "#78350f",
+        }}
+      >
         {ranks.map((rank, rankIndex) =>
           files.map((file, fileIndex) => {
             const square = `${file}${rank}`;
@@ -317,28 +379,53 @@ export default function SatrancTahtasi() {
                 key={square}
                 type="button"
                 onClick={() => handleSquareClick(square)}
-                className={`w-full h-full flex items-center justify-center p-1 relative transition-all duration-150 cursor-pointer ${
-                  isSelected
-                    ? "bg-amber-300 ring-4 ring-amber-400 z-10"
-                    : isDark
-                    ? "bg-[#b58863]"
-                    : "bg-[#f0d9b5]"
-                }`}
+                style={{
+                  width: "44px",
+                  height: "44px",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  padding: "0",
+                  margin: "0",
+                  border: "none",
+                  position: "relative",
+                  cursor: "pointer",
+                  backgroundColor: isSelected ? "#fde047" : isDark ? "#b58863" : "#f0d9b5",
+                  outline: isSelected ? "3px solid #f59e0b" : "none",
+                  zIndex: isSelected ? 5 : 1,
+                }}
               >
                 {pieceImgUrl && (
                   <img
                     src={pieceImgUrl}
                     alt={pieceKey || "piece"}
-                    className="w-[85%] h-[85%] object-contain pointer-events-none drop-shadow-sm select-none z-10"
+                    style={{ width: "36px", height: "36px", pointerEvents: "none", userSelect: "none" }}
                     draggable={false}
                   />
                 )}
 
                 {isPossibleTarget && !piece && (
-                  <div className="absolute w-3.5 h-3.5 rounded-full bg-emerald-600/70 pointer-events-none z-20 shadow-sm" />
+                  <div
+                    style={{
+                      position: "absolute",
+                      width: "14px",
+                      height: "14px",
+                      borderRadius: "50%",
+                      backgroundColor: "rgba(5, 150, 105, 0.7)",
+                      pointerEvents: "none",
+                    }}
+                  />
                 )}
                 {isPossibleTarget && piece && (
-                  <div className="absolute inset-1 rounded-full border-4 border-rose-500/80 pointer-events-none z-20 animate-pulse" />
+                  <div
+                    style={{
+                      position: "absolute",
+                      inset: "2px",
+                      borderRadius: "50%",
+                      border: "3px solid rgba(225, 29, 72, 0.8)",
+                      pointerEvents: "none",
+                    }}
+                  />
                 )}
               </button>
             );
@@ -346,41 +433,59 @@ export default function SatrancTahtasi() {
         )}
       </div>
 
-      <div className="w-full flex items-center justify-between px-3 py-2 bg-amber-100/80 rounded-2xl mt-2 border border-amber-200">
-        <div className="flex items-center gap-2">
-          <span className="text-2xl">🦁</span>
-          <div className="flex flex-col text-left">
-            <span className="font-extrabold text-xs text-amber-900">Sen (Beyaz)</span>
-            <span className="text-[11px] font-black text-amber-600 flex items-center gap-0.5">
-              ⭐ {whiteScore} Yıldız
-            </span>
+      {/* Oyuncu Bilgisi */}
+      <div
+        style={{
+          width: "100%",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          padding: "8px 12px",
+          backgroundColor: "#fef3c7",
+          borderRadius: "16px",
+          marginTop: "8px",
+          border: "1px solid #fde68a",
+          boxSizing: "border-box",
+        }}
+      >
+        <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+          <span style={{ fontSize: "24px" }}>🦁</span>
+          <div style={{ display: "flex", flexDirection: "column" }}>
+            <span style={{ fontWeight: "800", fontSize: "12px", color: "#78350f" }}>Sen (Beyaz)</span>
+            <span style={{ fontSize: "11px", fontWeight: "900", color: "#d97706" }}>⭐ {whiteScore} Yıldız</span>
           </div>
         </div>
 
-        <div className="flex items-center gap-1 min-h-[26px] overflow-x-auto max-w-[180px]">
+        <div style={{ display: "flex", alignItems: "center", gap: "4px" }}>
           {capturedByWhite.map((p, idx) => (
-            <img
-              key={idx}
-              src={PIECE_IMAGES[`b${p.toUpperCase()}`]}
-              alt={p}
-              className="w-5 h-5 object-contain"
-            />
+            <img key={idx} src={PIECE_IMAGES[`b${p.toUpperCase()}`]} alt={p} style={{ width: "20px", height: "20px" }} />
           ))}
           {scoreDiff > 0 && (
-            <span className="text-xs font-black text-emerald-700 bg-emerald-100 px-1.5 py-0.5 rounded-md ml-1">
+            <span style={{ fontSize: "11px", fontWeight: "900", color: "#047857", backgroundColor: "#d1fae5", padding: "2px 6px", borderRadius: "6px" }}>
               +{scoreDiff}
             </span>
           )}
         </div>
       </div>
 
+      {/* Yeniden Başla Butonu */}
       <button
         type="button"
         onClick={() => oyunuSifirla()}
-        className="mt-4 px-8 py-2.5 bg-emerald-500 hover:bg-emerald-600 text-white font-black rounded-2xl shadow-lg transition-transform active:scale-95 text-base cursor-pointer flex items-center gap-2"
+        style={{
+          marginTop: "14px",
+          padding: "10px 24px",
+          backgroundColor: "#10b981",
+          color: "white",
+          fontWeight: "900",
+          borderRadius: "16px",
+          border: "none",
+          fontSize: "15px",
+          cursor: "pointer",
+          boxShadow: "0 4px 6px -1px rgba(0,0,0,0.1)",
+        }}
       >
-        <span>Yeniden Başla</span>
-        <span>🔄</span>
+        Yeniden Başla 🔄
       </button>
     </div>
   );
