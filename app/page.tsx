@@ -1,35 +1,50 @@
 ﻿"use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import Link from "next/link";
 
 export default function BotOyunuPage() {
-  const [botMesaji, setBotMesaji] = useState("Merhaba küçük şampiyon! Ben akıllı satranç botunum. Hadi benimle bir hamle yap ve yarışalım! ♟️");
-  const [oyunDurumu, setOyunDurumu] = useState("Hamle sırası sende. İstediğin bir taşı ilerlet!");
+  const [zorluk, setZorluk] = useState<"kolay" | "orta" | "zor">("kolay");
+  const [botMesaji, setBotMesaji] = useState("Harika bir gün! Ben senin satranç koçun ve bot rakibinim. Hadi zorluk seviyeni seç ve oynamaya başlayalım! ♟️");
+  const [oyunDurumu, setOyunDurumu] = useState("Hamle sırası sende. Akıllı hamleni seç!");
 
-  // Tarayıcı ses sentezi ile botu konuşturma fonksiyonu
   function botuKonustur(metin: string) {
     setBotMesaji(metin);
     if (typeof window !== "undefined" && "speechSynthesis" in window) {
       window.speechSynthesis.cancel();
       const ses = new SpeechSynthesisUtterance(metin);
       ses.lang = "tr-TR";
-      ses.rate = 0.95; // Çocukların rahatça duyabileceği tempo
+      ses.rate = 0.95;
       window.speechSynthesis.speak(ses);
     }
   }
 
-  // Oyuncu hamle yaptığında botun tepki vermesi
   function handleHamleYap(hamleTipi: "iyi" | "riskli" | "mat") {
     if (hamleTipi === "iyi") {
-      botuKonustur("Harika bir hamle! Taşını mükemmel bir kareye yerleştirdin, böyle devam et! ⭐");
-      setOyunDurumu("Süper ilerliyorsun! Rakip bot şimdi düşünüyor...");
+      if (zorluk === "kolay") {
+        botuKonustur("Güzel hamle yaptın şampiyon! Kolay moddayız ama böyle gidersen beni yeneceksin! ⭐");
+      } else if (zorluk === "orta") {
+        botuKonustur("Harika bir buluş! Orta seviyede bu hamleyi beklemiyordum, çok akıllıca! 🌟");
+      } else {
+        bodyKonusturMukemmel("Zor modda ustaca bir hamle! Tahtayı çok iyi okuyorsun, tebrikler! 👑");
+      }
+      setOyunDurumu("Süper ilerliyorsun! Bot şimdi derinlemesine düşünüyor...");
     } else if (hamleTipi === "riskli") {
-      botuKonustur("Dikkat et! O karede taşın tehlikede olabilir, korumayı unutma! 🚨");
-      setOyunDurumu("Tehlikeli bir kareye oynadın, dikkatli olmalısın.");
+      botuKonustur("Dikkat et! O karede taşın açıkta kaldı, bot hemen avlayabilir! 🚨");
+      setOyunDurumu("Riskli bir hamle yaptın, savunmayı unutma!");
     } else if (hamleTipi === "mat") {
-      botuKonustur("Vay canına! Beni mat ettin, muazzam bir zeka zaferi kazandın! Tebrikler şampiyon! 🏆");
+      botuKonustur("İnanılmaz! Beni mat etmeyi başardın! Gerçek bir satranç dâhisisin şampiyon! 🏆");
       setOyunDurumu("Oyun Bitti: Muhteşem bir zafer kazandın!");
+    }
+  }
+
+  function bodyKonusturMukemmel(metin: string) {
+    setBotMesaji(metin);
+    if (typeof window !== "undefined" && "speechSynthesis" in window) {
+      window.speechSynthesis.cancel();
+      const ses = new SpeechSynthesisUtterance(metin);
+      ses.lang = "tr-TR";
+      window.speechSynthesis.speak(ses);
     }
   }
 
@@ -47,13 +62,67 @@ export default function BotOyunuPage() {
         textAlign: "center",
       }}
     >
-      <span style={{ fontSize: "45px" }}>🤖👑</span>
+      <span style={{ fontSize: "45px" }}>🤖♟️</span>
       <h1 style={{ fontSize: "22px", fontWeight: "900", color: "#b45309", margin: "6px 0" }}>
-        Akıllı Satranç Botu ile Oyna
+        Akıllı Satranç Botu Arenası
       </h1>
-      <p style={{ fontSize: "13px", color: "#64748b", margin: "0 0 20px 0" }}>
-        Bot her hamlende seninle konuşur, iyi hamlelerini över, hatalarında seni uyarır!
+      <p style={{ fontSize: "13px", color: "#64748b", margin: "0 0 16px 0" }}>
+        Zorluk seviyesini seç, botunla hamleleri yarıştır ve sesli koçluk eşliğinde oyna!
       </p>
+
+      {/* Zorluk Seçim Butonları */}
+      <div style={{ display: "flex", justifyContent: "center", gap: "8px", marginBottom: "20px" }}>
+        <button
+          type="button"
+          onClick={() => { setZorluk("kolay"); botuKonustur("Kolay moda geçtik. Rahatça öğrenip eğlenebilirsin! 😊"); }}
+          style={{
+            padding: "8px 14px",
+            backgroundColor: zorluk === "kolay" ? "#22c55e" : "#f1f5f9",
+            color: zorluk === "kolay" ? "#ffffff" : "#334155",
+            borderRadius: "10px",
+            border: "none",
+            fontWeight: "900",
+            fontSize: "12px",
+            cursor: "pointer",
+          }}
+        >
+          🟢 Kolay Seviye
+        </button>
+
+        <button
+          type="button"
+          onClick={() => { setZorluk("orta"); botuKonustur("Orta seviyeye geçtik. Dikkatli olmalısın, bot artık daha akıllı! 🤔"); }}
+          style={{
+            padding: "8px 14px",
+            backgroundColor: zorluk === "orta" ? "#f59e0b" : "#f1f5f9",
+            color: zorluk === "orta" ? "#ffffff" : "#334155",
+            borderRadius: "10px",
+            border: "none",
+            fontWeight: "900",
+            fontSize: "12px",
+            cursor: "pointer",
+          }}
+        >
+          🟡 Orta Seviye
+        </button>
+
+        <button
+          type="button"
+          onClick={() => { setZorluk("zor"); botuKonustur("Zor moda geçtin! Burası ustaların yeridir, bol şans şampiyon! 👑"); }}
+          style={{
+            padding: "8px 14px",
+            backgroundColor: zorluk === "zor" ? "#ef4444" : "#f1f5f9",
+            color: zorluk === "zor" ? "#ffffff" : "#334155",
+            borderRadius: "10px",
+            border: "none",
+            fontWeight: "900",
+            fontSize: "12px",
+            cursor: "pointer",
+          }}
+        >
+          🔴 Zor Seviye (Usta)
+        </button>
+      </div>
 
       {/* Bot Konuşma Balonu */}
       <div
@@ -72,7 +141,7 @@ export default function BotOyunuPage() {
         <span style={{ fontSize: "36px" }}>🤖</span>
         <div>
           <div style={{ fontSize: "11px", fontWeight: "900", color: "#d97706", marginBottom: "4px" }}>
-            AKILLI BOTUN MESAJI:
+            BOT KOÇ ({zorluk.toUpperCase()} MOD):
           </div>
           <p style={{ fontSize: "14px", fontWeight: "bold", color: "#78350f", margin: 0, lineHeight: "1.5" }}>
             "{botMesaji}"
@@ -85,7 +154,7 @@ export default function BotOyunuPage() {
           Durum: {oyunDurumu}
         </div>
 
-        {/* Simüle Edilmiş Hamle Butonları (Test Etmek İçin) */}
+        {/* 3 Seçenekli Oynanabilir Hamle Butonları */}
         <div style={{ display: "flex", justifyContent: "center", gap: "10px", flexWrap: "wrap" }}>
           <button
             type="button"
@@ -101,7 +170,7 @@ export default function BotOyunuPage() {
               cursor: "pointer",
             }}
           >
-            ⭐ İyi Hamle Yap
+            ⭐ İyi / Akıllı Hamle Yap
           </button>
 
           <button
@@ -135,7 +204,7 @@ export default function BotOyunuPage() {
               cursor: "pointer",
             }}
           >
-            🏆 Botu Mat Et!
+            🏆 Şah Mat Yap!
           </button>
         </div>
       </div>
