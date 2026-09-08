@@ -4,19 +4,20 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { Chess } from "chess.js";
 
-const dosyalar = ["a", "b", "c", "d", "e", "f", "g", "h"];
+type TakimTipi = "gs" | "fb" | "bjk";
 
 export default function BotOyunuPage() {
   const [oyun, setOyun] = useState<Chess | null>(null);
   const [fen, setFen] = useState("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
   const [zorluk, setZorluk] = useState<"kolay" | "orta" | "zor">("kolay");
-  const [botMesaji, setBotMesaji] = useState("Cimbom şampiyonluk yolunda! Galatasaray taş setini seçtin, maçı alalım aslanlar! 🦁🟡🔴");
+  const [botMesaji, setBotMesaji] = useState("Derbi heyecanı başladı! Takımını ve rakibini seç, sahada fırtınalar estirelim! ⚽🏆");
   const [secilenKare, setSecilenKare] = useState<string | null>(null);
   const [imkanliKareler, setImkanliKareler] = useState<string[]>([]);
-  const [oyunDurumu, setOyunDurumu] = useState("Sıra Sende (Beyaz Taşlar)");
+  const [oyunDurumu, setOyunDurumu] = useState("Sıra Sende (Beyaz Takım)");
 
-  const [tahtaTema, setTahtaTema] = useState<"yesil" | "ahsap" | "mavi" | "mor" | "galatasaray">("galatasaray");
-  const [tasStili, setTasStili] = useState<"klasik" | "emoji" | "harf" | "gs">("gs");
+  // Takım ve Stil Seçimleri
+  const [benimTakimim, setBenimTakimim] = useState<TakimTipi>("gs");
+  const [rakipTakim, setRakipTakim] = useState<TakimTipi>("fb");
 
   useEffect(() => {
     const yeniOyun = new Chess();
@@ -44,7 +45,7 @@ export default function BotOyunuPage() {
         setSecilenKare(kareAdi);
         const hamleler = oyun.moves({ square: kareAdi as any, verbose: true });
         setImkanliKareler(hamleler.map((h) => h.to));
-        botuKonustur("Harika bir Galatasaray taşı seçtin, hedefe yürüyelim!");
+        botuKonustur("Harika bir hamle için hazırlandın, kaleye yüklenelim!");
       }
     } else {
       try {
@@ -62,13 +63,13 @@ export default function BotOyunuPage() {
           setImkanliKareler([]);
 
           if (oyun.isGameOver()) {
-            setOyunDurumu("Oyun Bitti!");
-            botuKonustur("Şampiyon Galatasaray! Muazzam bir zafer elde ettin! 🏆💛❤️");
+            setOyunDurumu("Maç Bitti, Harika Zafer!");
+            botuKonustur("Maçı kazandın, harika bir derbi performansı! 🏆⚽");
             return;
           }
 
           degerlendirHamle(hamleObj);
-          setOyunDurumu("Bot düşünüyor... 🤔");
+          setOyunDurumu("Rakip takım düşünüyor... 🤔");
 
           setTimeout(() => {
             botHamlesiYap(oyun);
@@ -95,13 +96,13 @@ export default function BotOyunuPage() {
     if (!hamle) return;
 
     if (hamle.captured) {
-      botuKonustur("Aslanlar gibi kaptın rakibin taşını! Gol sesini duyuyorum! 🦁⚽");
+      botuKonustur("Müthiş bir atak ve rakip taş avlandı! Gol geliyor! ⚽🔥");
     } else if (hamle.san.includes("+")) {
-      botuKonustur("Müthiş! Rakip kaleye şah çekip tehlike yarattın! 🔥");
+      botuKonustur("Tehlikeli atak! Rakip kaleye şah çektin! ⚡");
     } else if (["d4", "e4", "d5", "e5"].includes(hamle.to)) {
-      botuKonustur("Sahanın ortasını sarı-kırmızı bayrakla donattın, süper merkez kontrolü! 💛❤️");
+      botuKonustur("Orta sahanın hâkimi oldun, harika bir kontrol! 🎯");
     } else {
-      botuKonustur("Taktiksel ve şık bir hamle, oyunu domine ediyorsun!");
+      botuKonustur("Taktiksel ve şık bir paslaşma, oyunu sürüklüyorsun!");
     }
   }
 
@@ -127,7 +128,7 @@ export default function BotOyunuPage() {
 
     guncelOyun.move(secilenHamle);
     setFen(guncelOyun.fen());
-    setOyunDurumu("Sıra Sende (Galatasaray Taşları)");
+    setOyunDurumu("Sıra Sende (Senin Takımın)");
   }
 
   function fenToBoard(fenStr: string) {
@@ -146,39 +147,40 @@ export default function BotOyunuPage() {
     });
   }
 
+  // Takım Taş Setleri (Beyazlar senin takımın, Siyahlar rakip takım)
   function tasGoster(kod: string) {
-    if (tasStili === "gs") {
+    const isWhite = kod === kod.toUpperCase();
+    const aktifTakim = isWhite ? benimTakimim : rakipTakim;
+
+    if (aktifTakim === "gs") {
       const gsSeti: Record<string, string> = {
         r: "🔴🏰", n: "🔴🐎", b: "🔴🦁", q: "🔴👑", k: "🦁", p: "🔴",
         R: "🟡🏰", N: "🟡🐎", B: "🟡🦁", Q: "🟡👑", K: "👑", P: "🟡"
       };
       return gsSeti[kod] || "";
-    } else if (tasStili === "klasik") {
-      const taslar: Record<string, string> = {
-        r: "♜", n: "♞", b: "♝", q: "♛", k: "♚", p: "♟",
-        R: "♖", N: "♘", B: "♗", Q: "♕", K: "♔", P: "♙"
+    } else if (aktifTakim === "fb") {
+      const fbSeti: Record<string, string> = {
+        r: "🔵🏰", n: "🔵🐎", b: "🔵🦅", q: "🔵👑", k: "⛵", p: "🔵",
+        R: "🟡🏰", N: "🟡🐎", B: "🟡🦅", Q: "🟡👑", K: "👑", P: "🟡"
       };
-      return taslar[kod] || "";
-    } else if (tasStili === "emoji") {
-      const emojiler: Record<string, string> = {
-        r: "🏰", n: "🐴", b: "🐘", q: "👸", k: "🤴", p: "♟️",
-        R: "🏰", N: "🦄", B: "🧙‍♂️", Q: "👑", K: "🤴", P: "⭐"
-      };
-      return emojiler[kod] || "";
+      return fbSeti[kod] || "";
     } else {
-      return kod.toUpperCase();
+      const bjkSeti: Record<string, string> = {
+        r: "⚫🏰", n: "⚫🐎", b: "⚫🦅", q: "⚫👑", k: "🦅", p: "⚫",
+        R: "⚪🏰", N: "⚪🐎", B: "⚪🦅", Q: "⚪👑", K: "👑", P: "⚪"
+      };
+      return bjkSeti[kod] || "";
     }
   }
 
   function renkSec(beyazKare: boolean) {
-    if (tahtaTema === "galatasaray") return beyazKare ? "#fef08a" : "#991b1b";
-    if (tahtaTema === "ahsap") return beyazKare ? "#e3c16f" : "#b88b4a";
-    if (tahtaTema === "mavi") return beyazKare ? "#dee3e6" : "#4a7a96";
-    if (tahtaTema === "mor") return beyazKare ? "#f3e8ff" : "#7c3aed";
-    return beyazKare ? "#ebecd0" : "#739552";
+    if (benimTakimim === "gs") return beyazKare ? "#fef08a" : "#991b1b";
+    if (benimTakimim === "fb") return beyazKare ? "#fef08a" : "#1e3a8a";
+    return beyazKare ? "#f1f5f9" : "#18181b"; // BJK Siyah-Beyaz
   }
 
   const tahtaMatris = fenToBoard(fen);
+  const dosyalar = ["a", "b", "c", "d", "e", "f", "g", "h"];
 
   return (
     <div
@@ -188,55 +190,56 @@ export default function BotOyunuPage() {
         backgroundColor: "#ffffff",
         padding: "24px",
         borderRadius: "24px",
-        border: "3px solid #b91c1c",
-        boxShadow: "0 10px 30px rgba(185, 28, 28, 0.15)",
+        border: "3px solid #3b82f6",
+        boxShadow: "0 10px 30px rgba(59, 130, 246, 0.15)",
         margin: "0 auto",
         textAlign: "center",
       }}
     >
-      <span style={{ fontSize: "40px" }}>🦁🟡🔴</span>
-      <h1 style={{ fontSize: "20px", fontWeight: "900", color: "#991b1b", margin: "4px 0" }}>
-        Galatasaray Satranç Koçu & Bot Arenası
+      <span style={{ fontSize: "40px" }}>⚽🏆</span>
+      <h1 style={{ fontSize: "20px", fontWeight: "900", color: "#1e3a8a", margin: "4px 0" }}>
+        Süper Lig Derbi Satranç Arenası
       </h1>
       <p style={{ fontSize: "12px", color: "#64748b", margin: "0 0 14px 0" }}>
-        Sarı-kırmızı ruhu tahtaya taşıyın, Cimbom taş setiyle zekanızı konuşturun!
+        Kendi takımını seç, rakip takımla sahada kapış ve zekanı konuştur!
       </p>
 
-      <div style={{ backgroundColor: "#fef2f2", border: "2px solid #fecaca", borderRadius: "16px", padding: "12px", marginBottom: "14px", display: "flex", justifyContent: "space-around", flexWrap: "wrap", gap: "10px" }}>
+      {/* TAKIM SEÇİM PANELİ */}
+      <div style={{ backgroundColor: "#f8fafc", border: "2px solid #e2e8f0", borderRadius: "16px", padding: "12px", marginBottom: "14px", display: "flex", justifyContent: "space-around", flexWrap: "wrap", gap: "10px" }}>
         <div>
-          <div style={{ fontSize: "10px", fontWeight: "950", color: "#991b1b", marginBottom: "4px" }}>🏟️ TAHTA TEMA</div>
+          <div style={{ fontSize: "10px", fontWeight: "950", color: "#1e3a8a", marginBottom: "4px" }}>⭐ SENİN TAKIMIN (BEYAZ)</div>
           <div style={{ display: "flex", gap: "4px" }}>
-            <button type="button" onClick={() => setTahtaTema("galatasaray")} style={{ padding: "4px 8px", backgroundColor: tahtaTema === "galatasaray" ? "#991b1b" : "#f1f5f9", color: tahtaTema === "galatasaray" ? "#fff" : "#333", borderRadius: "6px", border: "none", fontSize: "11px", fontWeight: "bold", cursor: "pointer" }}>Galatasaray</button>
-            <button type="button" onClick={() => setTahtaTema("yesil")} style={{ padding: "4px 8px", backgroundColor: tahtaTema === "yesil" ? "#739552" : "#f1f5f9", color: tahtaTema === "yesil" ? "#fff" : "#333", borderRadius: "6px", border: "none", fontSize: "11px", fontWeight: "bold", cursor: "pointer" }}>Yeşil</button>
-            <button type="button" onClick={() => setTahtaTema("ahsap")} style={{ padding: "4px 8px", backgroundColor: tahtaTema === "ahsap" ? "#b88b4a" : "#f1f5f9", color: tahtaTema === "ahsap" ? "#fff" : "#333", borderRadius: "6px", border: "none", fontSize: "11px", fontWeight: "bold", cursor: "pointer" }}>Ahşap</button>
+            <button type="button" onClick={() => setBenimTakimim("gs")} style={{ padding: "4px 8px", backgroundColor: benimTakimim === "gs" ? "#991b1b" : "#e2e8f0", color: benimTakimim === "gs" ? "#fff" : "#333", borderRadius: "6px", border: "none", fontSize: "11px", fontWeight: "bold", cursor: "pointer" }}>Galatasaray</button>
+            <button type="button" onClick={() => setBenimTakimim("fb")} style={{ padding: "4px 8px", backgroundColor: benimTakimim === "fb" ? "#1e3a8a" : "#e2e8f0", color: benimTakimim === "fb" ? "#fff" : "#333", borderRadius: "6px", border: "none", fontSize: "11px", fontWeight: "bold", cursor: "pointer" }}>Fenerbahçe</button>
+            <button type="button" onClick={() => setBenimTakimim("bjk")} style={{ padding: "4px 8px", backgroundColor: benimTakimim === "bjk" ? "#18181b" : "#e2e8f0", color: benimTakimim === "bjk" ? "#fff" : "#333", borderRadius: "6px", border: "none", fontSize: "11px", fontWeight: "bold", cursor: "pointer" }}>Beşiktaş</button>
           </div>
         </div>
 
         <div>
-          <div style={{ fontSize: "10px", fontWeight: "950", color: "#991b1b", marginBottom: "4px" }}>🦁 TAŞ STİLİ</div>
+          <div style={{ fontSize: "10px", fontWeight: "950", color: "#b91c1c", marginBottom: "4px" }}>🛡️ RAKİP TAKIM (SİYAH)</div>
           <div style={{ display: "flex", gap: "4px" }}>
-            <button type="button" onClick={() => setTasStili("gs")} style={{ padding: "4px 8px", backgroundColor: tasStili === "gs" ? "#b91c1c" : "#f1f5f9", color: tasStili === "gs" ? "#fff" : "#333", borderRadius: "6px", border: "none", fontSize: "11px", fontWeight: "bold", cursor: "pointer" }}>Galatasaray 🦁</button>
-            <button type="button" onClick={() => setTasStili("klasik")} style={{ padding: "4px 8px", backgroundColor: tasStili === "klasik" ? "#b91c1c" : "#f1f5f9", color: tasStili === "klasik" ? "#fff" : "#333", borderRadius: "6px", border: "none", fontSize: "11px", fontWeight: "bold", cursor: "pointer" }}>Klasik</button>
-            <button type="button" onClick={() => setTasStili("emoji")} style={{ padding: "4px 8px", backgroundColor: tasStili === "emoji" ? "#b91c1c" : "#f1f5f9", color: tasStili === "emoji" ? "#fff" : "#333", borderRadius: "6px", border: "none", fontSize: "11px", fontWeight: "bold", cursor: "pointer" }}>Emoji</button>
+            <button type="button" onClick={() => setRakipTakim("gs")} style={{ padding: "4px 8px", backgroundColor: rakipTakim === "gs" ? "#991b1b" : "#e2e8f0", color: rakipTakim === "gs" ? "#fff" : "#333", borderRadius: "6px", border: "none", fontSize: "11px", fontWeight: "bold", cursor: "pointer" }}>Galatasaray</button>
+            <button type="button" onClick={() => setRakipTakim("fb")} style={{ padding: "4px 8px", backgroundColor: rakipTakim === "fb" ? "#1e3a8a" : "#e2e8f0", color: rakipTakim === "fb" ? "#fff" : "#333", borderRadius: "6px", border: "none", fontSize: "11px", fontWeight: "bold", cursor: "pointer" }}>Fenerbahçe</button>
+            <button type="button" onClick={() => setRakipTakim("bjk")} style={{ padding: "4px 8px", backgroundColor: rakipTakim === "bjk" ? "#18181b" : "#e2e8f0", color: rakipTakim === "bjk" ? "#fff" : "#333", borderRadius: "6px", border: "none", fontSize: "11px", fontWeight: "bold", cursor: "pointer" }}>Beşiktaş</button>
           </div>
         </div>
       </div>
 
       <div style={{ display: "flex", justifyContent: "center", gap: "6px", marginBottom: "12px" }}>
-        <button type="button" onClick={() => { setZorluk("kolay"); botuKonustur("Kolay mod aktif, bol şans Cimbomlu!"); }} style={{ padding: "5px 10px", backgroundColor: zorluk === "kolay" ? "#22c55e" : "#f1f5f9", color: zorluk === "kolay" ? "#fff" : "#333", borderRadius: "6px", border: "none", fontWeight: "bold", fontSize: "11px", cursor: "pointer" }}>🟢 Kolay</button>
+        <button type="button" onClick={() => { setZorluk("kolay"); botuKonustur("Kolay mod aktif, iyi maçlar!"); }} style={{ padding: "5px 10px", backgroundColor: zorluk === "kolay" ? "#22c55e" : "#f1f5f9", color: zorluk === "kolay" ? "#fff" : "#333", borderRadius: "6px", border: "none", fontWeight: "bold", fontSize: "11px", cursor: "pointer" }}>🟢 Kolay</button>
         <button type="button" onClick={() => { setZorluk("orta"); botuKonustur("Orta mod aktif!"); }} style={{ padding: "5px 10px", backgroundColor: zorluk === "orta" ? "#f59e0b" : "#f1f5f9", color: zorluk === "orta" ? "#fff" : "#333", borderRadius: "6px", border: "none", fontWeight: "bold", fontSize: "11px", cursor: "pointer" }}>🟡 Orta</button>
-        <button type="button" onClick={() => { setZorluk("zor"); botuKonustur("Zor mod aktif, usta aslanlar sahada!"); }} style={{ padding: "5px 10px", backgroundColor: zorluk === "zor" ? "#ef4444" : "#f1f5f9", color: zorluk === "zor" ? "#fff" : "#333", borderRadius: "6px", border: "none", fontWeight: "bold", fontSize: "11px", cursor: "pointer" }}>🔴 Zor</button>
+        <button type="button" onClick={() => { setZorluk("zor"); botuKonustur("Zor mod aktif, sert derbi başlıyor!"); }} style={{ padding: "5px 10px", backgroundColor: zorluk === "zor" ? "#ef4444" : "#f1f5f9", color: zorluk === "zor" ? "#fff" : "#333", borderRadius: "6px", border: "none", fontWeight: "bold", fontSize: "11px", cursor: "pointer" }}>🔴 Zor</button>
       </div>
 
-      <div style={{ backgroundColor: "#fef2f2", border: "2px solid #fecaca", borderRadius: "12px", padding: "10px", marginBottom: "10px", display: "flex", alignItems: "center", gap: "10px", textAlign: "left" }}>
-        <span style={{ fontSize: "24px" }}>🦁</span>
+      <div style={{ backgroundColor: "#f0fdf4", border: "2px solid #bbf7d0", borderRadius: "12px", padding: "10px", marginBottom: "10px", display: "flex", alignItems: "center", gap: "10px", textAlign: "left" }}>
+        <span style={{ fontSize: "24px" }}>🎙️</span>
         <div>
-          <div style={{ fontSize: "9px", fontWeight: "900", color: "#991b1b" }}>CİMBOM KOÇ:</div>
-          <p style={{ fontSize: "11px", fontWeight: "bold", color: "#7f1d1d", margin: 0 }}>"{botMesaji}"</p>
+          <div style={{ fontSize: "9px", fontWeight: "900", color: "#166534" }}>MAÇ SÜSPİKERİ:</div>
+          <p style={{ fontSize: "11px", fontWeight: "bold", color: "#14532d", margin: 0 }}>"{botMesaji}"</p>
         </div>
       </div>
 
-      <div style={{ fontSize: "12px", fontWeight: "900", color: "#991b1b", marginBottom: "8px" }}>{oyunDurumu}</div>
+      <div style={{ fontSize: "12px", fontWeight: "900", color: "#1e3a8a", marginBottom: "8px" }}>{oyunDurumu}</div>
 
       <div
         style={{
@@ -246,7 +249,7 @@ export default function BotOyunuPage() {
           width: "370px",
           height: "370px",
           margin: "0 auto 16px auto",
-          border: "4px solid #7f1d1d",
+          border: "4px solid #1e3a8a",
           borderRadius: "6px",
           boxShadow: "0 10px 25px rgba(0,0,0,0.25)",
         }}
@@ -263,7 +266,7 @@ export default function BotOyunuPage() {
 
             let arkaplan = renkSec(beyazKare);
             if (secili) arkaplan = "#fde047";
-            else if (hedefteMi) arkaplan = beyazKare ? "#fef08a" : "#b91c1c";
+            else if (hedefteMi) arkaplan = beyazKare ? "#bae6fd" : "#3b82f6";
 
             return (
               <div
@@ -274,7 +277,7 @@ export default function BotOyunuPage() {
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "center",
-                  fontSize: tasStili === "gs" ? "24px" : "34px",
+                  fontSize: "24px",
                   cursor: "pointer",
                   position: "relative",
                   userSelect: "none",
@@ -302,9 +305,11 @@ export default function BotOyunuPage() {
       </div>
 
       <div style={{ display: "flex", justifyContent: "center", gap: "10px" }}>
-        <Link href="/dersler" style={{ padding: "8px 14px", backgroundColor: "#991b1b", color: "#ffffff", borderRadius: "10px", textDecoration: "none", fontWeight: "bold", fontSize: "11px" }}>🎓 Dersler</Link>
-        <Link href="/tahtayapici" style={{ padding: "8px 14px", backgroundColor: "#b45309", color: "#ffffff", borderRadius: "10px", textDecoration: "none", fontWeight: "bold", fontSize: "11px" }}>🛠️ Tahta Yapıcı</Link>
+        <Link href="/dersler" style={{ padding: "8px 14px", backgroundColor: "#1e3a8a", color: "#ffffff", borderRadius: "10px", textDecoration: "none", fontWeight: "bold", fontSize: "11px" }}>🎓 Dersler</Link>
+        <Link href="/tahtayapici" style={{ padding: "8px 14px", backgroundColor: "#0284c7", color: "#ffffff", borderRadius: "10px", textDecoration: "none", fontWeight: "bold", fontSize: "11px" }}>🛠️ Tahta Yapıcı</Link>
       </div>
     </div>
   );
 }
+
+const dosyalar = ["a", "b", "c", "d", "e", "f", "g", "h"];
