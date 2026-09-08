@@ -6,24 +6,33 @@ import Link from "next/link";
 interface OgrenciKayit {
   id: string;
   adSoyad: string;
+  karakter: string;
+  veliAdi: string;
+  pinKodu: string;
   lichessKadi: string;
   chessComKadi: string;
   seviye: string;
   tarih: string;
 }
 
+const KARAKTERLER = [
+  { id: "aslan", ad: "Aslan Şakir", simge: "🦁" },
+  { id: "tavsan", ad: "Tavşan Pamuk", simge: "🐰" },
+  { id: "tilki", ad: "Dedektif Tilki", simge: "🦊" },
+  { id: "baykus", ad: "Bilge Baykuş", simge: "🦉" },
+  { id: "panda", ad: "Panda Po", simge: "🐼" },
+  { id: "kedi", ad: "Sevimli Kedi", simge: "🐱" },
+];
+
 export default function KayitPage() {
-  const [aktifSekme, setAktifSekme] = useState<"kayit" | "hesapBagla">("kayit");
-  
-  // Yeni Kayıt Formu State'leri
   const [adSoyad, setAdSoyad] = useState("");
-  const [seviye, setSeviye] = useState("Başlangıç");
-  
-  // Hesap Bağlama Formu State'leri
-  const [secilenOgrenciId, setSecilenOgrenciId] = useState("");
+  const [secilenKarakter, setSecilenKarakter] = useState("🦁 Aslan Şakir");
+  const [veliAdi, setVeliAdi] = useState("");
+  const [pinKodu, setPinKodu] = useState("");
   const [lichessKadi, setLichessKadi] = useState("");
   const [chessComKadi, setChessComKadi] = useState("");
-  
+  const [seviye, setSeviye] = useState("Başlangıç");
+
   const [kayitliOgrenciler, setKayitliOgrenciler] = useState<OgrenciKayit[]>([]);
   const [mesaj, setMesaj] = useState<{ text: string; tip: "basari" | "hata" } | null>(null);
 
@@ -43,16 +52,21 @@ export default function KayitPage() {
     } catch {}
   }
 
-  // 1. Adım: Temel Kayıt Olma
-  function handleTemelKayit(e: React.FormEvent) {
+  function handleKayitOl(e: React.FormEvent) {
     e.preventDefault();
-    if (!adSoyad.trim()) return;
+    if (!adSoyad.trim() || !pinKodu.trim() || !veliAdi.trim()) {
+      setMesaj({ text: "⚠️ Lütfen Ad Soyad, Veli Adı ve gizli PIN kodunu doldurun!", tip: "hata" });
+      return;
+    }
 
     const yeniKayit: OgrenciKayit = {
       id: Date.now().toString(),
       adSoyad: adSoyad.trim(),
-      lichessKadi: "-",
-      chessComKadi: "-",
+      karakter: secilenKarakter,
+      veliAdi: veliAdi.trim(),
+      pinKodu: pinKodu.trim(),
+      lichessKadi: lichessKadi.trim() || "-",
+      chessComKadi: chessComKadi.trim() || "-",
       seviye,
       tarih: new Date().toLocaleDateString("tr-TR"),
     };
@@ -60,35 +74,12 @@ export default function KayitPage() {
     const guncelListe = [yeniKayit, ...kayitliOgrenciler];
     guncelleVeKaydet(guncelListe);
 
-    setMesaj({ text: "🎉 Başarıyla kayıt oldunuz! Şimdi 'Lichess / Chess.com Hesabı Bağla' sekmesinden hesaplarınızı ekleyebilirsiniz.", tip: "basari" });
+    setMesaj({ text: "🎉 Harika! Kulübe başarıyla kaydoldun ve hesapların öğretmene iletildi.", tip: "basari" });
     setAdSoyad("");
-    setTimeout(() => setMesaj(null), 5000);
-  }
-
-  // 2. Adım: Kayda Lichess / Chess.com Ekleme / Güncelleme
-  function handleHesapBagla(e: React.FormEvent) {
-    e.preventDefault();
-    if (!secilenOgrenciId) {
-      setMesaj({ text: "⚠️ Lütfen listeden öğrenci adınızı seçin!", tip: "hata" });
-      return;
-    }
-
-    const guncelListe = kayitliOgrenciler.map((ogrenci) => {
-      if (ogrenci.id === secilenOgrenciId) {
-        return {
-          ...ogrenci,
-          lichessKadi: lichessKadi.trim() || ogrenci.lichessKadi,
-          chessComKadi: chessComKadi.trim() || ogrenci.chessComKadi,
-        };
-      }
-      return ogrenci;
-    });
-
-    guncelleVeKaydet(guncelListe);
-    setMesaj({ text: "✨ Lichess ve Chess.com hesaplarınız başarıyla bağlandı! Öğretmen panelinde güncellendi.", tip: "basari" });
+    setVeliAdi("");
+    setPinKodu("");
     setLichessKadi("");
     setChessComKadi("");
-    setSecilenOgrenciId("");
     setTimeout(() => setMesaj(null), 5000);
   }
 
@@ -113,12 +104,12 @@ export default function KayitPage() {
       }}
     >
       <div style={{ textAlign: "center", marginBottom: "20px" }}>
-        <span style={{ fontSize: "40px" }}>🌟👥</span>
+        <span style={{ fontSize: "40px" }}>🌟🎭</span>
         <h1 style={{ fontSize: "22px", fontWeight: "900", color: "#5b21b6", margin: "6px 0" }}>
-          Sevimli Satranç Kulübü & Hesap Bağlama Sistemi
+          Sevimli Satranç Kulübü & Karakter Kaydı
         </h1>
         <p style={{ fontSize: "13px", color: "#64748b", margin: 0 }}>
-          Önce kulübe kayıt olun, ardından Lichess ve Chess.com hesaplarınızı kolayca bağlayın!
+          Karakterini seç, PIN kodunu belirle, Lichess / Chess.com hesaplarını bağla!
         </p>
       </div>
 
@@ -140,198 +131,158 @@ export default function KayitPage() {
         </div>
       )}
 
-      {/* Sekme Değiştirme Butonları */}
-      <div style={{ display: "flex", gap: "10px", marginBottom: "20px", justifyContent: "center" }}>
-        <button
-          type="button"
-          onClick={() => setAktifSekme("kayit")}
-          style={{
-            padding: "10px 18px",
-            backgroundColor: aktifSekme === "kayit" ? "#8b5cf6" : "#f1f5f9",
-            color: aktifSekme === "kayit" ? "#ffffff" : "#334155",
-            borderRadius: "12px",
-            border: "none",
-            fontWeight: "900",
-            fontSize: "12px",
-            cursor: "pointer",
-          }}
-        >
-          1️⃣ Kulübe Yeni Kayıt Ol
-        </button>
+      {/* Kayıt Formu */}
+      <form
+        onSubmit={handleKayitOl}
+        style={{
+          backgroundColor: "#f5f3ff",
+          padding: "20px",
+          borderRadius: "18px",
+          border: "2px solid #ddd6fe",
+          marginBottom: "28px",
+        }}
+      >
+        <h2 style={{ fontSize: "15px", fontWeight: "900", color: "#4c1d95", margin: "0 0 14px 0" }}>
+          🎨 Karakterini Seç ve Bilgilerini Doldur
+        </h2>
 
-        <button
-          type="button"
-          onClick={() => setAktifSekme("hesapBagla")}
-          style={{
-            padding: "10px 18px",
-            backgroundColor: aktifSekme === "hesapBagla" ? "#2563eb" : "#f1f5f9",
-            color: aktifSekme === "hesapBagla" ? "#ffffff" : "#334155",
-            borderRadius: "12px",
-            border: "none",
-            fontWeight: "900",
-            fontSize: "12px",
-            cursor: "pointer",
-          }}
-        >
-          2️⃣ Lichess / Chess.com Hesabı Ekle & Bağla
-        </button>
-      </div>
+        {/* Karakter Seçimi */}
+        <div style={{ marginBottom: "16px" }}>
+          <label style={{ display: "block", fontSize: "12px", fontWeight: "bold", color: "#5b21b6", marginBottom: "6px" }}>
+            Maskot Karakterini Seç
+          </label>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(110px, 1fr))", gap: "8px" }}>
+            {KARAKTERLER.map((k) => {
+              const secili = secilenKarakter.includes(k.ad);
+              return (
+                <button
+                  key={k.id}
+                  type="button"
+                  onClick={() => setSecilenKarakter(`${k.simge} ${k.ad}`)}
+                  style={{
+                    padding: "10px",
+                    borderRadius: "12px",
+                    border: secili ? "2px solid #7c3aed" : "1px solid #cbd5e1",
+                    backgroundColor: secili ? "#ede9fe" : "#ffffff",
+                    cursor: "pointer",
+                    textAlign: "center",
+                    fontWeight: "bold",
+                    fontSize: "12px",
+                    color: "#334155",
+                  }}
+                >
+                  <div style={{ fontSize: "24px" }}>{k.simge}</div>
+                  <div style={{ fontSize: "11px", marginTop: "4px" }}>{k.ad}</div>
+                </button>
+              );
+            })}
+          </div>
+        </div>
 
-      {/* SEKME 1: YENİ KAYIT OLMA */}
-      {aktifSekme === "kayit" && (
-        <form
-          onSubmit={handleTemelKayit}
-          style={{
-            backgroundColor: "#f5f3ff",
-            padding: "20px",
-            borderRadius: "18px",
-            border: "2px solid #ddd6fe",
-            marginBottom: "28px",
-          }}
-        >
-          <h2 style={{ fontSize: "15px", fontWeight: "900", color: "#4c1d95", margin: "0 0 14px 0" }}>
-            📝 Adım 1: Temel Kulüp Kaydı
-          </h2>
-
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))", gap: "14px", marginBottom: "14px" }}>
-            <div>
-              <label style={{ display: "block", fontSize: "12px", fontWeight: "bold", color: "#5b21b6", marginBottom: "4px" }}>
-                Ad Soyad *
-              </label>
-              <input
-                type="text"
-                required
-                value={adSoyad}
-                onChange={(e) => setAdSoyad(e.target.value)}
-                placeholder="Örn: Zeynep Demir"
-                style={{ width: "100%", padding: "10px", borderRadius: "10px", border: "1px solid #cbd5e1", fontSize: "13px", boxSizing: "border-box" }}
-              />
-            </div>
-
-            <div>
-              <label style={{ display: "block", fontSize: "12px", fontWeight: "bold", color: "#5b21b6", marginBottom: "4px" }}>
-                Satranç Seviyeniz
-              </label>
-              <select
-                value={seviye}
-                onChange={(e) => setSeviye(e.target.value)}
-                style={{ width: "100%", padding: "10px", borderRadius: "10px", border: "1px solid #cbd5e1", fontSize: "13px", backgroundColor: "#ffffff", boxSizing: "border-box" }}
-              >
-                <option value="Başlangıç">Başlangıç Seviyesi</option>
-                <option value="Orta Seviye">Orta Seviye</option>
-                <option value="İleri Seviye">İleri Seviye / Turnuva Oyuncusu</option>
-              </select>
-            </div>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))", gap: "14px", marginBottom: "14px" }}>
+          <div>
+            <label style={{ display: "block", fontSize: "12px", fontWeight: "bold", color: "#5b21b6", marginBottom: "4px" }}>
+              Öğrenci Adı Soyadı *
+            </label>
+            <input
+              type="text"
+              required
+              value={adSoyad}
+              onChange={(e) => setAdSoyad(e.target.value)}
+              placeholder="Örn: Zeynep Demir"
+              style={{ width: "100%", padding: "10px", borderRadius: "10px", border: "1px solid #cbd5e1", fontSize: "13px", boxSizing: "border-box" }}
+            />
           </div>
 
-          <button
-            type="submit"
-            style={{
-              width: "100%",
-              padding: "12px",
-              backgroundColor: "#8b5cf6",
-              color: "#ffffff",
-              borderRadius: "12px",
-              border: "none",
-              fontWeight: "900",
-              fontSize: "13px",
-              cursor: "pointer",
-            }}
-          >
-            🚀 Kaydı Tamamla (Sonra Hesap Bağla)
-          </button>
-        </form>
-      )}
+          <div>
+            <label style={{ display: "block", fontSize: "12px", fontWeight: "bold", color: "#5b21b6", marginBottom: "4px" }}>
+              Veli Adı Soyadı *
+            </label>
+            <input
+              type="text"
+              required
+              value={veliAdi}
+              onChange={(e) => setVeliAdi(e.target.value)}
+              placeholder="Örn: Ahmet Demir (Veli)"
+              style={{ width: "100%", padding: "10px", borderRadius: "10px", border: "1px solid #cbd5e1", fontSize: "13px", boxSizing: "border-box" }}
+            />
+          </div>
 
-      {/* SEKME 2: LICHESS VE CHESS.COM HESABI BAĞLAMA */}
-      {aktifSekme === "hesapBagla" && (
-        <form
-          onSubmit={handleHesapBagla}
+          <div>
+            <label style={{ display: "block", fontSize: "12px", fontWeight: "bold", color: "#5b21b6", marginBottom: "4px" }}>
+              Gizli PIN Kodu (Örn: 4 haneli şifre) *
+            </label>
+            <input
+              type="password"
+              maxLength={6}
+              required
+              value={pinKodu}
+              onChange={(e) => setPinKodu(e.target.value)}
+              placeholder="****"
+              style={{ width: "100%", padding: "10px", borderRadius: "10px", border: "1px solid #cbd5e1", fontSize: "13px", boxSizing: "border-box" }}
+            />
+          </div>
+
+          <div>
+            <label style={{ display: "block", fontSize: "12px", fontWeight: "bold", color: "#5b21b6", marginBottom: "4px" }}>
+              Satranç Seviyeniz
+            </label>
+            <select
+              value={seviye}
+              onChange={(e) => setSeviye(e.target.value)}
+              style={{ width: "100%", padding: "10px", borderRadius: "10px", border: "1px solid #cbd5e1", fontSize: "13px", backgroundColor: "#ffffff", boxSizing: "border-box" }}
+            >
+              <option value="Başlangıç">Başlangıç Seviyesi</option>
+              <option value="Orta Seviye">Orta Seviye</option>
+              <option value="İleri Seviye">İleri Seviye / Turnuva Oyuncusu</option>
+            </select>
+          </div>
+
+          <div>
+            <label style={{ display: "block", fontSize: "12px", fontWeight: "bold", color: "#5b21b6", marginBottom: "4px" }}>
+              🌐 Lichess Kullanıcı Adı
+            </label>
+            <input
+              type="text"
+              value={lichessKadi}
+              onChange={(e) => setLichessKadi(e.target.value)}
+              placeholder="Lichess kullanıcı adın"
+              style={{ width: "100%", padding: "10px", borderRadius: "10px", border: "1px solid #cbd5e1", fontSize: "13px", boxSizing: "border-box" }}
+            />
+          </div>
+
+          <div>
+            <label style={{ display: "block", fontSize: "12px", fontWeight: "bold", color: "#5b21b6", marginBottom: "4px" }}>
+              🌍 Chess.com Kullanıcı Adı
+            </label>
+            <input
+              type="text"
+              value={chessComKadi}
+              onChange={(e) => setChessComKadi(e.target.value)}
+              placeholder="Chess.com kullanıcı adın"
+              style={{ width: "100%", padding: "10px", borderRadius: "10px", border: "1px solid #cbd5e1", fontSize: "13px", boxSizing: "border-box" }}
+            />
+          </div>
+        </div>
+
+        <button
+          type="submit"
           style={{
-            backgroundColor: "#eff6ff",
-            padding: "20px",
-            borderRadius: "18px",
-            border: "2px solid #bfdbfe",
-            marginBottom: "28px",
+            width: "100%",
+            padding: "12px",
+            backgroundColor: "#8b5cf6",
+            color: "#ffffff",
+            borderRadius: "12px",
+            border: "none",
+            fontWeight: "900",
+            fontSize: "14px",
+            cursor: "pointer",
+            boxShadow: "0 4px 12px rgba(139, 92, 246, 0.2)",
           }}
         >
-          <h2 style={{ fontSize: "15px", fontWeight: "900", color: "#1e3a8a", margin: "0 0 14px 0" }}>
-            🔗 Adım 2: Lichess ve Chess.com Hesaplarını Bağla
-          </h2>
-
-          {kayitliOgrenciler.length === 0 ? (
-            <p style={{ fontSize: "13px", color: "#b91c1c", fontWeight: "bold" }}>
-              ⚠️ Önce "Kulübe Yeni Kayıt Ol" sekmesinden adınızı kaydetmelisiniz!
-            </p>
-          ) : (
-            <>
-              <div style={{ marginBottom: "14px" }}>
-                <label style={{ display: "block", fontSize: "12px", fontWeight: "bold", color: "#1e40af", marginBottom: "4px" }}>
-                  Kayıtlı İsminizi Seçin *
-                </label>
-                <select
-                  required
-                  value={secilenOgrenciId}
-                  onChange={(e) => setSecilenOgrenciId(e.target.value)}
-                  style={{ width: "100%", padding: "10px", borderRadius: "10px", border: "1px solid #cbd5e1", fontSize: "13px", backgroundColor: "#ffffff" }}
-                >
-                  <option value="">-- Listeden İsminizi Seçin --</option>
-                  {kayitliOgrenciler.map((ogrenci) => (
-                    <option key={ogrenci.id} value={ogrenci.id}>
-                      {ogrenci.adSoyad} ({ogrenci.seviye})
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))", gap: "14px", marginBottom: "14px" }}>
-                <div>
-                  <label style={{ display: "block", fontSize: "12px", fontWeight: "bold", color: "#1e40af", marginBottom: "4px" }}>
-                    🌐 Lichess Kullanıcı Adı
-                  </label>
-                  <input
-                    type="text"
-                    value={lichessKadi}
-                    onChange={(e) => setLichessKadi(e.target.value)}
-                    placeholder="Örn: lichess_kullanici"
-                    style={{ width: "100%", padding: "10px", borderRadius: "10px", border: "1px solid #cbd5e1", fontSize: "13px", boxSizing: "border-box" }}
-                  />
-                </div>
-
-                <div>
-                  <label style={{ display: "block", fontSize: "12px", fontWeight: "bold", color: "#1e40af", marginBottom: "4px" }}>
-                    🌍 Chess.com Kullanıcı Adı
-                  </label>
-                  <input
-                    type="text"
-                    value={chessComKadi}
-                    onChange={(e) => setChessComKadi(e.target.value)}
-                    placeholder="Örn: chesscom_kullanici"
-                    style={{ width: "100%", padding: "10px", borderRadius: "10px", border: "1px solid #cbd5e1", fontSize: "13px", boxSizing: "border-box" }}
-                  />
-                </div>
-              </div>
-
-              <button
-                type="submit"
-                style={{
-                  width: "100%",
-                  padding: "12px",
-                  backgroundColor: "#2563eb",
-                  color: "#ffffff",
-                  borderRadius: "12px",
-                  border: "none",
-                  fontWeight: "900",
-                  fontSize: "13px",
-                  cursor: "pointer",
-                }}
-              >
-                🔗 Hesapları Güncelle ve Öğretmene Gönder
-              </button>
-            </>
-          )}
-        </form>
-      )}
+          🚀 Kulübe Kaydol ve Hesapları Bağla
+        </button>
+      </form>
 
       {/* ÖĞRETMEN OTOMATİK GÖRÜNÜM PANELİ */}
       <div style={{ backgroundColor: "#faf5ff", padding: "20px", borderRadius: "18px", border: "2px solid #e9d5ff" }}>
@@ -373,10 +324,10 @@ export default function KayitPage() {
               >
                 <div>
                   <div style={{ fontSize: "14px", fontWeight: "900", color: "#1e293b" }}>
-                    {index + 1}. {ogrenci.adSoyad} <span style={{ fontSize: "11px", color: "#7c3aed", fontWeight: "bold" }}>({ogrenci.seviye})</span>
+                    {index + 1}. {ogrenci.karakter} — {ogrenci.adSoyad} <span style={{ fontSize: "11px", color: "#7c3aed", fontWeight: "bold" }}>({ogrenci.seviye})</span>
                   </div>
                   <div style={{ fontSize: "11px", color: "#64748b", marginTop: "2px" }}>
-                    Kayıt: {ogrenci.tarih}
+                    Veli: {ogrenci.veliAdi} | PIN: •••• | Tarih: {ogrenci.tarih}
                   </div>
                 </div>
 
