@@ -8,10 +8,14 @@ export default function BotOyunuPage() {
   const [oyun, setOyun] = useState<Chess | null>(null);
   const [fen, setFen] = useState("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
   const [zorluk, setZorluk] = useState<"kolay" | "orta" | "zor">("kolay");
-  const [botMesaji, setBotMesaji] = useState("Merhaba şampiyon! Ben akıllı satranç botunum. Beyaz taşlarla maça başlayabilirsin, hamleni bekliyorum! ♟️");
+  const [botMesaji, setBotMesaji] = useState("Merhaba şampiyon! Renk ve stilini seç, beyaz taşlarla maça başlayalım! ♟️");
   const [secilenKare, setSecilenKare] = useState<string | null>(null);
   const [imkanliKareler, setImkanliKareler] = useState<string[]>([]);
   const [oyunDurumu, setOyunDurumu] = useState("Sıra Sende (Beyaz Taşlar)");
+
+  // Özelleştirme State'leri
+  const [tahtaTema, setTahtaTema] = useState<"yesil" | "ahsap" | "mavi" | "mor">("yesil");
+  const [tasStili, setTasStili] = useState<"klasik" | "emoji" | "harf">("klasik");
 
   useEffect(() => {
     const yeniOyun = new Chess();
@@ -30,30 +34,26 @@ export default function BotOyunuPage() {
     }
   }
 
-  // Kareye tıklama ve yasal hamle yapma mantığı
   function handleKareTikla(kareAdi: string) {
     if (!oyun || oyun.isGameOver()) return;
 
-    // Eğer kendi taşına tıkladıysa seç
     if (secilenKare === null) {
       const tas = oyun.get(kareAdi as any);
-      if (tas && tas.color === "w") { // Sadece Beyaz taşlar (Kullanıcı)
+      if (tas && tas.color === "w") {
         setSecilenKare(kareAdi);
         const hamleler = oyun.moves({ square: kareAdi as any, verbose: true });
         setImkanliKareler(hamleler.map((h) => h.to));
         botuKonustur("Güzel bir taş seçtin, nereye oynamak istersin?");
       }
     } else {
-      // Daha önce taş seçilmişse hamle yapmayı dene
       try {
         const hamle = oyun.move({
           from: secilenKare,
           to: kareAdi,
-          promotion: "q", // Piyon çıkınca otomatik vezir yap
+          promotion: "q",
         });
 
         if (hamle) {
-          // Hamle geçerliyse tahtayı güncelle
           setFen(oyun.fen());
           setSecilenKare(null);
           setImkanliKareler([]);
@@ -64,15 +64,13 @@ export default function BotOyunuPage() {
             return;
           }
 
-          // Botun sırası
           setOyunDurumu("Bot düşünüyor... 🤔");
-          botuKonustur("Güzel hamle! Şimdi sıra bende, en iyi hamleyi hesaplıyorum.");
+          botuKonustur("Güzel hamle! Şimdi sıra bende.");
 
           setTimeout(() => {
             botHamlesiYap(oyun);
           }, 1000);
         } else {
-          // Geçersiz hamleyse ve yeni kendi taşını seçtiyse onu seç
           const tas = oyun.get(kareAdi as any);
           if (tas && tas.color === "w") {
             setSecilenKare(kareAdi);
@@ -90,52 +88,32 @@ export default function BotOyunuPage() {
     }
   }
 
-  // Botun yasal hamle üretmesi
   function botHamlesiYap(guncelOyun: Chess) {
     if (guncelOyun.isGameOver()) return;
 
     const yasalHamleler = guncelOyun.moves({ verbose: true });
     if (yasalHamleler.length === 0) return;
 
-    let secilenHamle = yasalHamleler[0];
+    let secilenHamle = yasalHamleler[Math.floor(Math.random() * yasalHamleler.length)];
 
-    if (zorluk === "kolay") {
-      // Rastgele yasal hamle
-      secilenHamle = yasalHamleler[Math.floor(Math.random() * yasalHamleler.length)];
-      botuKonustur("Piyonumu veya taşımı sürdüm! Bakalım ne yapacaksın? 😊");
-    } else if (zorluk === "orta") {
-      // Taş alma öncelikli akıllı hamle
+    if (zorluk === "orta") {
       const tasAlanlar = yasalHamleler.filter((h) => h.captured);
       if (tasAlanlar.length > 0) {
         secilenHamle = tasAlanlar[Math.floor(Math.random() * tasAlanlar.length)];
-        botuKonustur("Dikkat et, taşını yakaladım! 🔥");
-      } else {
-        secilenHamle = yasalHamleler[Math.floor(Math.random() * yasalHamleler.length)];
-        botuKonustur("Orta modda merkezi ele geçiriyorum! 🤔");
       }
-    } else {
-      // Zor mod: Şah çekme veya taş alma öncelikli usta hamle
-      const sahCekenler = yasalHandanBul(yasalHamleler);
-      secilenHamle = sahCekenler || yasalHamleler[Math.floor(Math.random() * yasalHamleler.length)];
-      botuKonustur("Zor modda ustaca bir hamle yaptım, sıkı dur! 👑");
+    } else if (zorluk === "zor") {
+      const matEden = yasalHamleler.find((h) => h.san.includes("#"));
+      const sahCeken = yasalHamleler.find((h) => h.san.includes("+"));
+      const tasAlan = yasalHamleler.find((h) => h.captured);
+      secilenHamle = matEden || sahCeken || tasAlan || secilenHamle;
     }
 
     guncelOyun.move(secilenHamle);
     setFen(guncelOyun.fen());
     setOyunDurumu("Sıra Sende (Beyaz Taşlar)");
+    botuKonustur("Hamlemi yaptım, sıra sende şampiyon! 😊");
   }
 
-  function yasalHandanBul(hamleler: any[]) {
-    const matEden = hamleler.find((h) => h.san.includes("#"));
-    if (matEden) return matEden;
-    const sahCeken = hamleler.find((h) => h.san.includes("+"));
-    if (sahCeken) return sahCeken;
-    const tasAlan = hamleler.find((h) => h.captured);
-    if (tasAlan) return tasAlan;
-    return null;
-  }
-
-  // FEN dizilimini 8x8 matrise çevirme
   function fenToBoard(fenStr: string) {
     const fenParca = fenStr.split(" ")[0];
     const satirlar = fenParca.split("/");
@@ -153,11 +131,29 @@ export default function BotOyunuPage() {
   }
 
   function tasGoster(kod: string) {
-    const taslar: Record<string, string> = {
-      r: "♜", n: "♞", b: "♝", q: "♛", k: "♚", p: "♟",
-      R: "♖", N: "♘", B: "♗", Q: "♕", K: "♔", P: "♙"
-    };
-    return taslar[kod] || "";
+    if (tasStili === "klasik") {
+      const taslar: Record<string, string> = {
+        r: "♜", n: "♞", b: "♝", q: "♛", k: "♚", p: "♟",
+        R: "♖", N: "♘", B: "♗", Q: "♕", K: "♔", P: "♙"
+      };
+      return taslar[kod] || "";
+    } else if (tasStili === "emoji") {
+      const emojiler: Record<string, string> = {
+        r: "🏰", n: "🐴", b: "🐘", q: "👸", k: "🤴", p: "♟️",
+        R: "🏰", N: "🦄", B: "🧙‍♂️", Q: "👑", K: "🤴", P: "⭐"
+      };
+      return emojiler[kod] || "";
+    } else {
+      return kod.toUpperCase();
+    }
+  }
+
+  // Tema renklerini belirleme
+  function renkSec(beyazKare: boolean) {
+    if (tahtaTema === "ahsap") return beyazKare ? "#e3c16f" : "#b88b4a";
+    if (tahtaTema === "mavi") return beyazKare ? "#dee3e6" : "#4a7a96";
+    if (tahtaTema === "mor") return beyazKare ? "#f3e8ff" : "#7c3aed";
+    return beyazKare ? "#ebecd0" : "#739552"; // Klasik Yeşil
   }
 
   const tahtaMatris = fenToBoard(fen);
@@ -166,7 +162,7 @@ export default function BotOyunuPage() {
   return (
     <div
       style={{
-        maxWidth: "680px",
+        maxWidth: "700px",
         width: "100%",
         backgroundColor: "#ffffff",
         padding: "24px",
@@ -179,73 +175,62 @@ export default function BotOyunuPage() {
     >
       <span style={{ fontSize: "40px" }}>🤖♟️</span>
       <h1 style={{ fontSize: "20px", fontWeight: "900", color: "#b45309", margin: "4px 0" }}>
-        Akıllı Satranç Botu Arenası (Lichess Stil)
+        Akıllı Satranç Botu & Renk Paneli
       </h1>
       <p style={{ fontSize: "12px", color: "#64748b", margin: "0 0 14px 0" }}>
-        Gerçek kurallara uygun, imkanlı hamleler yapan ve sesli koçluk sunan akıllı bot rakip!
+        Tahta rengini, taş stilini seç ve akıllı botla eşit 64 kare üzerinde karşılıklı oyna!
       </p>
 
-      {/* Zorluk Seviyesi */}
-      <div style={{ display: "flex", justifyContent: "center", gap: "8px", marginBottom: "14px" }}>
-        <button
-          type="button"
-          onClick={() => { setZorluk("kolay"); botuKonustur("Kolay moda geçtik!"); }}
-          style={{ padding: "6px 12px", backgroundColor: zorluk === "kolay" ? "#22c55e" : "#f1f5f9", color: zorluk === "kolay" ? "#ffffff" : "#334155", borderRadius: "8px", border: "none", fontWeight: "bold", fontSize: "11px", cursor: "pointer" }}
-        >
-          🟢 Kolay
-        </button>
-        <button
-          type="button"
-          onClick={() => { setZorluk("orta"); botuKonustur("Orta moda geçtik!"); }}
-          style={{ padding: "6px 12px", backgroundColor: zorluk === "orta" ? "#f59e0b" : "#f1f5f9", color: zorluk === "orta" ? "#ffffff" : "#334155", borderRadius: "8px", border: "none", fontWeight: "bold", fontSize: "11px", cursor: "pointer" }}
-        >
-          🟡 Orta
-        </button>
-        <button
-          type="button"
-          onClick={() => { setZorluk("zor"); botuKonustur("Zor moda geçtik!"); }}
-          style={{ padding: "6px 12px", backgroundColor: zorluk === "zor" ? "#ef4444" : "#f1f5f9", color: zorluk === "zor" ? "#ffffff" : "#334155", borderRadius: "8px", border: "none", fontWeight: "bold", fontSize: "11px", cursor: "pointer" }}
-        >
-          🔴 Zor (Usta)
-        </button>
-      </div>
-
-      {/* Bot Konuşma Balonu */}
-      <div
-        style={{
-          backgroundColor: "#fffbeb",
-          border: "2px solid #fde68a",
-          borderRadius: "14px",
-          padding: "12px",
-          marginBottom: "12px",
-          display: "flex",
-          alignItems: "center",
-          gap: "10px",
-          textAlign: "left",
-        }}
-      >
-        <span style={{ fontSize: "28px" }}>🤖</span>
+      {/* RENGİNİ VE STİLİNİ SEÇ PANELİ */}
+      <div style={{ backgroundColor: "#fffbeb", border: "2px solid #fef3c7", borderRadius: "16px", padding: "12px", marginBottom: "14px", display: "flex", justifyContent: "space-around", flexWrap: "wrap", gap: "10px" }}>
         <div>
-          <div style={{ fontSize: "10px", fontWeight: "900", color: "#d97706" }}>BOT KOÇ ({zorluk.toUpperCase()}):</div>
-          <p style={{ fontSize: "12px", fontWeight: "bold", color: "#78350f", margin: 0 }}>
-            "{botMesaji}"
-          </p>
+          <div style={{ fontSize: "10px", fontWeight: "950", color: "#b45309", marginBottom: "4px" }}>🎨 TAHTA RENGİ</div>
+          <div style={{ display: "flex", gap: "4px" }}>
+            <button type="button" onClick={() => setTahtaTema("yesil")} style={{ padding: "4px 8px", backgroundColor: tahtaTema === "yesil" ? "#739552" : "#f1f5f9", color: tahtaTema === "yesil" ? "#fff" : "#333", borderRadius: "6px", border: "none", fontSize: "11px", fontWeight: "bold", cursor: "pointer" }}>Yeşil</button>
+            <button type="button" onClick={() => setTahtaTema("ahsap")} style={{ padding: "4px 8px", backgroundColor: tahtaTema === "ahsap" ? "#b88b4a" : "#f1f5f9", color: tahtaTema === "ahsap" ? "#fff" : "#333", borderRadius: "6px", border: "none", fontSize: "11px", fontWeight: "bold", cursor: "pointer" }}>Ahşap</button>
+            <button type="button" onClick={() => setTahtaTema("mavi")} style={{ padding: "4px 8px", backgroundColor: tahtaTema === "mavi" ? "#4a7a96" : "#f1f5f9", color: tahtaTema === "mavi" ? "#fff" : "#333", borderRadius: "6px", border: "none", fontSize: "11px", fontWeight: "bold", cursor: "pointer" }}>Mavi</button>
+            <button type="button" onClick={() => setTahtaTema("mor")} style={{ padding: "4px 8px", backgroundColor: tahtaTema === "mor" ? "#7c3aed" : "#f1f5f9", color: tahtaTema === "mor" ? "#fff" : "#333", borderRadius: "6px", border: "none", fontSize: "11px", fontWeight: "bold", cursor: "pointer" }}>Mor</button>
+          </div>
+        </div>
+
+        <div>
+          <div style={{ fontSize: "10px", fontWeight: "950", color: "#b45309", marginBottom: "4px" }}>♟️ TAŞ STİLİ</div>
+          <div style={{ display: "flex", gap: "4px" }}>
+            <button type="button" onClick={() => setTasStili("klasik")} style={{ padding: "4px 8px", backgroundColor: tasStili === "klasik" ? "#f59e0b" : "#f1f5f9", color: tasStili === "klasik" ? "#fff" : "#333", borderRadius: "6px", border: "none", fontSize: "11px", fontWeight: "bold", cursor: "pointer" }}>Klasik</button>
+            <button type="button" onClick={() => setTasStili("emoji")} style={{ padding: "4px 8px", backgroundColor: tasStili === "emoji" ? "#f59e0b" : "#f1f5f9", color: tasStili === "emoji" ? "#fff" : "#333", borderRadius: "6px", border: "none", fontSize: "11px", fontWeight: "bold", cursor: "pointer" }}>Emoji</button>
+            <button type="button" onClick={() => setTasStili("harf")} style={{ padding: "4px 8px", backgroundColor: tasStili === "harf" ? "#f59e0b" : "#f1f5f9", color: tasStili === "harf" ? "#fff" : "#334", borderRadius: "6px", border: "none", fontSize: "11px", fontWeight: "bold", cursor: "pointer" }}>Harf</button>
+          </div>
         </div>
       </div>
 
-      <div style={{ fontSize: "13px", fontWeight: "900", color: "#b45309", marginBottom: "10px" }}>
-        Durum: {oyunDurumu}
+      {/* Zorluk Seviyesi */}
+      <div style={{ display: "flex", justifyContent: "center", gap: "6px", marginBottom: "12px" }}>
+        <button type="button" onClick={() => { setZorluk("kolay"); botuKonustur("Kolay moda geçtik!"); }} style={{ padding: "5px 10px", backgroundColor: zorluk === "kolay" ? "#22c55e" : "#f1f5f9", color: zorluk === "kolay" ? "#fff" : "#333", borderRadius: "6px", border: "none", fontWeight: "bold", fontSize: "11px", cursor: "pointer" }}>🟢 Kolay</button>
+        <button type="button" onClick={() => { setZorluk("orta"); botuKonustur("Orta moda geçtik!"); }} style={{ padding: "5px 10px", backgroundColor: zorluk === "orta" ? "#f59e0b" : "#f1f5f9", color: zorluk === "orta" ? "#fff" : "#333", borderRadius: "6px", border: "none", fontWeight: "bold", fontSize: "11px", cursor: "pointer" }}>🟡 Orta</button>
+        <button type="button" onClick={() => { setZorluk("zor"); botuKonustur("Zor moda geçtik!"); }} style={{ padding: "5px 10px", backgroundColor: zorluk === "zor" ? "#ef4444" : "#f1f5f9", color: zorluk === "zor" ? "#fff" : "#333", borderRadius: "6px", border: "none", fontWeight: "bold", fontSize: "11px", cursor: "pointer" }}>🔴 Zor</button>
       </div>
 
-      {/* LICHESS TARZI KOORDİNATLI SATRANÇ TAHTASI */}
+      {/* Bot Konuşma Balonu */}
+      <div style={{ backgroundColor: "#fffbeb", border: "2px solid #fde68a", borderRadius: "12px", padding: "10px", marginBottom: "10px", display: "flex", alignItems: "center", gap: "10px", textAlign: "left" }}>
+        <span style={{ fontSize: "24px" }}>🤖</span>
+        <div>
+          <div style={{ fontSize: "9px", fontWeight: "900", color: "#d97706" }}>BOT KOÇ:</div>
+          <p style={{ fontSize: "11px", fontWeight: "bold", color: "#78350f", margin: 0 }}>"{botMesaji}"</p>
+        </div>
+      </div>
+
+      <div style={{ fontSize: "12px", fontWeight: "900", color: "#b45309", marginBottom: "8px" }}>{oyunDurumu}</div>
+
+      {/* 64 EŞİT KARELİ SATRANÇ TAHTASI (CSS GRID RATIO 1fr) */}
       <div
         style={{
           display: "grid",
           gridTemplateColumns: "repeat(8, 1fr)",
+          gridTemplateRows: "repeat(8, 1fr)",
           width: "360px",
           height: "360px",
           margin: "0 auto 16px auto",
-          border: "4px solid #57402c",
+          border: "4px solid #451a03",
           borderRadius: "6px",
           boxShadow: "0 10px 25px rgba(0,0,0,0.25)",
         }}
@@ -260,7 +245,7 @@ export default function BotOyunuPage() {
             const secili = secilenKare === kareAdi;
             const hedefteMi = imkanliKareler.includes(kareAdi);
 
-            let arkaplan = beyazKare ? "#ebecd0" : "#739552"; // Lichess klasik yeşil tema
+            let arkaplan = renkSec(beyazKare);
             if (secili) arkaplan = "#baca2b";
             else if (hedefteMi) arkaplan = beyazKare ? "#f5f682" : "#98b14e";
 
@@ -273,19 +258,20 @@ export default function BotOyunuPage() {
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "center",
-                  fontSize: "36px",
+                  fontSize: tasStili === "emoji" ? "28px" : "34px",
                   cursor: "pointer",
                   position: "relative",
                   userSelect: "none",
+                  width: "100%",
+                  height: "100%",
                 }}
               >
-                {/* Hamle yapılabilecek karelerde küçük nokta işareti */}
                 {hedefteMi && tas === "." && (
                   <div
                     style={{
-                      width: "14px",
-                      height: "14px",
-                      backgroundColor: "rgba(0, 0, 0, 0.2)",
+                      width: "12px",
+                      height: "12px",
+                      backgroundColor: "rgba(0, 0, 0, 0.25)",
                       borderRadius: "50%",
                       position: "absolute",
                     }}
@@ -299,19 +285,11 @@ export default function BotOyunuPage() {
       </div>
 
       <div style={{ display: "flex", justifyContent: "center", gap: "10px" }}>
-        <Link
-          href="/dersler"
-          style={{ padding: "8px 14px", backgroundColor: "#0284c7", color: "#ffffff", borderRadius: "10px", textDecoration: "none", fontWeight: "bold", fontSize: "11px" }}
-        >
-          🎓 Dersler
-        </Link>
-        <Link
-          href="/tahta-yapici"
-          style={{ padding: "8px 14px", backgroundColor: "#d97706", color: "#ffffff", borderRadius: "10px", textDecoration: "none", fontWeight: "bold", fontSize: "11px" }}
-        >
-          🛠️ Tahta Yapıcı
-        </Link>
+        <Link href="/dersler" style={{ padding: "8px 14px", backgroundColor: "#0284c7", color: "#ffffff", borderRadius: "10px", textDecoration: "none", fontWeight: "bold", fontSize: "11px" }}>🎓 Dersler</Link>
+        <Link href="/tahta-yapici" style={{ padding: "8px 14px", backgroundColor: "#d97706", color: "#ffffff", borderRadius: "10px", textDecoration: "none", fontWeight: "bold", fontSize: "11px" }}>🛠️ Tahta Yapıcı</Link>
       </div>
     </div>
   );
 }
+
+const dosyalar = ["a", "b", "c", "d", "e", "f", "g", "h"];
