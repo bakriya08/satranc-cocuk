@@ -9,7 +9,6 @@ interface InteraktifOrnek {
   karakterAdi: string;
   soruMetni: string;
   tahtaTipi: "baslangic" | "kaleYolu" | "filCapraz" | "atL" | "sahAdim" | "piyonIleri" | "matVurusu";
-  okYonu?: "duz" | "capraz" | "lSekli" | "etraf";
   secenekler: { id: string; sembol: string; aciklama: string; dogru: boolean }[];
   dogruMesaj: string;
 }
@@ -83,26 +82,24 @@ const KAZANIMLAR_VERISI: KazanimDetay[] = [
         id: 1,
         karakter: "🚗",
         karakterAdi: "Şimşek Araba",
-        soruMetni: "Araba tahta üzerinde dikey caddede ileri sürülecek. Hangi ok yönünü göstermelidir?",
+        soruMetni: "Araba tahta üzerinde dikey caddede ileri sürülecek. Hangi yönleri takip etmelidir?",
         tahtaTipi: "kaleYolu",
-        okYonu: "duz",
         secenekler: [
-          { id: "a", sembol: "⬆️", aciklama: "Dikey İleri Oku", dogru: true },
-          { id: "b", sembol: "↗️", aciklama: "Çapraz Ok", dogru: false },
+          { id: "a", sembol: "⬆️⬇️", aciklama: "Dikey Hat (İleri ve Geri)", dogru: true },
+          { id: "b", sembol: "↗️", aciklama: "Sadece Çapraz", dogru: false },
           { id: "c", sembol: "🔄", aciklama: "Dönemeç", dogru: false },
         ],
-        dogruMesaj: "Vınnn! Dikey hat üzerinde ileriye doğru hareket ettin!",
+        dogruMesaj: "Vınnn! Dikey hat üzerinde ileriye ve geriye doğru hareket ettin!",
       },
       {
         id: 2,
         karakter: "🐼",
         karakterAdi: "Panda Po",
-        soruMetni: "Panda yatay (yana) yönde adım atıyor. Doğru yatay ok hangisidir?",
+        soruMetni: "Panda yatay (yana) yönde adım atıyor. Doğru yatay hat hangisidir?",
         tahtaTipi: "kaleYolu",
-        okYonu: "duz",
         secenekler: [
-          { id: "a", sembol: "➡️", aciklama: "Yatay Sağa Ok", dogru: true },
-          { id: "b", sembol: "⬇️", aciklama: "Aşağı", dogru: false },
+          { id: "a", sembol: "⬅️➡️", aciklama: "Yatay Hat (Sağa ve Sola)", dogru: true },
+          { id: "b", sembol: "↕️", aciklama: "Sadece Dikey", dogru: false },
           { id: "c", sembol: "⚡", aciklama: "Şimşek", dogru: false },
         ],
         dogruMesaj: "Harika adımlar! Yatay yollarda sağa ve sola kayabilirsin!",
@@ -111,10 +108,10 @@ const KAZANIMLAR_VERISI: KazanimDetay[] = [
         id: 3,
         karakter: "🐻",
         karakterAdi: "Ayıcık Bobo",
-        soruMetni: "Düz caddeler boyunca ilerleyen taşın takip ettiği hat ne ad alır?",
+        soruMetni: "Düz caddeler boyunca ilerleyen taşın takip ettiği hatlar ne ad alır?",
         tahtaTipi: "kaleYolu",
         secenekler: [
-          { id: "a", sembol: "➕", aciklama: "Düz / Yatay-Dikey Hat", dogru: true },
+          { id: "a", sembol: "➕", aciklama: "Yatay ve Dikey Hatlar", dogru: true },
           { id: "b", sembol: "✖️", aciklama: "Sadece Çapraz", dogru: false },
           { id: "c", sembol: "🕳️", aciklama: "Çukur", dogru: false },
         ],
@@ -133,12 +130,11 @@ const KAZANIMLAR_VERISI: KazanimDetay[] = [
         id: 1,
         karakter: "🚀",
         karakterAdi: "Roket Ali",
-        soruMetni: "Tahtada iki köşe arasında X harfi gibi uzanan yönün adı nedir?",
+        soruMetni: "Tahtada iki köşe arasında X harfi gibi uzanan çapraz yönün adı nedir?",
         tahtaTipi: "filCapraz",
-        okYonu: "capraz",
         secenekler: [
-          { id: "a", sembol: "↗️", aciklama: "Çapraz Hat", dogru: true },
-          { id: "b", sembol: "⬆️", aciklama: "Düz Hat", dogru: false },
+          { id: "a", sembol: "❌", aciklama: "Çapraz Hat (Köşeden Köşeye)", dogru: true },
+          { id: "b", sembol: "➕", aciklama: "Düz Hat", dogru: false },
           { id: "c", sembol: "⏹️", aciklama: "Kare", dogru: false },
         ],
         dogruMesaj: "Ateş! Çapraz patikada köşeden köşeye süzüldün!",
@@ -160,13 +156,12 @@ const KAZANIMLAR_VERISI: KazanimDetay[] = [
         id: 3,
         karakter: "🐱",
         karakterAdi: "Yavru Kedi Mırmır",
-        soruMetni: "Çapraz yönlü ok işaretine tıklayarak kedinin yolunu göster!",
+        soruMetni: "Çapraz yolda ilerleyen kedinin takip ettiği yön seçeneği hangisidir?",
         tahtaTipi: "filCapraz",
-        okYonu: "capraz",
         secenekler: [
-          { id: "a", sembol: "↗️", aciklama: "Çapraz Ok", dogru: true },
-          { id: "b", sembol: "➡️", aciklama: "Düz Ok", dogru: false },
-          { id: "c", sembol: "⬇️", aciklama: "Aşağı Ok", dogru: false },
+          { id: "a", sembol: "↗️↙️", aciklama: "Çapraz Yönler", dogru: true },
+          { id: "b", sembol: "⬆️", aciklama: "Sadece İleri", dogru: false },
+          { id: "c", sembol: "⬅️", aciklama: "Sadece Sola", dogru: false },
         ],
         dogruMesaj: "Miyav! Mırmır çapraz patikadan hedefine ulaştı!",
       },
@@ -210,7 +205,7 @@ const KAZANIMLAR_VERISI: KazanimDetay[] = [
         karakter: "🦁",
         karakterAdi: "Cesur Aslan",
         soruMetni: "Sağlam kalenin puan değeri kaç puandır?",
-        tahtaTipi: "baslangic",
+        tahtaTipi: "kaleYolu",
         secenekler: [
           { id: "a", sembol: "🌟🌟🌟🌟🌟", aciklama: "5 Puan", dogru: true },
           { id: "b", sembol: "🌟", aciklama: "1 Puan", dogru: false },
@@ -258,7 +253,7 @@ const KAZANIMLAR_VERISI: KazanimDetay[] = [
         karakter: "🦄",
         karakterAdi: "Tekboynuz Filo",
         soruMetni: "Filin puan değeri kaç puandır?",
-        tahtaTipi: "baslangic",
+        tahtaTipi: "filCapraz",
         secenekler: [
           { id: "a", sembol: "🪙🪙🪙", aciklama: "3 Puan", dogru: true },
           { id: "b", sembol: "🪙🪙🪙🪙🪙", aciklama: "5 Puan", dogru: false },
@@ -354,7 +349,7 @@ const KAZANIMLAR_VERISI: KazanimDetay[] = [
         karakter: "🦁",
         karakterAdi: "Aslan Kral",
         soruMetni: "Şahın oyundaki puan değeri nedir?",
-        tahtaTipi: "baslangic",
+        tahtaTipi: "sahAdim",
         secenekler: [
           { id: "a", sembol: "♾️", aciklama: "Ölçülemez / Sonsuz (Oyunun Kalbi)", dogru: true },
           { id: "b", sembol: "1️⃣", aciklama: "1 Puan", dogru: false },
@@ -402,7 +397,7 @@ const KAZANIMLAR_VERISI: KazanimDetay[] = [
         karakter: "🎠",
         karakterAdi: "Lunapark Atı",
         soruMetni: "Atın puan değeri kaç puandır?",
-        tahtaTipi: "baslangic",
+        tahtaTipi: "atL",
         secenekler: [
           { id: "a", sembol: "🪙🪙🪙", aciklama: "3 Puan", dogru: true },
           { id: "b", sembol: "🪙🪙🪙🪙🪙", aciklama: "5 Puan", dogru: false },
@@ -472,7 +467,7 @@ const KAZANIMLAR_VERISI: KazanimDetay[] = [
         karakter: "📢",
         karakterAdi: "Haberci",
         soruMetni: "Taşımız doğrudan rakip şaha saldırdığında ne bağırırız?",
-        tahtaTipi: "baslangic",
+        tahtaTipi: "matVurusu",
         secenekler: [
           { id: "a", sembol: "📣", aciklama: "'ŞAH!'", dogru: true },
           { id: "b", sembol: "🤫", aciklama: "Sessizlik", dogru: false },
@@ -485,7 +480,7 @@ const KAZANIMLAR_VERISI: KazanimDetay[] = [
         karakter: "🏹",
         karakterAdi: "Okçu",
         soruMetni: "Şah çekilen bir şah tehlike altında mıdır?",
-        tahtaTipi: "baslangic",
+        tahtaTipi: "matVurusu",
         secenekler: [
           { id: "a", sembol: "⚠️", aciklama: "Evet, Tehdit Altındadır", dogru: true },
           { id: "b", sembol: "🏖️", aciklama: "Tatildedir", dogru: false },
@@ -498,7 +493,7 @@ const KAZANIMLAR_VERISI: KazanimDetay[] = [
         karakter: "⚡",
         karakterAdi: "Şimşek",
         soruMetni: "Şah çeken taş rakip tarafından alınabilir mi?",
-        tahtaTipi: "baslangic",
+        tahtaTipi: "matVurusu",
         secenekler: [
           { id: "a", sembol: "⚔️", aciklama: "Uygunsa Alınabilir", dogru: true },
           { id: "b", sembol: "❌", aciklama: "Asla Alınamaz", dogru: false },
@@ -689,7 +684,6 @@ export default function DerslerPage() {
         margin: "0 auto",
       }}
     >
-      {/* 1. ÜST BAŞLIK VE AÇILIR LİSTE */}
       <div
         style={{
           display: "flex",
@@ -745,7 +739,6 @@ export default function DerslerPage() {
         </select>
       </div>
 
-      {/* 2. RESMİ KAZANIM AÇIKLAMASI */}
       <div
         style={{
           backgroundColor: "#f8fafc",
@@ -792,7 +785,6 @@ export default function DerslerPage() {
         </button>
       </div>
 
-      {/* 3. ÖRNEKLER VE SESLENDİRME */}
       <div style={{ marginBottom: "24px" }}>
         <div style={{ textAlign: "center", marginBottom: "16px" }}>
           <span style={{ fontSize: "28px" }}>♟️🗺️🔊</span>
@@ -940,7 +932,6 @@ export default function DerslerPage() {
         </div>
       </div>
 
-      {/* 4. ALT GEÇİŞLER */}
       <div
         style={{
           display: "flex",
