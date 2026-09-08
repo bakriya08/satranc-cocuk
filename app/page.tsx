@@ -146,27 +146,23 @@ export default function BotOyunuPage() {
     });
   }
 
-  // Futbol ve Takım Temalı Taş Setleri (Kaleci, Forvet, Kaptan Forması vb.)
   function tasGoster(kod: string) {
     const isWhite = kod === kod.toUpperCase();
     const aktifTakim = isWhite ? benimTakimim : rakipTakim;
 
     if (aktifTakim === "gs") {
-      // Galatasaray: Aslan, Sarı-Kırmızı Formalar ve Taçlı Kaptan
       const gsSeti: Record<string, string> = {
         r: "🔴👕", n: "🔴👟", b: "🔴🦁", q: "🟡⭐", k: "🦁", p: "🔴⚽",
         R: "🟡👕", N: "🟡👟", B: "🟡🦁", Q: "🟡👑", K: "👑", P: "🟡⚽"
       };
       return gsSeti[kod] || "";
     } else if (aktifTakim === "fb") {
-      // Fenerbahçe: Kanarya, Sarı-Lacivert Formalar
       const fbSeti: Record<string, string> = {
         r: "🔵👕", n: "🔵👟", b: "🔵🦅", q: "🟡⭐", k: "💛", p: "🔵⚽",
         R: "🟡👕", N: "🟡👟", B: "🟡🦅", Q: "🟡👑", K: "👑", P: "🟡⚽"
       };
       return fbSeti[kod] || "";
     } else {
-      // Beşiktaş: Kartal, Siyah-Beyaz Formalar
       const bjkSeti: Record<string, string> = {
         r: "⚫👕", n: "⚫👟", b: "⚫🦅", q: "⚪⭐", k: "🦅", p: "⚫⚽",
         R: "⚪👕", N: "⚪👟", B: "⚪🦅", Q: "⚪👑", K: "👑", P: "⚪⚽"
@@ -178,7 +174,7 @@ export default function BotOyunuPage() {
   function renkSec(beyazKare: boolean) {
     if (benimTakimim === "gs") return beyazKare ? "#fef08a" : "#991b1b";
     if (benimTakimim === "fb") return beyazKare ? "#fef08a" : "#1e3a8a";
-    return beyazKare ? "#f1f5f9" : "#18181b"; // BJK Siyah-Beyaz
+    return beyazKare ? "#f1f5f9" : "#18181b";
   }
 
   const tahtaMatris = fenToBoard(fen);
@@ -206,7 +202,6 @@ export default function BotOyunuPage() {
         Formanı ve futbolcu taşlarını seç, sahada maçı domine et!
       </p>
 
-      {/* TAKIM SEÇİM PANELİ */}
       <div style={{ backgroundColor: "#f8fafc", border: "2px solid #e2e8f0", borderRadius: "16px", padding: "12px", marginBottom: "14px", display: "flex", justifyContent: "space-around", flexWrap: "wrap", gap: "10px" }}>
         <div>
           <div style={{ fontSize: "10px", fontWeight: "950", color: "#1e3a8a", marginBottom: "4px" }}>⭐ SENİN TAKIMIN</div>
@@ -237,7 +232,7 @@ export default function BotOyunuPage() {
         <span style={{ fontSize: "24px" }}>🎙️</span>
         <div>
           <div style={{ fontSize: "9px", fontWeight: "900", color: "#166534" }}>MAÇ SÜSPİKERİ:</div>
-          <p style={{ fontSize: "11px", fontWeight: "bold", color: "#14532d", mark: 0 }}>"{botMesaji}"</p>
+          <p style={{ fontSize: "11px", fontWeight: "bold", color: "#14532d", margin: 0 }}>"{botMesaji}"</p>
         </div>
       </div>
 
@@ -313,5 +308,3 @@ export default function BotOyunuPage() {
     </div>
   );
 }
-
-const dosyalar = ["a", "b", "c", "d", "e", "f", "g", "h"];
