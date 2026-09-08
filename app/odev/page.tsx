@@ -9,8 +9,6 @@ interface Ogrenci {
   sinifGrup?: string;
   avatar: string;
   pin: string;
-  lichessKadi?: string;
-  chessComKadi?: string;
 }
 
 interface Soru {
@@ -52,12 +50,12 @@ export default function OdevPage() {
   const [secilenOgrenciId, setSecilenOgrenciId] = useState("");
   const [hata, setHata] = useState("");
 
-  // Öğretmen Giriş & Soru Ekleme State'leri
+  // Öğretmen Giriş State'leri
   const [ogretmenSifre, setOgretmenSifre] = useState("");
   const [ogretmenGirisYapildi, setOgretmenGirisYapildi] = useState(false);
   const [ogretmenHata, setOgretmenHata] = useState("");
 
-  // Normal Soru Formu State'leri
+  // Soru ve Lichess Form State'leri
   const [yeniSoruMetni, setYeniSoruMetni] = useState("");
   const [secenek1, setSecenek1] = useState("");
   const [secenek2, setSecenek2] = useState("");
@@ -65,7 +63,6 @@ export default function OdevPage() {
   const [secenek4, setSecenek4] = useState("");
   const [dogruSecenekIndex, setDogruSecenekIndex] = useState(0);
 
-  // Lichess Çalışma / Soru Formu State'leri
   const [lichessBaslik, setLichessBaslik] = useState("");
   const [lichessLink, setLichessLink] = useState("");
 
@@ -94,6 +91,12 @@ export default function OdevPage() {
       if (kaydedilenSorular) {
         setSorularListesi(JSON.parse(kaydedilenSorular));
       }
+
+      // Öğretmen oturumunun açık kalıp kalmadığını kontrol et
+      const ogretmenOturum = sessionStorage.getItem("ogretmenGirisDurumu");
+      if (ogretmenOturum === "true") {
+        setOgretmenGirisYapildi(true);
+      }
     } catch {}
   }, []);
 
@@ -119,15 +122,26 @@ export default function OdevPage() {
 
   function handleOgretmenGiris(e: React.FormEvent) {
     e.preventDefault();
+    // Sabit öğretmen şifresi: 1453
     if (ogretmenSifre.trim() === "1453") {
       setOgretmenGirisYapildi(true);
       setOgretmenHata("");
+      try {
+        sessionStorage.setItem("ogretmenGirisDurumu", "true");
+      } catch {}
     } else {
-      setOgretmenHata("Hatalı öğretmen şifresi! (İpucu: 1453)");
+      setOgretmenHata("Hatalı öğretmen şifresi! (Şifre: 1453)");
     }
   }
 
-  // Normal Soru Ekleme
+  function handleOgretmenCikis() {
+    setOgretmenGirisYapildi(false);
+    setOgretmenSifre("");
+    try {
+      sessionStorage.removeItem("ogretmenGirisDurumu");
+    } catch {}
+  }
+
   function handleYeniSoruEkle(e: React.FormEvent) {
     e.preventDefault();
     if (!yeniSoruMetni.trim() || !secenek1.trim() || !secenek2.trim()) return;
@@ -152,12 +166,10 @@ export default function OdevPage() {
     setSecenek4("");
   }
 
-  // Lichess Çalışma / Bulmaca Ekleme
   function handleLichessEkle(e: React.FormEvent) {
     e.preventDefault();
     if (!lichessBaslik.trim() || !lichessLink.trim()) return;
 
-    // Lichess URL'sini düzgün embed formatına dönüştürme veya koruma
     let temizUrl = lichessLink.trim();
     if (temizUrl.includes("lichess.org/study/") && !temizUrl.includes("/embed/")) {
       temizUrl = temizUrl.replace("lichess.org/study/", "lichess.org/study/embed/");
@@ -187,7 +199,7 @@ export default function OdevPage() {
       localStorage.setItem("ogretmenEklenenSorularVeLichess", JSON.stringify(guncelSorular));
     } catch {}
 
-    setSoruBasariMesaji("🎉 Lichess çalışması / sorusu başarıyla sisteme eklendi!");
+    setSoruBasariMesaji("🎉 İçerik başarıyla sisteme eklendi!");
     setTimeout(() => setSoruBasariMesaji(""), 4000);
   }
 
@@ -230,7 +242,7 @@ export default function OdevPage() {
           Haftalık Ödevler & Lichess Çalışma Merkezi
         </h1>
         <p style={{ fontSize: "13px", color: "#64748b", margin: 0 }}>
-          Öğrenci olarak ödevini çöz veya öğretmen şifresiyle girip Lichess'ten soru/çalışma ata!
+          Öğrenci olarak ödevini çöz veya öğretmen şifresiyle (1453) giriş yapıp içerik ata!
         </p>
       </div>
 
@@ -408,7 +420,6 @@ export default function OdevPage() {
                       {sorularListesi[aktifSoruIndex].soru}
                     </h3>
 
-                    {/* Lichess Çalışması İçin Embed Tahtası */}
                     {sorularListesi[aktifSoruIndex].tip === "lichess" && sorularListesi[aktifSoruIndex].lichessUrl && (
                       <div style={{ marginBottom: "16px", textAlign: "center" }}>
                         <iframe
@@ -543,14 +554,13 @@ export default function OdevPage() {
             </div>
           ) : (
             <div style={{ display: "flex", flexDirection: "column", gap: "24px" }}>
-              {/* ÜST BİLGİ */}
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", backgroundColor: "#fdf4f8", padding: "14px 18px", borderRadius: "14px", border: "2px solid #fbcfe8" }}>
                 <h2 style={{ fontSize: "15px", fontWeight: "900", color: "#831843", margin: 0 }}>
                   👨‍🏫 Öğretmen Yönetim Paneli ({sorularListesi.length} İçerik Kayıtlı)
                 </h2>
                 <button
                   type="button"
-                  onClick={() => setOgretmenGirisYapildi(false)}
+                  onClick={handleOgretmenCikis}
                   style={{ padding: "6px 12px", backgroundColor: "#e2e8f0", color: "#334155", border: "none", borderRadius: "8px", fontWeight: "bold", fontSize: "11px", cursor: "pointer" }}
                 >
                   Çıkış Yap 🚪
@@ -563,15 +573,11 @@ export default function OdevPage() {
                 </div>
               )}
 
-              {/* LİCHESS ÇALIŞMA / BULMACA EKLEME FORMU */}
+              {/* LICHESS ÇALIŞMA / BULMACA EKLEME FORMU */}
               <div style={{ backgroundColor: "#eff6ff", padding: "20px", borderRadius: "18px", border: "2px solid #bfdbfe" }}>
                 <h3 style={{ fontSize: "15px", fontWeight: "900", color: "#1e3a8a", margin: "0 0 10px 0" }}>
                   🌐 Lichess Çalışması veya Bulmacası Ekle
                 </h3>
-                <p style={{ fontSize: "12px", color: "#475569", margin: "0 0 14px 0" }}>
-                  Lichess.org üzerindeki herhangi bir çalışmanın veya eğitici bulmacanın linkini yapıştırarak öğrencilere interaktif olarak sunabilirsiniz.
-                </p>
-
                 <form onSubmit={handleLichessEkle} style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
                   <div>
                     <label style={{ fontSize: "11px", fontWeight: "bold", color: "#1e40af", display: "block", marginBottom: "2px" }}>Çalışma Başlığı *</label>
@@ -584,7 +590,6 @@ export default function OdevPage() {
                       style={{ width: "100%", padding: "9px", borderRadius: "8px", border: "1px solid #93c5fd", fontSize: "12px", boxSizing: "border-box" }}
                     />
                   </div>
-
                   <div>
                     <label style={{ fontSize: "11px", fontWeight: "bold", color: "#1e40af", display: "block", marginBottom: "2px" }}>Lichess Çalışma / Bulmaca Linki *</label>
                     <input
@@ -592,11 +597,10 @@ export default function OdevPage() {
                       required
                       value={lichessLink}
                       onChange={(e) => setLichessLink(e.target.value)}
-                      placeholder="Örn: https://lichess.org/study/ABC12345 veya training"
+                      placeholder="Örn: https://lichess.org/study/ABC12345"
                       style={{ width: "100%", padding: "9px", borderRadius: "8px", border: "1px solid #93c5fd", fontSize: "12px", boxSizing: "border-box" }}
                     />
                   </div>
-
                   <button
                     type="submit"
                     style={{
@@ -617,12 +621,11 @@ export default function OdevPage() {
                 </form>
               </div>
 
-              {/* KLASİK ÇOKTAN SEÇMELİ SORU EKLEME FORMU */}
+              {/* KLASİK SORU EKLEME FORMU */}
               <div style={{ backgroundColor: "#fdf4f8", padding: "20px", borderRadius: "18px", border: "2px solid #fbcfe8" }}>
                 <h3 style={{ fontSize: "15px", fontWeight: "900", color: "#831843", margin: "0 0 10px 0" }}>
                   📝 Klasik Çoktan Seçmeli Soru Ekle
                 </h3>
-
                 <form onSubmit={handleYeniSoruEkle} style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
                   <div>
                     <label style={{ fontSize: "11px", fontWeight: "bold", color: "#9d174d", display: "block", marginBottom: "2px" }}>Soru Metni *</label>
@@ -635,14 +638,12 @@ export default function OdevPage() {
                       style={{ width: "100%", padding: "9px", borderRadius: "8px", border: "1px solid #cbd5e1", fontSize: "12px", boxSizing: "border-box" }}
                     />
                   </div>
-
                   <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: "8px" }}>
                     <input type="text" required value={secenek1} onChange={(e) => setSecenek1(e.target.value)} placeholder="A Şıkkı" style={{ padding: "8px", borderRadius: "8px", border: "1px solid #cbd5e1", fontSize: "12px", boxSizing: "border-box" }} />
                     <input type="text" required value={secenek2} onChange={(e) => setSecenek2(e.target.value)} placeholder="B Şıkkı" style={{ padding: "8px", borderRadius: "8px", border: "1px solid #cbd5e1", fontSize: "12px", boxSizing: "border-box" }} />
-                    <input type="text" value={secenek3} onChange={(e) => setSecenek3(e.target.value)} placeholder="C Şıkkı (İsteğe bağlı)" style={{ padding: "8px", borderRadius: "8px", border: "1px solid #cbd5e1", fontSize: "12px", boxSizing: "border-box" }} />
-                    <input type="text" value={secenek4} onChange={(e) => setSecenek4(e.target.value)} placeholder="D Şıkkı (İsteğe bağlı)" style={{ padding: "8px", borderRadius: "8px", border: "1px solid #cbd5e1", fontSize: "12px", boxSizing: "border-box" }} />
+                    <input type="text" value={secenek3} onChange={(e) => setSecenek3(e.target.value)} placeholder="C Şıkkı" style={{ padding: "8px", borderRadius: "8px", border: "1px solid #cbd5e1", fontSize: "12px", boxSizing: "border-box" }} />
+                    <input type="text" value={secenek4} onChange={(e) => setSecenek4(e.target.value)} placeholder="D Şıkkı" style={{ padding: "8px", borderRadius: "8px", border: "1px solid #cbd5e1", fontSize: "12px", boxSizing: "border-box" }} />
                   </div>
-
                   <div>
                     <label style={{ fontSize: "11px", fontWeight: "bold", color: "#9d174d", display: "block", marginBottom: "2px" }}>Doğru Şık</label>
                     <select
@@ -656,7 +657,6 @@ export default function OdevPage() {
                       <option value={3}>D Şıkkı</option>
                     </select>
                   </div>
-
                   <button
                     type="submit"
                     style={{
