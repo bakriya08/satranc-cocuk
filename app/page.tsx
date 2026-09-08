@@ -10,12 +10,11 @@ export default function BotOyunuPage() {
   const [oyun, setOyun] = useState<Chess | null>(null);
   const [fen, setFen] = useState("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
   const [zorluk, setZorluk] = useState<"kolay" | "orta" | "zor">("kolay");
-  const [botMesaji, setBotMesaji] = useState("Derbi heyecanı başladı! Takımını ve rakibini seç, sahada fırtınalar estirelim! ⚽🏆");
+  const [botMesaji, setBotMesaji] = useState("Süper Lig derbisi başladı! Takımını seç, sahada formaları konuşturup golleri atalım! ⚽🏟️");
   const [secilenKare, setSecilenKare] = useState<string | null>(null);
   const [imkanliKareler, setImkanliKareler] = useState<string[]>([]);
-  const [oyunDurumu, setOyunDurumu] = useState("Sıra Sende (Beyaz Takım)");
+  const [oyunDurumu, setOyunDurumu] = useState("Sıra Sende (Senin Takımın)");
 
-  // Takım ve Stil Seçimleri
   const [benimTakimim, setBenimTakimim] = useState<TakimTipi>("gs");
   const [rakipTakim, setRakipTakim] = useState<TakimTipi>("fb");
 
@@ -45,7 +44,7 @@ export default function BotOyunuPage() {
         setSecilenKare(kareAdi);
         const hamleler = oyun.moves({ square: kareAdi as any, verbose: true });
         setImkanliKareler(hamleler.map((h) => h.to));
-        botuKonustur("Harika bir hamle için hazırlandın, kaleye yüklenelim!");
+        botuKonustur("Harika bir oyuncu seçtin, rakip kaleye yüklenelim!");
       }
     } else {
       try {
@@ -63,13 +62,13 @@ export default function BotOyunuPage() {
           setImkanliKareler([]);
 
           if (oyun.isGameOver()) {
-            setOyunDurumu("Maç Bitti, Harika Zafer!");
+            setOyunDurumu("Maç Bitti, Muhteşem Zafer!");
             botuKonustur("Maçı kazandın, harika bir derbi performansı! 🏆⚽");
             return;
           }
 
           degerlendirHamle(hamleObj);
-          setOyunDurumu("Rakip takım düşünüyor... 🤔");
+          setOyunDurumu("Rakip takım hücumda... 🤔");
 
           setTimeout(() => {
             botHamlesiYap(oyun);
@@ -96,13 +95,13 @@ export default function BotOyunuPage() {
     if (!hamle) return;
 
     if (hamle.captured) {
-      botuKonustur("Müthiş bir atak ve rakip taş avlandı! Gol geliyor! ⚽🔥");
+      botuKonustur("Müthiş bir çalım ve rakip oyuncu geçildi! Gol sesi geliyor! ⚽🔥");
     } else if (hamle.san.includes("+")) {
-      botuKonustur("Tehlikeli atak! Rakip kaleye şah çektin! ⚡");
+      botuKonustur("Tehlikeli atak! Rakip kaleciye zor anlar yaşatıyorsun! ⚡");
     } else if (["d4", "e4", "d5", "e5"].includes(hamle.to)) {
-      botuKonustur("Orta sahanın hâkimi oldun, harika bir kontrol! 🎯");
+      botuKonustur("Orta sahanın hâkimi oldun, pas trafiği harika! 🎯");
     } else {
-      botuKonustur("Taktiksel ve şık bir paslaşma, oyunu sürüklüyorsun!");
+      botuKonustur("Taktiksel ve şık bir pas, oyunu domine ediyorsun!");
     }
   }
 
@@ -147,27 +146,30 @@ export default function BotOyunuPage() {
     });
   }
 
-  // Takım Taş Setleri (Beyazlar senin takımın, Siyahlar rakip takım)
+  // Futbol ve Takım Temalı Taş Setleri (Kaleci, Forvet, Kaptan Forması vb.)
   function tasGoster(kod: string) {
     const isWhite = kod === kod.toUpperCase();
     const aktifTakim = isWhite ? benimTakimim : rakipTakim;
 
     if (aktifTakim === "gs") {
+      // Galatasaray: Aslan, Sarı-Kırmızı Formalar ve Taçlı Kaptan
       const gsSeti: Record<string, string> = {
-        r: "🔴🏰", n: "🔴🐎", b: "🔴🦁", q: "🔴👑", k: "🦁", p: "🔴",
-        R: "🟡🏰", N: "🟡🐎", B: "🟡🦁", Q: "🟡👑", K: "👑", P: "🟡"
+        r: "🔴👕", n: "🔴👟", b: "🔴🦁", q: "🟡⭐", k: "🦁", p: "🔴⚽",
+        R: "🟡👕", N: "🟡👟", B: "🟡🦁", Q: "🟡👑", K: "👑", P: "🟡⚽"
       };
       return gsSeti[kod] || "";
     } else if (aktifTakim === "fb") {
+      // Fenerbahçe: Kanarya, Sarı-Lacivert Formalar
       const fbSeti: Record<string, string> = {
-        r: "🔵🏰", n: "🔵🐎", b: "🔵🦅", q: "🔵👑", k: "⛵", p: "🔵",
-        R: "🟡🏰", N: "🟡🐎", B: "🟡🦅", Q: "🟡👑", K: "👑", P: "🟡"
+        r: "🔵👕", n: "🔵👟", b: "🔵🦅", q: "🟡⭐", k: "💛", p: "🔵⚽",
+        R: "🟡👕", N: "🟡👟", B: "🟡🦅", Q: "🟡👑", K: "👑", P: "🟡⚽"
       };
       return fbSeti[kod] || "";
     } else {
+      // Beşiktaş: Kartal, Siyah-Beyaz Formalar
       const bjkSeti: Record<string, string> = {
-        r: "⚫🏰", n: "⚫🐎", b: "⚫🦅", q: "⚫👑", k: "🦅", p: "⚫",
-        R: "⚪🏰", N: "⚪🐎", B: "⚪🦅", Q: "⚪👑", K: "👑", P: "⚪"
+        r: "⚫👕", n: "⚫👟", b: "⚫🦅", q: "⚪⭐", k: "🦅", p: "⚫⚽",
+        R: "⚪👕", N: "⚪👟", B: "⚪🦅", Q: "⚪👑", K: "👑", P: "⚪⚽"
       };
       return bjkSeti[kod] || "";
     }
@@ -196,18 +198,18 @@ export default function BotOyunuPage() {
         textAlign: "center",
       }}
     >
-      <span style={{ fontSize: "40px" }}>⚽🏆</span>
+      <span style={{ fontSize: "40px" }}>⚽🏟️</span>
       <h1 style={{ fontSize: "20px", fontWeight: "900", color: "#1e3a8a", margin: "4px 0" }}>
         Süper Lig Derbi Satranç Arenası
       </h1>
       <p style={{ fontSize: "12px", color: "#64748b", margin: "0 0 14px 0" }}>
-        Kendi takımını seç, rakip takımla sahada kapış ve zekanı konuştur!
+        Formanı ve futbolcu taşlarını seç, sahada maçı domine et!
       </p>
 
       {/* TAKIM SEÇİM PANELİ */}
       <div style={{ backgroundColor: "#f8fafc", border: "2px solid #e2e8f0", borderRadius: "16px", padding: "12px", marginBottom: "14px", display: "flex", justifyContent: "space-around", flexWrap: "wrap", gap: "10px" }}>
         <div>
-          <div style={{ fontSize: "10px", fontWeight: "950", color: "#1e3a8a", marginBottom: "4px" }}>⭐ SENİN TAKIMIN (BEYAZ)</div>
+          <div style={{ fontSize: "10px", fontWeight: "950", color: "#1e3a8a", marginBottom: "4px" }}>⭐ SENİN TAKIMIN</div>
           <div style={{ display: "flex", gap: "4px" }}>
             <button type="button" onClick={() => setBenimTakimim("gs")} style={{ padding: "4px 8px", backgroundColor: benimTakimim === "gs" ? "#991b1b" : "#e2e8f0", color: benimTakimim === "gs" ? "#fff" : "#333", borderRadius: "6px", border: "none", fontSize: "11px", fontWeight: "bold", cursor: "pointer" }}>Galatasaray</button>
             <button type="button" onClick={() => setBenimTakimim("fb")} style={{ padding: "4px 8px", backgroundColor: benimTakimim === "fb" ? "#1e3a8a" : "#e2e8f0", color: benimTakimim === "fb" ? "#fff" : "#333", borderRadius: "6px", border: "none", fontSize: "11px", fontWeight: "bold", cursor: "pointer" }}>Fenerbahçe</button>
@@ -216,7 +218,7 @@ export default function BotOyunuPage() {
         </div>
 
         <div>
-          <div style={{ fontSize: "10px", fontWeight: "950", color: "#b91c1c", marginBottom: "4px" }}>🛡️ RAKİP TAKIM (SİYAH)</div>
+          <div style={{ fontSize: "10px", fontWeight: "950", color: "#b91c1c", marginBottom: "4px" }}>🛡️ RAKİP TAKIM</div>
           <div style={{ display: "flex", gap: "4px" }}>
             <button type="button" onClick={() => setRakipTakim("gs")} style={{ padding: "4px 8px", backgroundColor: rakipTakim === "gs" ? "#991b1b" : "#e2e8f0", color: rakipTakim === "gs" ? "#fff" : "#333", borderRadius: "6px", border: "none", fontSize: "11px", fontWeight: "bold", cursor: "pointer" }}>Galatasaray</button>
             <button type="button" onClick={() => setRakipTakim("fb")} style={{ padding: "4px 8px", backgroundColor: rakipTakim === "fb" ? "#1e3a8a" : "#e2e8f0", color: rakipTakim === "fb" ? "#fff" : "#333", borderRadius: "6px", border: "none", fontSize: "11px", fontWeight: "bold", cursor: "pointer" }}>Fenerbahçe</button>
@@ -226,16 +228,16 @@ export default function BotOyunuPage() {
       </div>
 
       <div style={{ display: "flex", justifyContent: "center", gap: "6px", marginBottom: "12px" }}>
-        <button type="button" onClick={() => { setZorluk("kolay"); botuKonustur("Kolay mod aktif, iyi maçlar!"); }} style={{ padding: "5px 10px", backgroundColor: zorluk === "kolay" ? "#22c55e" : "#f1f5f9", color: zorluk === "kolay" ? "#fff" : "#333", borderRadius: "6px", border: "none", fontWeight: "bold", fontSize: "11px", cursor: "pointer" }}>🟢 Kolay</button>
+        <button type="button" onClick={() => { setZorluk("kolay"); botuKonustur("Kolay mod aktif, bol şans!"); }} style={{ padding: "5px 10px", backgroundColor: zorluk === "kolay" ? "#22c55e" : "#f1f5f9", color: zorluk === "kolay" ? "#fff" : "#333", borderRadius: "6px", border: "none", fontWeight: "bold", fontSize: "11px", cursor: "pointer" }}>🟢 Kolay</button>
         <button type="button" onClick={() => { setZorluk("orta"); botuKonustur("Orta mod aktif!"); }} style={{ padding: "5px 10px", backgroundColor: zorluk === "orta" ? "#f59e0b" : "#f1f5f9", color: zorluk === "orta" ? "#fff" : "#333", borderRadius: "6px", border: "none", fontWeight: "bold", fontSize: "11px", cursor: "pointer" }}>🟡 Orta</button>
-        <button type="button" onClick={() => { setZorluk("zor"); botuKonustur("Zor mod aktif, sert derbi başlıyor!"); }} style={{ padding: "5px 10px", backgroundColor: zorluk === "zor" ? "#ef4444" : "#f1f5f9", color: zorluk === "zor" ? "#fff" : "#333", borderRadius: "6px", border: "none", fontWeight: "bold", fontSize: "11px", cursor: "pointer" }}>🔴 Zor</button>
+        <button type="button" onClick={() => { setZorluk("zor"); botuKonustur("Zor mod aktif, kıran kırana derbi başlıyor!"); }} style={{ padding: "5px 10px", backgroundColor: zorluk === "zor" ? "#ef4444" : "#f1f5f9", color: zorluk === "zor" ? "#fff" : "#333", borderRadius: "6px", border: "none", fontWeight: "bold", fontSize: "11px", cursor: "pointer" }}>🔴 Zor</button>
       </div>
 
       <div style={{ backgroundColor: "#f0fdf4", border: "2px solid #bbf7d0", borderRadius: "12px", padding: "10px", marginBottom: "10px", display: "flex", alignItems: "center", gap: "10px", textAlign: "left" }}>
         <span style={{ fontSize: "24px" }}>🎙️</span>
         <div>
           <div style={{ fontSize: "9px", fontWeight: "900", color: "#166534" }}>MAÇ SÜSPİKERİ:</div>
-          <p style={{ fontSize: "11px", fontWeight: "bold", color: "#14532d", margin: 0 }}>"{botMesaji}"</p>
+          <p style={{ fontSize: "11px", fontWeight: "bold", color: "#14532d", mark: 0 }}>"{botMesaji}"</p>
         </div>
       </div>
 
@@ -277,7 +279,7 @@ export default function BotOyunuPage() {
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "center",
-                  fontSize: "24px",
+                  fontSize: "22px",
                   cursor: "pointer",
                   position: "relative",
                   userSelect: "none",
