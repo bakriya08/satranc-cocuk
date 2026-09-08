@@ -1,541 +1,356 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Chess } from "chess.js";
 import Link from "next/link";
 
-const PIECE_IMAGES: Record<string, string> = {
-  wP: "https://upload.wikimedia.org/wikipedia/commons/4/45/Chess_plt45.svg",
-  wR: "https://upload.wikimedia.org/wikipedia/commons/7/72/Chess_rlt45.svg",
-  wN: "https://upload.wikimedia.org/wikipedia/commons/7/70/Chess_nlt45.svg",
-  wB: "https://upload.wikimedia.org/wikipedia/commons/b/b1/Chess_blt45.svg",
-  wQ: "https://upload.wikimedia.org/wikipedia/commons/1/15/Chess_qlt45.svg",
-  wK: "https://upload.wikimedia.org/wikipedia/commons/4/42/Chess_klt45.svg",
-  bP: "https://upload.wikimedia.org/wikipedia/commons/c/c7/Chess_pdt45.svg",
-  bR: "https://upload.wikimedia.org/wikipedia/commons/f/ff/Chess_rdt45.svg",
-  bN: "https://upload.wikimedia.org/wikipedia/commons/e/ef/Chess_ndt45.svg",
-  bB: "https://upload.wikimedia.org/wikipedia/commons/9/98/Chess_bdt45.svg",
-  bQ: "https://upload.wikimedia.org/wikipedia/commons/4/47/Chess_qdt45.svg",
-  bK: "https://upload.wikimedia.org/wikipedia/commons/f/f0/Chess_kdt45.svg",
-};
-
-const SOUNDS = {
-  move: "https://images.chesscomfiles.com/chess-themes/sounds/_MP3_/default/move-self.mp3",
-  capture: "https://images.chesscomfiles.com/chess-themes/sounds/_MP3_/default/capture.mp3",
-  gameEnd: "https://images.chesscomfiles.com/chess-themes/sounds/_MP3_/default/game-end.mp3",
-};
-
-interface SoruItem {
-  id: number;
-  title: string;
-  fen: string;
-  hint: string;
+interface Ogrenci {
+  id: string;
+  adSoyad: string;
+  sinifGrup?: string;
+  avatar: string;
+  pin: string;
+  lichessKadi?: string;
+  chessComKadi?: string;
 }
 
+interface Soru {
+  id: number;
+  soru: string;
+  secenekler: string[];
+  dogruCevap: string;
+  aciklama: string;
+}
+
+const HAFTALIK_SORULAR: Soru[] = [
+  {
+    id: 1,
+    soru: "Satranç tahtasında 'At' taşı hangi harf şeklinde hareket eder?",
+    secenekler: ["L harfi", "Düz çizgi", "Çapraz", "Kare"],
+    dogruCevap: "L harfi",
+    aciklama: "Atlar L şeklinde zıplar ve taşların üzerinden atlayabilir.",
+  },
+  {
+    id: 2,
+    soru: "Başlangıç konumunda beyaz vezir hangi karede yer alır?",
+    secenekler: ["Kendi rengindeki karede (d1)", "Köşede (a1)", "Şahın sağında", "İstediği karede"],
+    dogruCevap: "Kendi rengindeki karede (d1)",
+    aciklama: "Beyaz vezir beyaz karede (d1), siyah vezir siyah karede (d8) yer alır.",
+  },
+  {
+    id: 3,
+    soru: "Aynı anda iki taşı birden tehdit etme hamlesine ne ad verilir?",
+    secenekler: ["Çatal", "Rok", "Pat", "Terfi"],
+    dogruCevap: "Çatal",
+    aciklama: "Çatal, bir taşla iki veya daha fazla rakip taşı aynı anda tehdit etmektir.",
+  },
+];
+
 export default function OdevPage() {
-  const [sorular, setSorular] = useState<SoruItem[]>([]);
-  const [yukleniyor, setYukleniyor] = useState(true);
-  const [ogrenciAdi, setOgrenciAdi] = useState("");
-  const [sinifGrup, setSinifGrup] = useState("");
-  const [avatar, setAvatar] = useState("🦁");
-  const [odevBasladi, setOdevBasladi] = useState(false);
-  const [currentIdx, setCurrentIdx] = useState(0);
+  const [kayitliOgrenciler, setKayitliOgrenciler] = useState<Ogrenci[]>([]);
+  const [aktifOgrenci, setAktifOgrenci] = useState<Ogrenci | null>(null);
+  const [girisPin, setGirisPin] = useState("");
+  const [secilenOgrenciId, setSecilenOgrenciId] = useState("");
+  const [hata, setHata] = useState("");
 
-  const [game, setGame] = useState<Chess>(new Chess());
-  const [selectedSquare, setSelectedSquare] = useState<string | null>(null);
-  const [possibleSquares, setPossibleSquares] = useState<string[]>([]);
-  const [durumMesaji, setDurumMesaji] = useState("Beyaz oynar, tek hamlede mat yapar!");
-
-  const [soruHatalari, setSoruHatalari] = useState<Record<number, number>>({});
-  const [baslamaZamani, setBaslamaZamani] = useState<number>(0);
-  const [tamamlandi, setTamamlandi] = useState(false);
-  const [kaydediliyor, setKaydediliyor] = useState(false);
-
-  const files = ["a", "b", "c", "d", "e", "f", "g", "h"];
-  const ranks = ["8", "7", "6", "5", "4", "3", "2", "1"];
+  // Soru çözme state'leri
+  const [aktifSoruIndex, setAktifSoruIndex] = useState(0);
+  const [verilenCevaplar, setVerilenCevaplar] = useState<Record<number, string>>({});
+  const [testBitti, setTestBitti] = useState(false);
+  const [puan, setPuan] = useState(0);
 
   useEffect(() => {
-    profilYukle();
+    try {
+      // Hem yeni hem eski kayıt anahtarlarını kontrol et
+      const kayitlar = localStorage.getItem("sevimliSatrancKulupKayitlari") || localStorage.getItem("satrancOgrenciler");
+      if (kayitlar) {
+        setKayitliOgrenciler(JSON.parse(kayitlar));
+      }
 
-    fetch("/api/odev?type=sorular")
-      .then((r) => r.json())
-      .then((res) => {
-        if (res.success && res.data.length > 0) {
-          setSorular(res.data);
-          setGame(new Chess(res.data[0].fen));
-        }
-        setYukleniyor(false);
-      })
-      .catch(() => setYukleniyor(false));
+      const oturum = localStorage.getItem("aktifOgrenci");
+      if (oturum) {
+        setAktifOgrenci(JSON.parse(oturum));
+      }
+    } catch {}
   }, []);
 
-  function profilYukle() {
-    try {
-      const kayitli = localStorage.getItem("satranc_ogrenci");
-      if (kayitli) {
-        const parsed = JSON.parse(kayitli);
-        setOgrenciAdi(parsed.adSoyad || "");
-        setSinifGrup(parsed.sinifGrup || "");
-        setAvatar(parsed.avatar || "🦁");
-      }
-    } catch {}
-  }
-
-  // ÇIKIŞ YAP FONKSİYONU (Kardeşler için)
-  function cikisYap() {
-    try {
-      localStorage.removeItem("satranc_ogrenci");
-    } catch {}
-    setOgrenciAdi("");
-    setSinifGrup("");
-    setAvatar("🦁");
-    setOdevBasladi(false);
-    setTamamlandi(false);
-    setCurrentIdx(0);
-    setSoruHatalari({});
-  }
-
-  function sesCal(tur: "move" | "capture" | "gameEnd") {
-    try {
-      const audio = new Audio(SOUNDS[tur]);
-      audio.volume = 0.6;
-      audio.play().catch(() => {});
-    } catch {}
-  }
-
-  const currentSoru = sorular[currentIdx];
-
-  function handleSquareClick(square: string) {
-    if (tamamlandi || !currentSoru) return;
-
-    if (!selectedSquare) {
-      const piece = game.get(square as any);
-      if (piece && piece.color === "w") {
-        setSelectedSquare(square);
-        const legalMoves = game.moves({ square: square as any, verbose: true });
-        setPossibleSquares(legalMoves.map((m) => m.to));
-        setDurumMesaji(`Seçildi: ${square.toUpperCase()} ➔ Hedefe dokun!`);
-      }
+  function handleGiris(e: React.FormEvent) {
+    e.preventDefault();
+    const ogrenci = kayitliOgrenciler.find((o) => o.id === secilenOgrenciId);
+    if (!ogrenci) {
+      setHata("Lütfen bir öğrenci seçin.");
       return;
     }
 
-    try {
-      const gameCopy = new Chess(game.fen());
-      const move = gameCopy.move({
-        from: selectedSquare,
-        to: square,
-        promotion: "q",
-      });
+    const pinKontrol = ogrenci.pin || "1234";
+    if (girisPin.trim() !== pinKontrol) {
+      setHata("Hatalı PIN kodu! Lütfen kayıt olurken belirlediğiniz PIN'i girin.");
+      return;
+    }
 
-      if (move) {
-        if (gameCopy.isCheckmate()) {
-          setGame(gameCopy);
-          setSelectedSquare(null);
-          setPossibleSquares([]);
-          sesCal("gameEnd");
+    setAktifOgrenci(ogrenci);
+    localStorage.setItem("aktifOgrenci", JSON.stringify(ogrenci));
+    setHata("");
+    setGirisPin("");
+  }
 
-          if (currentIdx + 1 < sorular.length) {
-            setDurumMesaji("🌟 Harika! Sıradaki soruya geçiliyor...");
-            setTimeout(() => {
-              const nextIdx = currentIdx + 1;
-              setCurrentIdx(nextIdx);
-              setGame(new Chess(sorular[nextIdx].fen));
-              setDurumMesaji("Beyaz oynar, tek hamlede mat yapar!");
-            }, 1500);
-          } else {
-            setTamamlandi(true);
-            odeviGonder();
-          }
-        } else {
-          setSelectedSquare(null);
-          setPossibleSquares([]);
-          setSoruHatalari((prev) => ({
-            ...prev,
-            [currentSoru.id]: (prev[currentSoru.id] || 0) + 1,
-          }));
-          setDurumMesaji("❌ Bu hamle mat yapmadı! Tekrar dene.");
-          sesCal("move");
+  function handleCevapVer(secenek: string) {
+    const soru = HAFTALIK_SORULAR[aktifSoruIndex];
+    const yeniCevaplar = { ...verilenCevaplar, [soru.id]: secenek };
+    setVerilenCevaplar(yeniCevaplar);
+
+    if (aktifSoruIndex < HAFTALIK_SORULAR.length - 1) {
+      setAktifSoruIndex(aktifSoruIndex + 1);
+    } else {
+      // Testi bitir ve puan hesapla
+      let dogruSayisi = 0;
+      HAFTALIK_SORULAR.forEach((s) => {
+        if (yeniCevaplar[s.id] === s.dogruCevap) {
+          dogruSayisi++;
         }
-      } else {
-        setSelectedSquare(null);
-        setPossibleSquares([]);
-      }
-    } catch {
-      setSelectedSquare(null);
-      setPossibleSquares([]);
-      setSoruHatalari((prev) => ({
-        ...prev,
-        [currentSoru.id]: (prev[currentSoru.id] || 0) + 1,
-      }));
-      setDurumMesaji("Geçersiz hamle! Tekrar dene.");
+      });
+      const hesaplananPuan = Math.round((dogruSayisi / HAFTALIK_SORULAR.length) * 100);
+      setPuan(hesaplananPuan);
+      setTestBitti(true);
     }
   }
 
-  async function odeviGonder() {
-    setKaydediliyor(true);
-    const gecenSure = Math.round((Date.now() - baslamaZamani) / 1000);
-    const toplamHata = Object.values(soruHatalari).reduce((a, b) => a + b, 0);
-
-    const soruDetaylari = sorular.map((s) => ({
-      soruId: s.id,
-      soruBaslik: s.title,
-      hataliDeneme: soruHatalari[s.id] || 0,
-    }));
-
-    try {
-      await fetch("/api/odev", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          ogrenciAdi,
-          sinifGrup,
-          avatar,
-          toplamSoru: sorular.length,
-          dogruSayisi: sorular.length,
-          toplamHata,
-          gecenSureSaniye: gecenSure,
-          soruDetaylari,
-        }),
-      });
-    } catch {}
-    setKaydediliyor(false);
+  function handleCikis() {
+    setAktifOgrenci(null);
+    localStorage.removeItem("aktifOgrenci");
+    setTestBitti(false);
+    setAktifSoruIndex(0);
+    setVerilenCevaplar({});
   }
 
-  if (yukleniyor) {
-    return <div style={{ textAlign: "center", padding: "40px", fontWeight: "900", color: "#78350f" }}>Ödev Yükleniyor... ⏳</div>;
-  }
-
-  // 1. GİRİŞ EKRANI
-  if (!odevBasladi) {
-    return (
-      <div
-        style={{
-          maxWidth: "400px",
-          width: "100%",
-          backgroundColor: "#fffbeb",
-          padding: "24px",
-          borderRadius: "24px",
-          border: "4px solid #f59e0b",
-          boxShadow: "0 10px 25px rgba(0,0,0,0.1)",
-          textAlign: "center",
-          margin: "20px auto",
-        }}
-      >
-        <span style={{ fontSize: "50px" }}>{avatar}</span>
-        <h1 style={{ fontSize: "20px", fontWeight: "900", color: "#78350f", margin: "8px 0 4px 0" }}>
-          Haftalık Satranç Görevi
-        </h1>
-
-        {ogrenciAdi ? (
-          <div
-            style={{
-              backgroundColor: "#fef3c7",
-              padding: "12px",
-              borderRadius: "16px",
-              marginBottom: "14px",
-              border: "2px solid #fde68a",
-            }}
-          >
-            <span style={{ fontSize: "11px", color: "#92400e", fontWeight: "bold" }}>Giriş Yapılan Profil:</span>
-            <div style={{ fontSize: "17px", fontWeight: "900", color: "#451a03", marginTop: "2px" }}>
-              {avatar} {ogrenciAdi}
-            </div>
-            {sinifGrup && <span style={{ fontSize: "11px", color: "#b45309", fontWeight: "bold" }}>({sinifGrup})</span>}
-
-            {/* ÇIKIŞ YAP BUTONU (KARDEŞLER İÇİN) */}
-            <div style={{ marginTop: "8px", borderTop: "1px dashed #fcd34d", paddingTop: "6px" }}>
-              <button
-                type="button"
-                onClick={cikisYap}
-                style={{
-                  background: "none",
-                  border: "none",
-                  color: "#dc2626",
-                  fontSize: "11px",
-                  fontWeight: "800",
-                  cursor: "pointer",
-                  textDecoration: "underline",
-                }}
-              >
-                🔄 Ben {ogrenciAdi.split(" ")[0]} değilim (Çıkış Yap / Kardeşim Başlasın)
-              </button>
-            </div>
-          </div>
-        ) : (
-          <div style={{ marginBottom: "14px" }}>
-            <input
-              type="text"
-              placeholder="Adın ve Soyadın"
-              value={ogrenciAdi}
-              onChange={(e) => setOgrenciAdi(e.target.value)}
-              style={{
-                width: "100%",
-                padding: "10px 14px",
-                borderRadius: "14px",
-                border: "2px solid #fcd34d",
-                fontSize: "14px",
-                fontWeight: "bold",
-                textAlign: "center",
-                outline: "none",
-                boxSizing: "border-box",
-                marginBottom: "8px",
-              }}
-            />
-            <div style={{ display: "flex", justifyContent: "center", gap: "10px" }}>
-              <Link href="/kayit" style={{ fontSize: "11px", color: "#2563eb", fontWeight: "800", textDecoration: "none" }}>
-                🌟 Kendi Kulüp Kartını Oluştur ➔
-              </Link>
-            </div>
-          </div>
-        )}
-
-        <button
-          type="button"
-          onClick={() => {
-            if (ogrenciAdi.trim().length > 1) {
-              setOdevBasladi(true);
-              setBaslamaZamani(Date.now());
-            } else {
-              alert("Lütfen adını ve soyadını yaz!");
-            }
-          }}
-          style={{
-            width: "100%",
-            padding: "12px",
-            backgroundColor: "#10b981",
-            color: "#ffffff",
-            fontWeight: "900",
-            fontSize: "14px",
-            borderRadius: "14px",
-            border: "none",
-            cursor: "pointer",
-            boxShadow: "0 4px 10px rgba(16, 185, 129, 0.3)",
-          }}
-        >
-          Ödeve Başla 🚀
-        </button>
-      </div>
-    );
-  }
-
-  // 3. BİTİŞ EKRANI (Kardeş İçin Oturum Kapatma Destekli)
-  if (tamamlandi) {
-    return (
-      <div
-        style={{
-          maxWidth: "400px",
-          width: "100%",
-          backgroundColor: "#ffffff",
-          padding: "24px",
-          borderRadius: "24px",
-          border: "4px solid #10b981",
-          boxShadow: "0 10px 25px rgba(0,0,0,0.15)",
-          textAlign: "center",
-          margin: "20px auto",
-        }}
-      >
-        <span style={{ fontSize: "56px" }}>🏆</span>
-        <h2 style={{ fontSize: "20px", fontWeight: "900", color: "#1e293b", margin: "8px 0" }}>
-          Harikasın, {ogrenciAdi}!
-        </h2>
-        <p style={{ fontSize: "13px", color: "#047857", fontWeight: "bold", margin: "0 0 16px 0" }}>
-          Tüm ödev sorularını başarıyla çözdün!
-        </p>
-
-        <div
-          style={{
-            backgroundColor: "#f0fdf4",
-            padding: "12px",
-            borderRadius: "16px",
-            border: "1px dashed #22c55e",
-            marginBottom: "16px",
-            fontSize: "12px",
-            color: "#166534",
-            fontWeight: "700",
-          }}
-        >
-          {kaydediliyor ? "Sonuç öğretmenine iletiliyor... ⏳" : "✅ Ödevin öğretmenin kontrol paneline ulaştı!"}
-        </div>
-
-        <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
-          <Link
-            href="/"
-            style={{
-              display: "block",
-              padding: "12px 24px",
-              backgroundColor: "#f59e0b",
-              color: "#ffffff",
-              fontWeight: "900",
-              fontSize: "13px",
-              borderRadius: "14px",
-              textDecoration: "none",
-            }}
-          >
-            🏠 Ana Sayfaya Dön
-          </Link>
-
-          {/* Kardeşim Oynasın Butonu */}
-          <button
-            type="button"
-            onClick={cikisYap}
-            style={{
-              padding: "10px",
-              backgroundColor: "#eff6ff",
-              color: "#2563eb",
-              border: "2px solid #bfdbfe",
-              fontWeight: "800",
-              fontSize: "12px",
-              borderRadius: "14px",
-              cursor: "pointer",
-            }}
-          >
-            🔄 Kardeşim Sırasını Alsın (Çıkış Yap)
-          </button>
-        </div>
-      </div>
-    );
-  }
-
-  // 2. TAHTA
   return (
     <div
       style={{
-        display: "flex",
-        flexDirection: "column",
-        alignItems: "center",
-        padding: "16px",
-        backgroundColor: "#fffbeb",
-        borderRadius: "24px",
-        boxShadow: "0 20px 25px -5px rgba(0, 0, 0, 0.15)",
-        maxWidth: "400px",
+        maxWidth: "800px",
         width: "100%",
-        border: "4px solid #fcd34d",
-        boxSizing: "border-box",
-        userSelect: "none",
+        backgroundColor: "#ffffff",
+        padding: "24px",
+        borderRadius: "24px",
+        border: "3px solid #ef4444",
+        boxShadow: "0 10px 30px rgba(239, 68, 68, 0.1)",
         margin: "0 auto",
       }}
     >
-      <div style={{ display: "flex", justifyContent: "space-between", width: "100%", alignItems: "center", marginBottom: "6px" }}>
-        <span style={{ fontSize: "12px", fontWeight: "900", color: "#78350f" }}>
-          {avatar} {ogrenciAdi}
-        </span>
-        <span style={{ fontSize: "11px", fontWeight: "900", color: "#d97706" }}>
-          Soru: {currentIdx + 1} / {sorular.length}
-        </span>
+      <div style={{ textAlign: "center", marginBottom: "20px" }}>
+        <span style={{ fontSize: "40px" }}>📚✏️</span>
+        <h1 style={{ fontSize: "22px", fontWeight: "900", color: "#b91c1c", margin: "6px 0" }}>
+          Haftalık Ödevler & Soru Çözüm Merkezi
+        </h1>
+        <p style={{ fontSize: "13px", color: "#64748b", margin: 0 }}>
+          Öğrenci hesabınla giriş yap, haftanın sorularını çöz ve rozetini kazan!
+        </p>
       </div>
 
-      <div style={{ fontSize: "12px", fontWeight: "800", color: "#1e293b", marginBottom: "4px", textAlign: "center" }}>
-        {currentSoru.title}
-      </div>
+      {!aktifOgrenci ? (
+        /* GİRİŞ YAPMA EKRANI */
+        <div style={{ backgroundColor: "#fef2f2", padding: "20px", borderRadius: "18px", border: "2px solid #fecaca", maxWidth: "450px", margin: "0 auto" }}>
+          <h2 style={{ fontSize: "15px", fontWeight: "900", color: "#991b1b", margin: "0 0 14px 0", textAlign: "center" }}>
+            🔑 Ödev Çözmek İçin Giriş Yap
+          </h2>
 
-      <div
-        style={{
-          width: "100%",
-          padding: "8px 12px",
-          backgroundColor: "#fde68a",
-          borderRadius: "9999px",
-          textAlign: "center",
-          fontWeight: "900",
-          fontSize: "12px",
-          color: "#451a03",
-          marginBottom: "6px",
-          minHeight: "34px",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          boxSizing: "border-box",
-        }}
-      >
-        {durumMesaji}
-      </div>
-
-      <div style={{ fontSize: "10px", color: "#92400e", textAlign: "center", fontStyle: "italic", marginBottom: "6px" }}>
-        {currentSoru.hint}
-      </div>
-
-      <div
-        style={{
-          width: "352px",
-          height: "352px",
-          display: "grid",
-          gridTemplateColumns: "repeat(8, 44px)",
-          gridTemplateRows: "repeat(8, 44px)",
-          borderRadius: "16px",
-          overflow: "hidden",
-          border: "4px solid #78350f",
-          boxShadow: "0 10px 15px -3px rgba(0,0,0,0.2)",
-          backgroundColor: "#78350f",
-        }}
-      >
-        {ranks.map((rank, rankIndex) =>
-          files.map((file, fileIndex) => {
-            const square = `${file}${rank}`;
-            const piece = game.get(square as any);
-            const isDark = (rankIndex + fileIndex) % 2 === 1;
-            const isSelected = selectedSquare === square;
-            const isPossibleTarget = possibleSquares.includes(square);
-
-            const pieceKey = piece ? `${piece.color}${piece.type.toUpperCase()}` : null;
-            const pieceImgUrl = pieceKey ? PIECE_IMAGES[pieceKey] : null;
-
-            return (
-              <button
-                key={square}
-                type="button"
-                onClick={() => handleSquareClick(square)}
+          {kayitliOgrenciler.length === 0 ? (
+            <div style={{ textAlign: "center" }}>
+              <p style={{ fontSize: "13px", color: "#b91c1c", marginBottom: "12px" }}>
+                Henüz kayıtlı öğrenci bulunmuyor. Önce kulübe kayıt olmalısın!
+              </p>
+              <Link
+                href="/kayit"
                 style={{
-                  width: "44px",
-                  height: "44px",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  padding: "0",
-                  margin: "0",
-                  border: "none",
-                  position: "relative",
-                  cursor: "pointer",
-                  backgroundColor: isSelected ? "#fde047" : isDark ? "#b58863" : "#f0d9b5",
-                  outline: isSelected ? "3px solid #f59e0b" : "none",
-                  zIndex: isSelected ? 5 : 1,
+                  display: "inline-block",
+                  padding: "10px 18px",
+                  backgroundColor: "#8b5cf6",
+                  color: "#ffffff",
+                  borderRadius: "10px",
+                  textDecoration: "none",
+                  fontWeight: "bold",
+                  fontSize: "12px",
                 }}
               >
-                {pieceImgUrl && (
-                  <img
-                    src={pieceImgUrl}
-                    alt={pieceKey || "piece"}
-                    style={{ width: "36px", height: "36px", pointerEvents: "none", userSelect: "none" }}
-                    draggable={false}
-                  />
-                )}
+                🌟 Hemen Kulübe Kayıt Ol
+              </Link>
+            </div>
+          ) : (
+            <form onSubmit={handleGiris} style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
+              <div>
+                <label style={{ display: "block", fontSize: "12px", fontWeight: "bold", color: "#991b1b", marginBottom: "4px" }}>
+                  Öğrenci İsminizi Seçin *
+                </label>
+                <select
+                  required
+                  value={secilenOgrenciId}
+                  onChange={(e) => setSecilenOgrenciId(e.target.value)}
+                  style={{ width: "100%", padding: "10px", borderRadius: "10px", border: "1px solid #cbd5e1", fontSize: "13px", backgroundColor: "#ffffff" }}
+                >
+                  <option value="">-- İsminizi Seçin --</option>
+                  {kayitliOgrenciler.map((o) => (
+                    <option key={o.id} value={o.id}>
+                      {o.avatar} {o.adSoyad} {o.sinifGrup ? `(${o.sinifGrup})` : ""}
+                    </option>
+                  ))}
+                </select>
+              </div>
 
-                {isPossibleTarget && !piece && (
-                  <div
-                    style={{
-                      position: "absolute",
-                      width: "14px",
-                      height: "14px",
-                      borderRadius: "50%",
-                      backgroundColor: "rgba(5, 150, 105, 0.7)",
-                      pointerEvents: "none",
-                    }}
-                  />
-                )}
-                {isPossibleTarget && piece && (
-                  <div
-                    style={{
-                      position: "absolute",
-                      inset: "2px",
-                      borderRadius: "50%",
-                      border: "3px solid rgba(225, 29, 72, 0.8)",
-                      pointerEvents: "none",
-                    }}
-                  />
-                )}
+              <div>
+                <label style={{ display: "block", fontSize: "12px", fontWeight: "bold", color: "#991b1b", marginBottom: "4px" }}>
+                  PIN Kodunuz (Varsayılan: 1234) *
+                </label>
+                <input
+                  type="password"
+                  maxLength={6}
+                  required
+                  value={girisPin}
+                  onChange={(e) => setGirisPin(e.target.value)}
+                  placeholder="****"
+                  style={{ width: "100%", padding: "10px", borderRadius: "10px", border: "1px solid #cbd5e1", fontSize: "13px", boxSizing: "border-box", letterSpacing: "2px" }}
+                />
+              </div>
+
+              {hata && (
+                <div style={{ color: "#dc2626", fontSize: "12px", fontWeight: "bold", textAlign: "center" }}>
+                  {hata}
+                </div>
+              )}
+
+              <button
+                type="submit"
+                style={{
+                  width: "100%",
+                  padding: "11px",
+                  backgroundColor: "#ef4444",
+                  color: "#ffffff",
+                  borderRadius: "10px",
+                  border: "none",
+                  fontWeight: "900",
+                  fontSize: "13px",
+                  cursor: "pointer",
+                }}
+              >
+                🚀 Giriş Yap ve Soruları Çöz
               </button>
-            );
-          })
-        )}
-      </div>
+            </form>
+          )}
+        </div>
+      ) : (
+        /* SORU ÇÖZME EKRANI */
+        <div>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", backgroundColor: "#f8fafc", padding: "12px 16px", borderRadius: "14px", marginBottom: "20px", border: "1px solid #e2e8f0" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+              <span style={{ fontSize: "28px" }}>{aktifOgrenci.avatar}</span>
+              <div>
+                <div style={{ fontSize: "14px", fontWeight: "900", color: "#1e293b" }}>{aktifOgrenci.adSoyad}</div>
+                <div style={{ fontSize: "11px", color: "#64748b" }}>{aktifOgrenci.sinifGrup || "Genel Grup"}</div>
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={handleCikis}
+              style={{ padding: "6px 12px", backgroundColor: "#e2e8f0", color: "#334155", border: "none", borderRadius: "8px", fontWeight: "bold", fontSize: "11px", cursor: "pointer" }}
+            >
+              Çıkış Yap 🚪
+            </button>
+          </div>
+
+          {!testBitti ? (
+            <div>
+              <div style={{ display: "flex", justifyContent: "space-between", fontSize: "12px", fontWeight: "bold", color: "#b91c1c", marginBottom: "6px" }}>
+                <span>Soru {aktifSoruIndex + 1} / {HAFTALIK_SORULAR.length}</span>
+                <span>%{Math.round(((aktifSoruIndex + 1) / HAFTALIK_SORULAR.length) * 100)} Tamamlandı</span>
+              </div>
+              <div style={{ width: "100%", height: "8px", backgroundColor: "#fee2e2", borderRadius: "8px", overflow: "hidden", marginBottom: "20px" }}>
+                <div
+                  style={{
+                    width: `${((aktifSoruIndex + 1) / HAFTALIK_SORULAR.length) * 100}%`,
+                    height: "100%",
+                    backgroundColor: "#ef4444",
+                    transition: "width 0.3s ease",
+                  }}
+                />
+              </div>
+
+              <div style={{ backgroundColor: "#fff5f5", padding: "20px", borderRadius: "16px", border: "2px solid #fecaca", marginBottom: "16px" }}>
+                <h3 style={{ fontSize: "16px", fontWeight: "900", color: "#7f1d1d", margin: "0 0 16px 0" }}>
+                  {HAFTALIK_SORULAR[aktifSoruIndex].soru}
+                </h3>
+
+                <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
+                  {HAFTALIK_SORULAR[aktifSoruIndex].secenekler.map((secenek, idx) => (
+                    <button
+                      key={idx}
+                      type="button"
+                      onClick={() => handleCevapVer(secenek)}
+                      style={{
+                        textAlign: "left",
+                        padding: "12px 16px",
+                        borderRadius: "12px",
+                        border: "1px solid #fca5a5",
+                        backgroundColor: "#ffffff",
+                        color: "#1e293b",
+                        fontSize: "13px",
+                        fontWeight: "bold",
+                        cursor: "pointer",
+                        transition: "all 0.15s ease",
+                      }}
+                    >
+                      {String.fromCharCode(65 + idx)}) {secenek}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+          ) : (
+            <div style={{ textAlign: "center", padding: "10px 0" }}>
+              <span style={{ fontSize: "50px" }}>🏆🎉</span>
+              <h2 style={{ fontSize: "20px", fontWeight: "900", color: "#991b1b", margin: "10px 0" }}>
+                Ödevleri Tamamladın, Tebrikler!
+              </h2>
+              <p style={{ fontSize: "14px", color: "#334155", margin: "0 0 20px 0" }}>
+                Başarı Puanın: <strong style={{ color: "#16a34a", fontSize: "18px" }}>{puan} Puan</strong>
+              </p>
+
+              <div style={{ display: "flex", justifyContent: "center", gap: "10px", flexWrap: "wrap" }}>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setTestBitti(false);
+                    setAktifSoruIndex(0);
+                    setVerilenCevaplar({});
+                  }}
+                  style={{
+                    padding: "10px 18px",
+                    backgroundColor: "#64748b",
+                    color: "#ffffff",
+                    borderRadius: "12px",
+                    border: "none",
+                    fontWeight: "bold",
+                    fontSize: "12px",
+                    cursor: "pointer",
+                  }}
+                >
+                  🔄 Ödevi Tekrar Çöz
+                </button>
+                <Link
+                  href="/dersler"
+                  style={{
+                    padding: "10px 18px",
+                    backgroundColor: "#0284c7",
+                    color: "#ffffff",
+                    borderRadius: "12px",
+                    textDecoration: "none",
+                    fontWeight: "900",
+                    fontSize: "12px",
+                  }}
+                >
+                  🎓 Derslere Git
+                </Link>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 }
