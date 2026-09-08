@@ -8,14 +8,14 @@ export default function BotOyunuPage() {
   const [oyun, setOyun] = useState<Chess | null>(null);
   const [fen, setFen] = useState("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
   const [zorluk, setZorluk] = useState<"kolay" | "orta" | "zor">("kolay");
-  const [botMesaji, setBotMesaji] = useState("Merhaba şampiyon! Renk ve stilini seç, beyaz taşlarla maça başlayalım! ♟️");
+  const [botMesaji, setBotMesaji] = useState("Cimbom şampiyonluk yolunda! Galatasaray taş setini seçtin, maçı alalım aslanlar! 🦁🟡🔴");
   const [secilenKare, setSecilenKare] = useState<string | null>(null);
   const [imkanliKareler, setImkanliKareler] = useState<string[]>([]);
   const [oyunDurumu, setOyunDurumu] = useState("Sıra Sende (Beyaz Taşlar)");
 
-  // Özelleştirme State'leri
-  const [tahtaTema, setTahtaTema] = useState<"yesil" | "ahsap" | "mavi" | "mor">("yesil");
-  const [tasStili, setTasStili] = useState<"klasik" | "emoji" | "harf">("klasik");
+  // Özelleştirme State'leri (Galatasaray teması eklendi)
+  const [tahtaTema, setTahtaTema] = useState<"yesil" | "ahsap" | "mavi" | "mor" | "galatasaray">("galatasaray");
+  const [tasStili, setTasStili] = useState<"klasik" | "emoji" | "harf" | "gs">("gs");
 
   useEffect(() => {
     const yeniOyun = new Chess();
@@ -43,10 +43,12 @@ export default function BotOyunuPage() {
         setSecilenKare(kareAdi);
         const hamleler = oyun.moves({ square: kareAdi as any, verbose: true });
         setImkanliKareler(hamleler.map((h) => h.to));
-        botuKonustur("Güzel bir taş seçtin, nereye oynamak istersin?");
+        botuKonustur("Harika bir Galatasaray taşı seçtin, hedefe yürüyelim!");
       }
     } else {
       try {
+        const hamleObj = oyun.moves({ square: secilenKare as any, verbose: true }).find((h) => h.to === kareAdi);
+        
         const hamle = oyun.move({
           from: secilenKare,
           to: kareAdi,
@@ -60,16 +62,16 @@ export default function BotOyunuPage() {
 
           if (oyun.isGameOver()) {
             setOyunDurumu("Oyun Bitti!");
-            botuKonustur("Tebrikler şampiyon, oyunu tamamladın! 🏆");
+            botuKonustur("Şampiyon Galatasaray! Muazzam bir zafer elde ettin! 🏆💛❤️");
             return;
           }
 
+          degerlendirHamle(hamleObj);
           setOyunDurumu("Bot düşünüyor... 🤔");
-          botuKonustur("Güzel hamle! Şimdi sıra bende.");
 
           setTimeout(() => {
             botHamlesiYap(oyun);
-          }, 1000);
+          }, 1400);
         } else {
           const tas = oyun.get(kareAdi as any);
           if (tas && tas.color === "w") {
@@ -88,6 +90,20 @@ export default function BotOyunuPage() {
     }
   }
 
+  function degerlendirHamle(hamle: any) {
+    if (!hamle) return;
+
+    if (hamle.captured) {
+      botuKonustur("Aslanlar gibi kaptın rakibin taşını! Gol sesini duyuyorum! 🦁⚽");
+    } else if (hamle.san.includes("+")) {
+      botuKonustur("Müthiş! Rakip kaleye şat çekip tehlike yarattın! 🔥");
+    } else if (["d4", "e4", "d5", "e5"].includes(hamle.to)) {
+      botuKonustur("Sahanın ortasını sarı-kırmızı bayrakla donattın, süper merkez kontrolü! 💛❤️");
+    } else {
+      botuKonustur("Taktiksel ve şık bir hamle, oyunu domine ediyorsun!");
+    }
+  }
+
   function botHamlesiYap(guncelOyun: Chess) {
     if (guncelOyun.isGameOver()) return;
 
@@ -99,7 +115,7 @@ export default function BotOyunuPage() {
     if (zorluk === "orta") {
       const tasAlanlar = yasalHamleler.filter((h) => h.captured);
       if (tasAlanlar.length > 0) {
-        secilenHamle = tasAlanlar[Math.floor(Math.random() * tasAlanlar.length)];
+        secilenHammer = tasAlanlar[Math.floor(Math.random() * tasAlanlar.length)];
       }
     } else if (zorluk === "zor") {
       const matEden = yasalHamleler.find((h) => h.san.includes("#"));
@@ -110,8 +126,7 @@ export default function BotOyunuPage() {
 
     guncelOyun.move(secilenHamle);
     setFen(guncelOyun.fen());
-    setOyunDurumu("Sıra Sende (Beyaz Taşlar)");
-    botuKonustur("Hamlemi yaptım, sıra sende şampiyon! 😊");
+    setOyunDurumu("Sıra Sende (Galatasaray Taşları)");
   }
 
   function fenToBoard(fenStr: string) {
@@ -130,8 +145,15 @@ export default function BotOyunuPage() {
     });
   }
 
+  // Galatasaray özel taş seti (Aslan, Sarı-Kırmızı armalar ve efsanevi simgeler)
   function tasGoster(kod: string) {
-    if (tasStili === "klasik") {
+    if (tasStili === "gs") {
+      const gsSeti: Record<string, string> = {
+        r: "🔴🏰", n: "🔴🐎", b: "🔴🦁", q: "🔴👑", k: "🦁", p: "🔴",
+        R: "🟡🏰", N: "🟡🐎", B: "🟡🦁", Q: "🟡👑", K: "👑", P: "🟡"
+      };
+      return gsSeti[kod] || "";
+    } else if (tasStili === "klasik") {
       const taslar: Record<string, string> = {
         r: "♜", n: "♞", b: "♝", q: "♛", k: "♚", p: "♟",
         R: "♖", N: "♘", B: "♗", Q: "♕", K: "♔", P: "♙"
@@ -148,12 +170,12 @@ export default function BotOyunuPage() {
     }
   }
 
-  // Tema renklerini belirleme
   function renkSec(beyazKare: boolean) {
+    if (tahtaTema === "galatasaray") return beyazKare ? "#fef08a" : "#991b1b"; // Sarı-Kırmızı Zemin
     if (tahtaTema === "ahsap") return beyazKare ? "#e3c16f" : "#b88b4a";
     if (tahtaTema === "mavi") return beyazKare ? "#dee3e6" : "#4a7a96";
     if (tahtaTema === "mor") return beyazKare ? "#f3e8ff" : "#7c3aed";
-    return beyazKare ? "#ebecd0" : "#739552"; // Klasik Yeşil
+    return beyazKare ? "#ebecd0" : "#739552";
   }
 
   const tahtaMatris = fenToBoard(fen);
@@ -162,75 +184,74 @@ export default function BotOyunuPage() {
   return (
     <div
       style={{
-        maxWidth: "700px",
+        maxWidth: "720px",
         width: "100%",
         backgroundColor: "#ffffff",
         padding: "24px",
         borderRadius: "24px",
-        border: "3px solid #f59e0b",
-        boxShadow: "0 10px 30px rgba(245, 158, 11, 0.1)",
+        border: "3px solid #b91c1c",
+        boxShadow: "0 10px 30px rgba(185, 28, 28, 0.15)",
         margin: "0 auto",
         textAlign: "center",
       }}
     >
-      <span style={{ fontSize: "40px" }}>🤖♟️</span>
-      <h1 style={{ fontSize: "20px", fontWeight: "900", color: "#b45309", margin: "4px 0" }}>
-        Akıllı Satranç Botu & Renk Paneli
+      <span style={{ fontSize: "40px" }}>🦁🟡🔴</span>
+      <h1 style={{ fontSize: "20px", fontWeight: "900", color: "#991b1b", margin: "4px 0" }}>
+        Galatasaray Satranç Koçu & Bot Arenası
       </h1>
       <p style={{ fontSize: "12px", color: "#64748b", margin: "0 0 14px 0" }}>
-        Tahta rengini, taş stilini seç ve akıllı botla eşit 64 kare üzerinde karşılıklı oyna!
+        Sarı-kırmızı ruhu tahtaya taşıyın, Cimbom taş setiyle zekanızı konuşturun!
       </p>
 
-      {/* RENGİNİ VE STİLİNİ SEÇ PANELİ */}
-      <div style={{ backgroundColor: "#fffbeb", border: "2px solid #fef3c7", borderRadius: "16px", padding: "12px", marginBottom: "14px", display: "flex", justifyContent: "space-around", flexWrap: "wrap", gap: "10px" }}>
+      {/* Stil ve Tema Paneli */}
+      <div style={{ backgroundColor: "#fef2f2", border: "2px solid #fecaca", borderRadius: "16px", padding: "12px", marginBottom: "14px", display: "flex", justifyContent: "space-around", flexWrap: "wrap", gap: "10px" }}>
         <div>
-          <div style={{ fontSize: "10px", fontWeight: "950", color: "#b45309", marginBottom: "4px" }}>🎨 TAHTA RENGİ</div>
+          <div style={{ fontSize: "10px", fontWeight: "950", color: "#991b1b", marginBottom: "4px" }}>🏟️ TAHTA TEMA</div>
           <div style={{ display: "flex", gap: "4px" }}>
+            <button type="button" onClick={() => setTahtaTema("galatasaray")} style={{ padding: "4px 8px", backgroundColor: tahtaTema === "galatasaray" ? "#991b1b" : "#f1f5f9", color: tahtaTema === "galatasaray" ? "#fff" : "#333", borderRadius: "6px", border: "none", fontSize: "11px", fontWeight: "bold", cursor: "pointer" }}>Galatasaray</button>
             <button type="button" onClick={() => setTahtaTema("yesil")} style={{ padding: "4px 8px", backgroundColor: tahtaTema === "yesil" ? "#739552" : "#f1f5f9", color: tahtaTema === "yesil" ? "#fff" : "#333", borderRadius: "6px", border: "none", fontSize: "11px", fontWeight: "bold", cursor: "pointer" }}>Yeşil</button>
             <button type="button" onClick={() => setTahtaTema("ahsap")} style={{ padding: "4px 8px", backgroundColor: tahtaTema === "ahsap" ? "#b88b4a" : "#f1f5f9", color: tahtaTema === "ahsap" ? "#fff" : "#333", borderRadius: "6px", border: "none", fontSize: "11px", fontWeight: "bold", cursor: "pointer" }}>Ahşap</button>
-            <button type="button" onClick={() => setTahtaTema("mavi")} style={{ padding: "4px 8px", backgroundColor: tahtaTema === "mavi" ? "#4a7a96" : "#f1f5f9", color: tahtaTema === "mavi" ? "#fff" : "#333", borderRadius: "6px", border: "none", fontSize: "11px", fontWeight: "bold", cursor: "pointer" }}>Mavi</button>
-            <button type="button" onClick={() => setTahtaTema("mor")} style={{ padding: "4px 8px", backgroundColor: tahtaTema === "mor" ? "#7c3aed" : "#f1f5f9", color: tahtaTema === "mor" ? "#fff" : "#333", borderRadius: "6px", border: "none", fontSize: "11px", fontWeight: "bold", cursor: "pointer" }}>Mor</button>
           </div>
         </div>
 
         <div>
-          <div style={{ fontSize: "10px", fontWeight: "950", color: "#b45309", marginBottom: "4px" }}>♟️ TAŞ STİLİ</div>
+          <div style={{ fontSize: "10px", fontWeight: "950", color: "#991b1b", marginBottom: "4px" }}>🦁 TAŞ STİLİ</div>
           <div style={{ display: "flex", gap: "4px" }}>
-            <button type="button" onClick={() => setTasStili("klasik")} style={{ padding: "4px 8px", backgroundColor: tasStili === "klasik" ? "#f59e0b" : "#f1f5f9", color: tasStili === "klasik" ? "#fff" : "#333", borderRadius: "6px", border: "none", fontSize: "11px", fontWeight: "bold", cursor: "pointer" }}>Klasik</button>
-            <button type="button" onClick={() => setTasStili("emoji")} style={{ padding: "4px 8px", backgroundColor: tasStili === "emoji" ? "#f59e0b" : "#f1f5f9", color: tasStili === "emoji" ? "#fff" : "#333", borderRadius: "6px", border: "none", fontSize: "11px", fontWeight: "bold", cursor: "pointer" }}>Emoji</button>
-            <button type="button" onClick={() => setTasStili("harf")} style={{ padding: "4px 8px", backgroundColor: tasStili === "harf" ? "#f59e0b" : "#f1f5f9", color: tasStili === "harf" ? "#fff" : "#334", borderRadius: "6px", border: "none", fontSize: "11px", fontWeight: "bold", cursor: "pointer" }}>Harf</button>
+            <button type="button" onClick={() => setTasStili("gs")} style={{ padding: "4px 8px", backgroundColor: tasStili === "gs" ? "#b91c1c" : "#f1f5f9", color: tasStili === "gs" ? "#fff" : "#333", borderRadius: "6px", border: "none", fontSize: "11px", fontWeight: "bold", cursor: "pointer" }}>Galatasaray 🦁</button>
+            <button type="button" onClick={() => setTasStili("klasik")} style={{ padding: "4px 8px", backgroundColor: tasStili === "klasik" ? "#b91c1c" : "#f1f5f9", color: tasStili === "klasik" ? "#fff" : "#333", borderRadius: "6px", border: "none", fontSize: "11px", fontWeight: "bold", cursor: "pointer" }}>Klasik</button>
+            <button type="button" onClick={() => setTasStili("emoji")} style={{ padding: "4px 8px", backgroundColor: tasStili === "emoji" ? "#b91c1c" : "#f1f5f9", color: tasStili === "emoji" ? "#fff" : "#333", borderRadius: "6px", border: "none", fontSize: "11px", fontWeight: "bold", cursor: "pointer" }}>Emoji</button>
           </div>
         </div>
       </div>
 
       {/* Zorluk Seviyesi */}
       <div style={{ display: "flex", justifyContent: "center", gap: "6px", marginBottom: "12px" }}>
-        <button type="button" onClick={() => { setZorluk("kolay"); botuKonustur("Kolay moda geçtik!"); }} style={{ padding: "5px 10px", backgroundColor: zorluk === "kolay" ? "#22c55e" : "#f1f5f9", color: zorluk === "kolay" ? "#fff" : "#333", borderRadius: "6px", border: "none", fontWeight: "bold", fontSize: "11px", cursor: "pointer" }}>🟢 Kolay</button>
-        <button type="button" onClick={() => { setZorluk("orta"); botuKonustur("Orta moda geçtik!"); }} style={{ padding: "5px 10px", backgroundColor: zorluk === "orta" ? "#f59e0b" : "#f1f5f9", color: zorluk === "orta" ? "#fff" : "#333", borderRadius: "6px", border: "none", fontWeight: "bold", fontSize: "11px", cursor: "pointer" }}>🟡 Orta</button>
-        <button type="button" onClick={() => { setZorluk("zor"); botuKonustur("Zor moda geçtik!"); }} style={{ padding: "5px 10px", backgroundColor: zorluk === "zor" ? "#ef4444" : "#f1f5f9", color: zorluk === "zor" ? "#fff" : "#333", borderRadius: "6px", border: "none", fontWeight: "bold", fontSize: "11px", cursor: "pointer" }}>🔴 Zor</button>
+        <button type="button" onClick={() => { setZorluk("kolay"); botuKonustur("Kolay mod aktif, bol şans Cimbomlu!"); }} style={{ padding: "5px 10px", backgroundColor: zorluk === "kolay" ? "#22c55e" : "#f1f5f9", color: zorluk === "kolay" ? "#fff" : "#333", borderRadius: "6px", border: "none", fontWeight: "bold", fontSize: "11px", cursor: "pointer" }}>🟢 Kolay</button>
+        <button type="button" onClick={() => { setZorluk("orta"); botuKonustur("Orta mod aktif!"); }} style={{ padding: "5px 10px", backgroundColor: zorluk === "orta" ? "#f59e0b" : "#f1f5f9", color: zorluk === "orta" ? "#fff" : "#333", borderRadius: "6px", border: "none", fontWeight: "bold", fontSize: "11px", cursor: "pointer" }}>🟡 Orta</button>
+        <button type="button" onClick={() => { setZorluk("zor"); botuKonustur("Zor mod aktif, ustaaslanlar sahada!"); }} style={{ padding: "5px 10px", backgroundColor: zorluk === "zor" ? "#ef4444" : "#f1f5f9", color: zorluk === "zor" ? "#fff" : "#333", borderRadius: "6px", border: "none", fontWeight: "bold", fontSize: "11px", cursor: "pointer" }}>🔴 Zor</button>
       </div>
 
       {/* Bot Konuşma Balonu */}
-      <div style={{ backgroundColor: "#fffbeb", border: "2px solid #fde68a", borderRadius: "12px", padding: "10px", marginBottom: "10px", display: "flex", alignItems: "center", gap: "10px", textAlign: "left" }}>
-        <span style={{ fontSize: "24px" }}>🤖</span>
+      <div style={{ backgroundColor: "#fef2f2", border: "2px solid #fecaca", borderRadius: "12px", padding: "10px", marginBottom: "10px", display: "flex", alignItems: "center", gap: "10px", textAlign: "left" }}>
+        <span style={{ fontSize: "24px" }}>🦁</span>
         <div>
-          <div style={{ fontSize: "9px", fontWeight: "900", color: "#d97706" }}>BOT KOÇ:</div>
-          <p style={{ fontSize: "11px", fontWeight: "bold", color: "#78350f", margin: 0 }}>"{botMesaji}"</p>
+          <div style={{ fontSize: "9px", fontWeight: "900", color: "#991b1b" }}>CİMBOM KOÇ:</div>
+          <p style={{ fontSize: "11px", fontWeight: "bold", color: "#7f1d1d", margin: 0 }}>"{botMesaji}"</p>
         </div>
       </div>
 
-      <div style={{ fontSize: "12px", fontWeight: "900", color: "#b45309", marginBottom: "8px" }}>{oyunDurumu}</div>
+      <div style={{ fontSize: "12px", fontWeight: "900", color: "#991b1b", marginBottom: "8px" }}>{oyunDurumu}</div>
 
-      {/* 64 EŞİT KARELİ SATRANÇ TAHTASI (CSS GRID RATIO 1fr) */}
+      {/* 64 Eşit Kareli Galatasaray Satranç Tahtası */}
       <div
         style={{
           display: "grid",
           gridTemplateColumns: "repeat(8, 1fr)",
           gridTemplateRows: "repeat(8, 1fr)",
-          width: "360px",
-          height: "360px",
+          width: "370px",
+          height: "370px",
           margin: "0 auto 16px auto",
-          border: "4px solid #451a03",
+          border: "4px solid #7f1d1d",
           borderRadius: "6px",
           boxShadow: "0 10px 25px rgba(0,0,0,0.25)",
         }}
@@ -246,8 +267,8 @@ export default function BotOyunuPage() {
             const hedefteMi = imkanliKareler.includes(kareAdi);
 
             let arkaplan = renkSec(beyazKare);
-            if (secili) arkaplan = "#baca2b";
-            else if (hedefteMi) arkaplan = beyazKare ? "#f5f682" : "#98b14e";
+            if (secili) arkaplan = "#fde047";
+            else if (hedefteMi) arkaplan = beyazKare ? "#fef08a" : "#b91c1c";
 
             return (
               <div
@@ -258,12 +279,13 @@ export default function BotOyunuPage() {
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "center",
-                  fontSize: tasStili === "emoji" ? "28px" : "34px",
+                  fontSize: tasStili === "gs" ? "24px" : "34px",
                   cursor: "pointer",
                   position: "relative",
                   userSelect: "none",
                   width: "100%",
                   height: "100%",
+                  fontWeight: "bold",
                 }}
               >
                 {hedefteMi && tas === "." && (
@@ -271,7 +293,7 @@ export default function BotOyunuPage() {
                     style={{
                       width: "12px",
                       height: "12px",
-                      backgroundColor: "rgba(0, 0, 0, 0.25)",
+                      backgroundColor: "rgba(0, 0, 0, 0.3)",
                       borderRadius: "50%",
                       position: "absolute",
                     }}
@@ -285,8 +307,8 @@ export default function BotOyunuPage() {
       </div>
 
       <div style={{ display: "flex", justifyContent: "center", gap: "10px" }}>
-        <Link href="/dersler" style={{ padding: "8px 14px", backgroundColor: "#0284c7", color: "#ffffff", borderRadius: "10px", textDecoration: "none", fontWeight: "bold", fontSize: "11px" }}>🎓 Dersler</Link>
-        <Link href="/tahta-yapici" style={{ padding: "8px 14px", backgroundColor: "#d97706", color: "#ffffff", borderRadius: "10px", textDecoration: "none", fontWeight: "bold", fontSize: "11px" }}>🛠️ Tahta Yapıcı</Link>
+        <Link href="/dersler" style={{ padding: "8px 14px", backgroundColor: "#991b1b", color: "#ffffff", borderRadius: "10px", textDecoration: "none", fontWeight: "bold", fontSize: "11px" }}>🎓 Dersler</Link>
+        <Link href="/tahtayapici" style={{ padding: "8px 14px", backgroundColor: "#b45309", color: "#ffffff", borderRadius: "10px", textDecoration: "none", fontWeight: "bold", fontSize: "11px" }}>🛠️ Tahta Yapıcı</Link>
       </div>
     </div>
   );
