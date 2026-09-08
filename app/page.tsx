@@ -26,7 +26,7 @@ export default function BotOyunuPage() {
       } else if (zorluk === "orta") {
         botuKonustur("Harika bir buluş! Orta seviyede bu hamleyi beklemiyordum, çok akıllıca! 🌟");
       } else {
-        bodyKonusturMukemmel("Zor modda ustaca bir hamle! Tahtayı çok iyi okuyorsun, tebrikler! 👑");
+        botuKonustur("Zor modda ustaca bir hamle! Tahtayı çok iyi okuyorsun, tebrikler! 👑");
       }
       setOyunDurumu("Süper ilerliyorsun! Bot şimdi derinlemesine düşünüyor...");
     } else if (hamleTipi === "riskli") {
@@ -35,16 +35,6 @@ export default function BotOyunuPage() {
     } else if (hamleTipi === "mat") {
       botuKonustur("İnanılmaz! Beni mat etmeyi başardın! Gerçek bir satranç dâhisisin şampiyon! 🏆");
       setOyunDurumu("Oyun Bitti: Muhteşem bir zafer kazandın!");
-    }
-  }
-
-  function bodyKonusturMukemmel(metin: string) {
-    setBotMesaji(metin);
-    if (typeof window !== "undefined" && "speechSynthesis" in window) {
-      window.speechSynthesis.cancel();
-      const ses = new SpeechSynthesisUtterance(metin);
-      ses.lang = "tr-TR";
-      window.speechSynthesis.speak(ses);
     }
   }
 
