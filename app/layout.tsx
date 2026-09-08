@@ -168,3 +168,17 @@ export default function RootLayout({
     </html>
   );
 }
+<Link
+            href="/tahta-yapici"
+            style={{
+              padding: "7px 12px",
+              backgroundColor: "#d97706",
+              color: "#ffffff",
+              borderRadius: "14px",
+              textDecoration: "none",
+              fontWeight: "900",
+              fontSize: "12px",
+            }}
+          >
+            🛠️ Tahta Yapıcı
+          </Link>
