@@ -172,6 +172,342 @@ const KAZANIMLAR_VERISI: KazanimDetay[] = [
       },
     ],
   },
+  {
+    kod: "2.1.",
+    uniteId: 2,
+    uniteBaslik: "2. Taşlar ve Özellikleri",
+    baslik: "Kale taşının hareketini uygular.",
+    resmiAciklama: "Kale taşı tanıtılır, dümdüz ileri, geri ve yanlara hareket ettiği gösterilir.",
+    ornekler: [
+      {
+        id: 1,
+        karakter: "🏰",
+        karakterAdi: "Muhafız Kale",
+        soruMetni: "Tahta üzerinde kalenin gidebileceği yolları gösteren ok şekli hangisidir?",
+        tahtaTipi: "kaleYolu",
+        secenekler: [
+          { id: "a", sembol: "➕", aciklama: "Artı Şeklinde Düz Oklar", dogru: true },
+          { id: "b", sembol: "❌", aciklama: "Sadece Çapraz", dogru: false },
+          { id: "c", sembol: "🔀", aciklama: "Zikzak", dogru: false },
+        ],
+        dogruMesaj: "Harika! Kaleler artı biçiminde düz caddelerde kayar!",
+      },
+      {
+        id: 2,
+        karakter: "🤖",
+        karakterAdi: "Demir Robot",
+        soruMetni: "Kale yolundaki başka bir taşın üzerinden atlayabilir mi?",
+        tahtaTipi: "kaleYolu",
+        secenekler: [
+          { id: "a", sembol: "❌", aciklama: "Hayır, Atlayamaz!", dogru: true },
+          { id: "b", sembol: "✅", aciklama: "Evet, Atlar", dogru: false },
+          { id: "c", sembol: "🛸", aciklama: "Uçar", dogru: false },
+        ],
+        dogruMesaj: "Doğru! Kale önü kapalıysa durmak zorundadır.",
+      },
+      {
+        id: 3,
+        karakter: "🦁",
+        karakterAdi: "Cesur Aslan",
+        soruMetni: "Sağlam kalenin puan değeri kaç puandır?",
+        tahtaTipi: "baslangic",
+        secenekler: [
+          { id: "a", sembol: "🌟🌟🌟🌟🌟", aciklama: "5 Puan", dogru: true },
+          { id: "b", sembol: "🌟", aciklama: "1 Puan", dogru: false },
+          { id: "c", sembol: "🌟🌟🌟🌟🌟🌟🌟🌟🌟", aciklama: "9 Puan", dogru: false },
+        ],
+        dogruMesaj: "Bravo! Kale tam 5 puan gücündedir!",
+      },
+    ],
+  },
+  {
+    kod: "2.2.",
+    uniteId: 2,
+    uniteBaslik: "2. Taşlar ve Özellikleri",
+    baslik: "Fil taşının hareketini uygular.",
+    resmiAciklama: "Fil taşının çapraz hareketleri tahta üzerinde gösterilir.",
+    ornekler: [
+      {
+        id: 1,
+        karakter: "🐘",
+        karakterAdi: "Uçan Fil Dumbo",
+        soruMetni: "Fil tahtada hangi yönde hareket eder?",
+        tahtaTipi: "filCapraz",
+        secenekler: [
+          { id: "a", sembol: "❌", aciklama: "Çarpı (Çapraz) Yönde", dogru: true },
+          { id: "b", sembol: "➕", aciklama: "Düz Artı Yönde", dogru: false },
+          { id: "c", sembol: "⭕", aciklama: "Daire", dogru: false },
+        ],
+        dogruMesaj: "Mükemmel! Filler tahtada çapraz süzülür.",
+      },
+      {
+        id: 2,
+        karakter: "🧙‍♂️",
+        karakterAdi: "Sihirbaz Fil",
+        soruMetni: "Beyaz karede başlayan bir fil oyun boyunca hangi renk karelerde kalır?",
+        tahtaTipi: "filCapraz",
+        secenekler: [
+          { id: "a", sembol: "⬜", aciklama: "Sadece Beyaz Karelerde", dogru: true },
+          { id: "b", sembol: "⬛", aciklama: "Siyah Kareye Geçer", dogru: false },
+          { id: "c", sembol: "🌈", aciklama: "Tüm Renkler", dogru: false },
+        ],
+        dogruMesaj: "Sihirli kural! Fil başladığı rengi asla değiştirmez.",
+      },
+      {
+        id: 3,
+        karakter: "🦄",
+        karakterAdi: "Tekboynuz Filo",
+        soruMetni: "Filin puan değeri kaç puandır?",
+        tahtaTipi: "baslangic",
+        secenekler: [
+          { id: "a", sembol: "🪙🪙🪙", aciklama: "3 Puan", dogru: true },
+          { id: "b", sembol: "🪙🪙🪙🪙🪙", aciklama: "5 Puan", dogru: false },
+          { id: "c", sembol: "🪙", aciklama: "1 Puan", dogru: false },
+        ],
+        dogruMesaj: "Harika! Fil 3 puan değerinde hafif bir taştır.",
+      },
+    ],
+  },
+  {
+    kod: "2.3.",
+    uniteId: 2,
+    uniteBaslik: "2. Taşlar ve Özellikleri",
+    baslik: "Vezir taşının hareketini uygular.",
+    resmiAciklama: "Vezirin hem kale hem fil gibi her yöne gidebildiği tahta üzerinde gösterilir.",
+    ornekler: [
+      {
+        id: 1,
+        karakter: "👸",
+        karakterAdi: "Süper Prenses Vezir",
+        soruMetni: "Vezir tahtada hangi yönlere gidebilir?",
+        tahtaTipi: "baslangic",
+        secenekler: [
+          { id: "a", sembol: "🌟", aciklama: "Düz ve Çapraz (Her Yöne)", dogru: true },
+          { id: "b", sembol: "➕", aciklama: "Sadece Düz", dogru: false },
+          { id: "c", sembol: "❌", aciklama: "Sadece Çapraz", dogru: false },
+        ],
+        dogruMesaj: "Süper güç! Vezir hem düz hem çapraz her yere gidebilir!",
+      },
+      {
+        id: 2,
+        karakter: "🦸‍♀️",
+        karakterAdi: "Kahraman Vezir",
+        soruMetni: "Vezirin puan değeri kaç puandır?",
+        tahtaTipi: "baslangic",
+        secenekler: [
+          { id: "a", sembol: "👑👑👑👑👑👑👑👑👑", aciklama: "9 Puan (En Güçlü)", dogru: true },
+          { id: "b", sembol: "👑👑👑", aciklama: "3 Puan", dogru: false },
+          { id: "c", sembol: "👑", aciklama: "1 Puan", dogru: false },
+        ],
+        dogruMesaj: "Vooov! Vezir 9 piyon gücünde devasa bir güce sahiptir!",
+      },
+      {
+        id: 3,
+        karakter: "🧚‍♀️",
+        karakterAdi: "Orman Perisi Vezir",
+        soruMetni: "Tahtanın ortasında duran vezir aynı anda kaç farklı yöne bakabilir?",
+        tahtaTipi: "baslangic",
+        secenekler: [
+          { id: "a", sembol: "8️⃣", aciklama: "8 Farklı Yöne", dogru: true },
+          { id: "b", sembol: "2️⃣", aciklama: "2 Yöne", dogru: false },
+          { id: "c", sembol: "1️⃣", aciklama: "Tek Yön", dogru: false },
+        ],
+        dogruMesaj: "Mükemmel! Vezir tahtanın tüm kollarına hakimdir.",
+      },
+    ],
+  },
+  {
+    kod: "2.4.",
+    uniteId: 2,
+    uniteBaslik: "2. Taşlar ve Özellikleri",
+    baslik: "Şah taşının hareketini uygular.",
+    resmiAciklama: "Şahın her yöne sadece 1 adım gidebildiği tahta üzerinde gösterilir.",
+    ornekler: [
+      {
+        id: 1,
+        karakter: "🤴",
+        karakterAdi: "Bilge Şah",
+        soruMetni: "Şah tahtada bir kareden komşu kareye kaç adım atabilir?",
+        tahtaTipi: "sahAdim",
+        secenekler: [
+          { id: "a", sembol: "1️⃣", aciklama: "Sadece 1 Adım", dogru: true },
+          { id: "b", sembol: "5️⃣", aciklama: "5 Adım", dogru: false },
+          { id: "c", sembol: "🔟", aciklama: "Sınırsız", dogru: false },
+        ],
+        dogruMesaj: "Çok doğru! Şah her yöne ama yalnızca 1 adım atar.",
+      },
+      {
+        id: 2,
+        karakter: "🦉",
+        karakterAdi: "Bilge Baykuş",
+        soruMetni: "Şah tehlike altındaki bir kareye (rakibin vurduğu yere) basabilir mi?",
+        tahtaTipi: "sahAdim",
+        secenekler: [
+          { id: "a", sembol: "❌", aciklama: "Asla Basamaz!", dogru: true },
+          { id: "b", sembol: "✅", aciklama: "Basabilir", dogru: false },
+          { id: "c", sembol: "🤾", aciklama: "Atlar", dogru: false },
+        ],
+        dogruMesaj: "Akıllıca! Şah asla tehlikeli kareye adım atmaz.",
+      },
+      {
+        id: 3,
+        karakter: "🦁",
+        karakterAdi: "Aslan Kral",
+        soruMetni: "Şahın oyundaki puan değeri nedir?",
+        tahtaTipi: "baslangic",
+        secenekler: [
+          { id: "a", sembol: "♾️", aciklama: "Ölçülemez / Sonsuz (Oyunun Kalbi)", dogru: true },
+          { id: "b", sembol: "1️⃣", aciklama: "1 Puan", dogru: false },
+          { id: "c", sembol: "0️⃣", aciklama: "0 Puan", dogru: false },
+        ],
+        dogruMesaj: "Harika! Şah paha biçilemezdir, o mat olursa oyun biter.",
+      },
+    ],
+  },
+  {
+    kod: "2.5.",
+    uniteId: 2,
+    uniteBaslik: "2. Taşlar ve Özellikleri",
+    baslik: "At taşının hareketini uygular.",
+    resmiAciklama: "Atın L harfi şeklindeki zıplaması tahta üzerinde gösterilir.",
+    ornekler: [
+      {
+        id: 1,
+        karakter: "🐴",
+        karakterAdi: "Sevimli Tay Pony",
+        soruMetni: "At tahtada hangi harf biçiminde zıplayarak dans eder?",
+        tahtaTipi: "atL",
+        secenekler: [
+          { id: "a", sembol: "🇱", aciklama: "'L' Harfi Şeklinde", dogru: true },
+          { id: "b", sembol: "➕", aciklama: "Artı Şeklinde", dogru: false },
+          { id: "c", sembol: "❌", aciklama: "Çarpı Şeklinde", dogru: false },
+        ],
+        dogruMesaj: "Dıgıdık dıgıdık! At daima 'L' çizer.",
+      },
+      {
+        id: 2,
+        karakter: "🦘",
+        karakterAdi: "Kanguru Zıpzıp",
+        soruMetni: "Satranç tahtasında diğer taşların üzerinden atlayabilen TEK taş hangisidir?",
+        tahtaTipi: "atL",
+        secenekler: [
+          { id: "a", sembol: "♞", aciklama: "Sevimli At", dogru: true },
+          { id: "b", sembol: "♜", aciklama: "Kale", dogru: false },
+          { id: "c", sembol: "♝", aciklama: "Fil", dogru: false },
+        ],
+        dogruMesaj: "Hop! At, önü dolu olsa bile üzerinden zıplayabilir.",
+      },
+      {
+        id: 3,
+        karakter: "🎠",
+        karakterAdi: "Lunapark Atı",
+        soruMetni: "Atın puan değeri kaç puandır?",
+        tahtaTipi: "baslangic",
+        secenekler: [
+          { id: "a", sembol: "🪙🪙🪙", aciklama: "3 Puan", dogru: true },
+          { id: "b", sembol: "🪙🪙🪙🪙🪙", aciklama: "5 Puan", dogru: false },
+          { id: "c", sembol: "🪙", aciklama: "1 Puan", dogru: false },
+        ],
+        dogruMesaj: "Tebrikler! At 3 puan değerinde çevik bir taştır.",
+      },
+    ],
+  },
+  {
+    kod: "3.1.",
+    uniteId: 3,
+    uniteBaslik: "3. Satrançta Şah Tehdidi ve Mat",
+    baslik: "Şahın, oyun için önemini açıklar.",
+    resmiAciklama: "Şahın oyunun kalbi olduğu vurgulanır.",
+    ornekler: [
+      {
+        id: 1,
+        karakter: "🎯",
+        karakterAdi: "Hedef",
+        soruMetni: "Satranç oyununda asıl ele geçirilmek istenen hedef kimdir?",
+        tahtaTipi: "baslangic",
+        secenekler: [
+          { id: "a", sembol: "🤴", aciklama: "Bilge Şah", dogru: true },
+          { id: "b", sembol: "♟️", aciklama: "Piyon", dogru: false },
+          { id: "c", sembol: "♝", aciklama: "Fil", dogru: false },
+        ],
+        dogruMesaj: "Tam isabet! Satranç şahı koruma ve mat etme oyunudur.",
+      },
+      {
+        id: 2,
+        karakter: "🛑",
+        karakterAdi: "Dur",
+        soruMetni: "Şah mat olduğunda oyun biter mi?",
+        tahtaTipi: "baslangic",
+        secenekler: [
+          { id: "a", sembol: "🏁", aciklama: "Evet, Oyun Sona Erer", dogru: true },
+          { id: "b", sembol: "⏳", aciklama: "Sonsuza Kadar Sürer", dogru: false },
+          { id: "c", sembol: "🔁", aciklama: "Başa Döner", dogru: false },
+        ],
+        dogruMesaj: "Bayrak sallandı! Şah mat olunca maç biter.",
+      },
+      {
+        id: 3,
+        karakter: "👑",
+        karakterAdi: "Kral",
+        soruMetni: "Şahı korumak satrançta neden en önemli kuraldır?",
+        tahtaTipi: "baslangic",
+        secenekler: [
+          { id: "a", sembol: "❤️", aciklama: "Çünkü O Oyunun Kalbidir", dogru: true },
+          { id: "b", sembol: "🗑️", aciklama: "Değersizdir", dogru: false },
+          { id: "c", sembol: "🎈", aciklama: "Süs gibidir", dogru: false },
+        ],
+        dogruMesaj: "Kesinlikle! Şah düşerse krallık düşer.",
+      },
+    ],
+  },
+  {
+    kod: "3.2.",
+    uniteId: 3,
+    uniteBaslik: "3. Satrançta Şah Tehdidi ve Mat",
+    baslik: "Şah çeker.",
+    resmiAciklama: "Rakip şaha saldırı durumu işlenir.",
+    ornekler: [
+      {
+        id: 1,
+        karakter: "📢",
+        karakterAdi: "Haberci",
+        soruMetni: "Taşımız doğrudan rakip şaha saldırdığında ne bağırırız?",
+        tahtaTipi: "baslangic",
+        secenekler: [
+          { id: "a", sembol: "📣", aciklama: "'ŞAH!'", dogru: true },
+          { id: "b", sembol: "🤫", aciklama: "Sessizlik", dogru: false },
+          { id: "c", sembol: "😴", aciklama: "Uyku", dogru: false },
+        ],
+        dogruMesaj: "ŞAH! Rakip hemen önlem almak zorundadır.",
+      },
+      {
+        id: 2,
+        karakter: "🏹",
+        karakterAdi: "Okçu",
+        soruMetni: "Şah çekilen bir şah tehlike altında mıdır?",
+        tahtaTipi: "baslangic",
+        secenekler: [
+          { id: "a", sembol: "⚠️", aciklama: "Evet, Tehdit Altındadır", dogru: true },
+          { id: "b", sembol: "🏖️", aciklama: "Tatildedir", dogru: false },
+          { id: "c", sembol: "🎉", aciklama: "Güvendedir", dogru: false },
+        ],
+        dogruMesaj: "Tehlike sinyali! Şah çekildiyse korunmalıdır.",
+      },
+      {
+        id: 3,
+        karakter: "⚡",
+        karakterAdi: "Şimşek",
+        soruMetni: "Şah çeken taş rakip tarafından alınabilir mi?",
+        tahtaTipi: "baslangic",
+        secenekler: [
+          { id: "a", sembol: "⚔️", aciklama: "Uygunsa Alınabilir", dogru: true },
+          { id: "b", sembol: "❌", aciklama: "Asla Alınamaz", dogru: false },
+          { id: "c", sembol: "🔒", aciklama: "Kilitlenir", dogru: false },
+        ],
+        dogruMesaj: "Evet! Tehdit eden taş vurularak şah kurtarılabilir.",
+      },
+    ],
+  },
 ];
 
 function SatrançTahtasiGorseli({ tip }: { tip: string }) {
@@ -301,10 +637,10 @@ export default function DerslerPage() {
 
   function konus(metin: string) {
     if (typeof window !== "undefined" && "speechSynthesis" in window) {
-      window.speechSynthesis.cancel(); // Önceki konuşmayı durdur
+      window.speechSynthesis.cancel();
       const ses = new SpeechSynthesisUtterance(metin);
       ses.lang = "tr-TR";
-      ses.rate = 0.9; // Çocuklar için net ve sakin hız
+      ses.rate = 0.9;
       window.speechSynthesis.speak(ses);
     }
   }
@@ -456,7 +792,7 @@ export default function DerslerPage() {
         </button>
       </div>
 
-      {/* 3. ÇİZGİ FİLM VE TAHTA ÜZERİNDE GÖRSEL ÖRNEKLER VE SESLENDİRME */}
+      {/* 3. ÖRNEKLER VE SESLENDİRME */}
       <div style={{ marginBottom: "24px" }}>
         <div style={{ textAlign: "center", marginBottom: "16px" }}>
           <span style={{ fontSize: "28px" }}>♟️🗺️🔊</span>
@@ -497,7 +833,6 @@ export default function DerslerPage() {
                         {idx + 1}. Görev: {ornek.karakterAdi}
                       </div>
                     </div>
-                    {/* SESLENDİRME BUTONU */}
                     <button
                       type="button"
                       onClick={() => konus(`${ornek.karakterAdi} soruyor: ${ornek.soruMetni}`)}
@@ -558,7 +893,6 @@ export default function DerslerPage() {
                             <span style={{ fontSize: "18px" }}>{s.sembol}</span>
                             <span>{s.aciklama}</span>
                           </button>
-                          {/* Şıkkı Seslendir */}
                           <button
                             type="button"
                             onClick={() => konus(s.aciklama)}
