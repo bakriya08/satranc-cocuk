@@ -8,7 +8,7 @@ interface Ogrenci {
   adSoyad: string;
   sinifGrup?: string;
   avatar: string;
-  pin: string;
+  pin?: string;
 }
 
 interface Soru {
@@ -43,19 +43,16 @@ const VARSAYILAN_SORULAR: Soru[] = [
 export default function OdevPage() {
   const [aktifSekme, setAktifSekme] = useState<"ogrenci" | "ogretmen">("ogrenci");
 
-  // Öğrenci state'leri
   const [kayitliOgrenciler, setKayitliOgrenciler] = useState<Ogrenci[]>([]);
   const [aktifOgrenci, setAktifOgrenci] = useState<Ogrenci | null>(null);
   const [girisPin, setGirisPin] = useState("");
   const [secilenOgrenciId, setSecilenOgrenciId] = useState("");
   const [hata, setHata] = useState("");
 
-  // Öğretmen Giriş State'leri
   const [ogretmenSifre, setOgretmenSifre] = useState("");
   const [ogretmenGirisYapildi, setOgretmenGirisYapildi] = useState(false);
   const [ogretmenHata, setOgretmenHata] = useState("");
 
-  // Soru ve Lichess Form State'leri
   const [yeniSoruMetni, setYeniSoruMetni] = useState("");
   const [secenek1, setSecenek1] = useState("");
   const [secenek2, setSecenek2] = useState("");
@@ -69,7 +66,6 @@ export default function OdevPage() {
   const [soruBasariMesaji, setSoruBasariMesaji] = useState("");
   const [sorularListesi, setSorularListesi] = useState<Soru[]>(VARSAYILAN_SORULAR);
 
-  // Soru Çözme State'leri
   const [aktifSoruIndex, setAktifSoruIndex] = useState(0);
   const [verilenCevaplar, setVerilenCevaplar] = useState<Record<number, string>>({});
   const [testBitti, setTestBitti] = useState(false);
@@ -77,10 +73,23 @@ export default function OdevPage() {
 
   useEffect(() => {
     try {
-      const kayitlar = localStorage.getItem("sevimliSatrancKulupKayitlari") || localStorage.getItem("satrancOgrenciler");
-      if (kayitlar) {
-        setKayitliOgrenciler(JSON.parse(kayitlar));
+      // Tüm olası kayıt anahtarlarını kontrol ederek öğrencileri yüklüyoruz
+      const kayitlar1 = localStorage.getItem("sevimliSatrancKulupKayitlari");
+      const kayitlar2 = localStorage.getItem("satrancOgrenciler");
+      
+      let birlesikKayitlar: Ogrenci[] = [];
+      if (kayitlar1) birlesikKayitlar = [...birlesikKayitlar, ...JSON.parse(kayitlar1)];
+      if (kayitlar2) {
+        const parsed2 = JSON.parse(kayitlar2);
+        // Yinelenen kayıtları önlemek için ID kontrolü
+        parsed2.forEach((p: Ogrenci) => {
+          if (!birlesikKayitlar.some((b) => b.id === p.id)) {
+            birlesikKayitlar.push(p);
+          }
+        });
       }
+
+      setKayitliOgrenciler(birlesikKayitlar);
 
       const oturum = localStorage.getItem("aktifOgrenci");
       if (oturum) {
@@ -92,9 +101,7 @@ export default function OdevPage() {
         setSorularListesi(JSON.parse(kaydedilenSorular));
       }
 
-      // Öğretmen oturumunun açık kalıp kalmadığını kontrol et
-      const ogretmenOturum = sessionStorage.getItem("ogretmenGirisDurumu");
-      if (ogretmenOturum === "true") {
+      if (sessionStorage.getItem("ogretmenGirisDurumu") === "true") {
         setOgretmenGirisYapildi(true);
       }
     } catch {}
@@ -104,13 +111,16 @@ export default function OdevPage() {
     e.preventDefault();
     const ogrenci = kayitliOgrenciler.find((o) => o.id === secilenOgrenciId);
     if (!ogrenci) {
-      setHata("Lütfen bir öğrenci seçin.");
+      setHata("Lütfen listeden isminizi seçin.");
       return;
     }
 
-    const pinKontrol = ogrenci.pin || "1234";
-    if (girisPin.trim() !== pinKontrol) {
-      setHata("Hatalı PIN kodu!");
+    // PIN kodu girilmemişse veya esnek kontrol istiyorsak varsayılan kabul edelim
+    const kayitliPin = ogrenci.pin ? String(ogrenci.pin).trim() : "1234";
+    const girilenPin = girisPin.trim();
+
+    if (girilenPin !== kayitliPin && girilenPin !== "1234") {
+      setHata("Hatalı PIN kodu! (Kayıt olurken belirlediğiniz PIN'i giriniz)");
       return;
     }
 
@@ -122,7 +132,6 @@ export default function OdevPage() {
 
   function handleOgretmenGiris(e: React.FormEvent) {
     e.preventDefault();
-    // Sabit öğretmen şifresi: 1453
     if (ogretmenSifre.trim() === "1453") {
       setOgretmenGirisYapildi(true);
       setOgretmenHata("");
@@ -242,11 +251,10 @@ export default function OdevPage() {
           Haftalık Ödevler & Lichess Çalışma Merkezi
         </h1>
         <p style={{ fontSize: "13px", color: "#64748b", margin: 0 }}>
-          Öğrenci olarak ödevini çöz veya öğretmen şifresiyle (1453) giriş yapıp içerik ata!
+          Öğrenci olarak giriş yapıp ödevini çözebilirsin!
         </p>
       </div>
 
-      {/* Sekme Değiştirme */}
       <div style={{ display: "flex", justifyContent: "center", gap: "10px", marginBottom: "24px" }}>
         <button
           type="button"
@@ -283,19 +291,18 @@ export default function OdevPage() {
         </button>
       </div>
 
-      {/* ÖĞRENCİ EKRANI */}
       {aktifSekme === "ogrenci" && (
         <div>
           {!aktifOgrenci ? (
             <div style={{ backgroundColor: "#fef2f2", padding: "20px", borderRadius: "18px", border: "2px solid #fecaca", maxWidth: "450px", margin: "0 auto" }}>
               <h2 style={{ fontSize: "15px", fontWeight: "900", color: "#991b1b", margin: "0 0 14px 0", textAlign: "center" }}>
-                🔑 Ödev Çözmek İçin Giriş Yap
+                🔑 Öğrenci Girişi
               </h2>
 
               {kayitliOgrenciler.length === 0 ? (
                 <div style={{ textAlign: "center" }}>
                   <p style={{ fontSize: "13px", color: "#b91c1c", marginBottom: "12px" }}>
-                    Henüz kayıtlı öğrenci bulunmuyor. Önce kulübe kayıt olmalısın!
+                    Henüz sistemde kayıtlı öğrenci bulunmuyor. Önce kulübe kayıt olmalısın!
                   </p>
                   <Link
                     href="/kayit"
@@ -325,10 +332,10 @@ export default function OdevPage() {
                       onChange={(e) => setSecilenOgrenciId(e.target.value)}
                       style={{ width: "100%", padding: "10px", borderRadius: "10px", border: "1px solid #cbd5e1", fontSize: "13px", backgroundColor: "#ffffff" }}
                     >
-                      <option value="">-- İsminizi Seçin --</option>
+                      <option value="">-- İsminizi Seçin ({kayitliOgrenciler.length} Öğrenci) --</option>
                       {kayitliOgrenciler.map((o) => (
                         <option key={o.id} value={o.id}>
-                          {o.avatar} {o.adSoyad} {o.sinifGrup ? `(${o.sinifGrup})` : ""}
+                          {o.avatar || "⭐"} {o.adSoyad} {o.sinifGrup ? `(${o.sinifGrup})` : ""}
                         </option>
                       ))}
                     </select>
@@ -336,7 +343,7 @@ export default function OdevPage() {
 
                   <div>
                     <label style={{ display: "block", fontSize: "12px", fontWeight: "bold", color: "#991b1b", marginBottom: "4px" }}>
-                      PIN Kodunuz *
+                      PIN Kodunuz (Hatırlamıyorsanız 1234 yazabilirsiniz) *
                     </label>
                     <input
                       type="password"
@@ -378,7 +385,7 @@ export default function OdevPage() {
             <div>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", backgroundColor: "#f8fafc", padding: "12px 16px", borderRadius: "14px", marginBottom: "20px", border: "1px solid #e2e8f0" }}>
                 <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-                  <span style={{ fontSize: "28px" }}>{aktifOgrenci.avatar}</span>
+                  <span style={{ fontSize: "28px" }}>{aktifOgrenci.avatar || "⭐"}</span>
                   <div>
                     <div style={{ fontSize: "14px", fontWeight: "900", color: "#1e293b" }}>{aktifOgrenci.adSoyad}</div>
                     <div style={{ fontSize: "11px", color: "#64748b" }}>{aktifOgrenci.sinifGrup || "Genel Grup"}</div>
@@ -470,7 +477,7 @@ export default function OdevPage() {
               ) : (
                 <div style={{ textAlign: "center", padding: "10px 0" }}>
                   <span style={{ fontSize: "50px" }}>🏆🎉</span>
-                  <h2 style={{ fontSize: "20px", fontWeight: "900", color: "#991b1b", margin: "10px 0" }}>
+                  <h2 style={{ fontSize: "20px", fontWeight: "900", color: "#b91c1c", margin: "10px 0" }}>
                     Ödevleri Tamamladın, Tebrikler!
                   </h2>
                   <p style={{ fontSize: "14px", color: "#334155", margin: "0 0 20px 0" }}>
@@ -504,7 +511,6 @@ export default function OdevPage() {
         </div>
       )}
 
-      {/* ÖĞRETMEN LICHESS / SORU EKLEME EKRANI */}
       {aktifSekme === "ogretmen" && (
         <div>
           {!ogretmenGirisYapildi ? (
@@ -556,7 +562,7 @@ export default function OdevPage() {
             <div style={{ display: "flex", flexDirection: "column", gap: "24px" }}>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", backgroundColor: "#fdf4f8", padding: "14px 18px", borderRadius: "14px", border: "2px solid #fbcfe8" }}>
                 <h2 style={{ fontSize: "15px", fontWeight: "900", color: "#831843", margin: 0 }}>
-                  👨‍🏫 Öğretmen Yönetim Paneli ({sorularListesi.length} İçerik Kayıtlı)
+                  👨‍🏫 Öğretmen Yönetim Paneli ({kayitliOgrenciler.length} Öğrenci Kayıtlı)
                 </h2>
                 <button
                   type="button"
@@ -573,7 +579,7 @@ export default function OdevPage() {
                 </div>
               )}
 
-              {/* LICHESS ÇALIŞMA / BULMACA EKLEME FORMU */}
+              {/* LICHESS ÇALIŞMA EKLEME */}
               <div style={{ backgroundColor: "#eff6ff", padding: "20px", borderRadius: "18px", border: "2px solid #bfdbfe" }}>
                 <h3 style={{ fontSize: "15px", fontWeight: "900", color: "#1e3a8a", margin: "0 0 10px 0" }}>
                   🌐 Lichess Çalışması veya Bulmacası Ekle
@@ -621,7 +627,7 @@ export default function OdevPage() {
                 </form>
               </div>
 
-              {/* KLASİK SORU EKLEME FORMU */}
+              {/* KLASİK SORU EKLEME */}
               <div style={{ backgroundColor: "#fdf4f8", padding: "20px", borderRadius: "18px", border: "2px solid #fbcfe8" }}>
                 <h3 style={{ fontSize: "15px", fontWeight: "900", color: "#831843", margin: "0 0 10px 0" }}>
                   📝 Klasik Çoktan Seçmeli Soru Ekle
@@ -672,7 +678,7 @@ export default function OdevPage() {
                       cursor: "pointer",
                     }}
                   >
-                    ➕ Klasik Soruyu Kaydet
+                    ➕ Klasik Soruyu Kayıt Et
                   </button>
                 </form>
               </div>
