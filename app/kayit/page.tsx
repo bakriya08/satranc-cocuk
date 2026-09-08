@@ -1,357 +1,472 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import Link from "next/link";
+import { useState } from "react";
+import { useRouter } from "next/navigation";
 
-interface OgrenciKayit {
-  id: string;
-  adSoyad: string;
-  karakter: string;
-  veliAdi: string;
-  pinKodu: string;
-  lichessKadi: string;
-  chessComKadi: string;
-  seviye: string;
-  tarih: string;
-}
-
-const KARAKTERLER = [
-  { id: "aslan", ad: "Aslan Şakir", simge: "🦁" },
-  { id: "tavsan", ad: "Tavşan Pamuk", simge: "🐰" },
-  { id: "tilki", ad: "Dedektif Tilki", simge: "🦊" },
-  { id: "baykus", ad: "Bilge Baykuş", simge: "🦉" },
-  { id: "panda", ad: "Panda Po", simge: "🐼" },
-  { id: "kedi", ad: "Sevimli Kedi", simge: "🐱" },
-];
+const AVATARLAR = ["🦁", "🦊", "🐼", "🐻", "🦄", "🐯", "🐰", "🐨", "🐸", "🚀", "⚡", "👑"];
 
 export default function KayitPage() {
+  const router = useRouter();
+
   const [adSoyad, setAdSoyad] = useState("");
-  const [secilenKarakter, setSecilenKarakter] = useState("🦁 Aslan Şakir");
-  const [veliAdi, setVeliAdi] = useState("");
-  const [pinKodu, setPinKodu] = useState("");
-  const [lichessKadi, setLichessKadi] = useState("");
-  const [chessComKadi, setChessComKadi] = useState("");
-  const [seviye, setSeviye] = useState("Başlangıç");
+  const [sinifGrup, setSinifGrup] = useState("");
+  const [avatar, setAvatar] = useState("🦁");
+  const [pin, setPin] = useState("");
+  const [yukleniyor, setYukleniyor] = useState(false);
+  const [hataMesaji, setHataMesaji] = useState("");
 
-  const [kayitliOgrenciler, setKayitliOgrenciler] = useState<OgrenciKayit[]>([]);
-  const [mesaj, setMesaj] = useState<{ text: string; tip: "basari" | "hata" } | null>(null);
+  // Başarılı kayıt sonrası sporcu kartı modal durumu
+  const [kayitTamamlandi, setKayitTamamlandi] = useState(false);
+  const [kayitliOgrenci, setKayitliOgrenci] = useState<{
+    id: string;
+    adSoyad: string;
+    sinifGrup: string;
+    avatar: string;
+    pin: string;
+    kayitTarihi: string;
+  } | null>(null);
 
-  useEffect(() => {
-    try {
-      const mevcut = localStorage.getItem("sevimliSatrancKulupKayitlari");
-      if (mevcut) {
-        setKayitliOgrenciler(JSON.parse(mevcut));
-      }
-    } catch {}
-  }, []);
-
-  function guncelleVeKaydet(yeniListe: OgrenciKayit[]) {
-    setKayitliOgrenciler(yeniListe);
-    try {
-      localStorage.setItem("sevimliSatrancKulupKayitlari", JSON.stringify(yeniListe));
-    } catch {}
-  }
-
-  function handleKayitOl(e: React.FormEvent) {
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (!adSoyad.trim() || !pinKodu.trim() || !veliAdi.trim()) {
-      setMesaj({ text: "⚠️ Lütfen Ad Soyad, Veli Adı ve gizli PIN kodunu doldurun!", tip: "hata" });
+    if (!adSoyad.trim()) {
+      setHataMesaji("Lütfen öğrencinin adını ve soyadını yazın!");
       return;
     }
 
-    const yeniKayit: OgrenciKayit = {
-      id: Date.now().toString(),
-      adSoyad: adSoyad.trim(),
-      karakter: secilenKarakter,
-      veliAdi: veliAdi.trim(),
-      pinKodu: pinKodu.trim(),
-      lichessKadi: lichessKadi.trim() || "-",
-      chessComKadi: chessComKadi.trim() || "-",
-      seviye,
-      tarih: new Date().toLocaleDateString("tr-TR"),
-    };
+    const sonPin = pin.trim() || "1234";
 
-    const guncelListe = [yeniKayit, ...kayitliOgrenciler];
-    guncelleVeKaydet(guncelListe);
+    setYukleniyor(true);
+    setHataMesaji("");
 
-    setMesaj({ text: "🎉 Harika! Kulübe başarıyla kaydoldun ve hesapların öğretmene iletildi.", tip: "basari" });
-    setAdSoyad("");
-    setVeliAdi("");
-    setPinKodu("");
-    setLichessKadi("");
-    setChessComKadi("");
-    setTimeout(() => setMesaj(null), 5000);
+    try {
+      const res = await fetch("/api/odev", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          action: "ogrenciKayit",
+          adSoyad: adSoyad.trim(),
+          sinifGrup: (sinifGrup || "Genel").trim(),
+          avatar: avatar,
+          pin: sonPin,
+        }),
+      });
+
+      const data = await res.json();
+      if (data.success && data.data) {
+        // Oturumu tarayıcıya kaydet
+        localStorage.setItem("aktifOgrenci", JSON.stringify(data.data));
+
+        setKayitliOgrenci(data.data);
+        setKayitTamamlandi(true);
+      } else {
+        setHataMesaji(data.message || "Kayıt yapılırken bir sorun oluştu.");
+      }
+    } catch {
+      setHataMesaji("Sunucu bağlantı hatası oluştu.");
+    } finally {
+      setYukleniyor(false);
+    }
   }
 
-  function handleTemizle() {
-    if (confirm("Tüm kayıtları silmek istediğinize emin misiniz?")) {
-      setKayitliOgrenciler([]);
-      localStorage.removeItem("sevimliSatrancKulupKayitlari");
-    }
+  // Kartı Canvas ile Resim (.png) Olarak İndirme
+  function handleKartiIndir() {
+    if (!kayitliOgrenci) return;
+
+    const canvas = document.createElement("canvas");
+    canvas.width = 600;
+    canvas.height = 360;
+    const ctx = canvas.getContext("2d");
+
+    if (!ctx) return;
+
+    // Kart Arka Plan Gradyanı
+    const gradient = ctx.createLinearGradient(0, 0, 600, 360);
+    gradient.addColorStop(0, "#312e81");
+    gradient.addColorStop(0.5, "#4338ca");
+    gradient.addColorStop(1, "#1e1b4b");
+    ctx.fillStyle = gradient;
+    ctx.roundRect(0, 0, 600, 360, 24);
+    ctx.fill();
+
+    // Altın Çerçeve
+    ctx.strokeStyle = "#fbbf24";
+    ctx.lineWidth = 6;
+    ctx.roundRect(10, 10, 580, 340, 20);
+    ctx.stroke();
+
+    // Üst Başlık
+    ctx.fillStyle = "#fbbf24";
+    ctx.font = "bold 20px Arial";
+    ctx.textAlign = "center";
+    ctx.fillText("♟️ SATRANÇ KULÜBÜ RESMİ SPORCU KARTI ♟️", 300, 48);
+
+    ctx.fillStyle = "#e0e7ff";
+    ctx.font = "13px Arial";
+    ctx.fillText("Türkiye Satranç Eğitim Ağı • Lisans No: #" + kayitliOgrenci.id.slice(-6), 300, 72);
+
+    // Beyaz Ayırıcı Çizgi
+    ctx.strokeStyle = "rgba(255,255,255,0.2)";
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(30, 90);
+    ctx.lineTo(570, 90);
+    ctx.stroke();
+
+    // Avatar Çizimi
+    ctx.font = "90px Arial";
+    ctx.textAlign = "center";
+    ctx.fillText(kayitliOgrenci.avatar, 110, 210);
+
+    // Öğrenci Bilgileri Sol Hizalı
+    ctx.textAlign = "left";
+
+    ctx.fillStyle = "#93c5fd";
+    ctx.font = "bold 13px Arial";
+    ctx.fillText("SPORCU ADI SOYADI", 200, 135);
+    ctx.fillStyle = "#ffffff";
+    ctx.font = "bold 24px Arial";
+    ctx.fillText(kayitliOgrenci.adSoyad, 200, 165);
+
+    ctx.fillStyle = "#93c5fd";
+    ctx.font = "bold 13px Arial";
+    ctx.fillText("KULÜP / GRUP", 200, 205);
+    ctx.fillStyle = "#ffffff";
+    ctx.font = "bold 18px Arial";
+    ctx.fillText(kayitliOgrenci.sinifGrup || "Genel Grubu", 200, 230);
+
+    // Sağ Alt: PIN Kodu Rozeti
+    ctx.fillStyle = "#fef08a";
+    ctx.roundRect(380, 255, 180, 65, 12);
+    ctx.fill();
+    ctx.strokeStyle = "#ca8a04";
+    ctx.lineWidth = 2;
+    ctx.roundRect(380, 255, 180, 65, 12);
+    ctx.stroke();
+
+    ctx.textAlign = "center";
+    ctx.fillStyle = "#854d0e";
+    ctx.font = "bold 11px Arial";
+    ctx.fillText("GİRİŞ KODUN (PIN)", 470, 275);
+    ctx.fillStyle = "#a16207";
+    ctx.font = "bold 26px Arial";
+    ctx.fillText(kayitliOgrenci.pin, 470, 308);
+
+    // Sol Alt: Kayıt Tarihi
+    ctx.textAlign = "left";
+    ctx.fillStyle = "#a5b4fc";
+    ctx.font = "12px Arial";
+    ctx.fillText("Kayıt Tarihi: " + kayitliOgrenci.kayitTarihi, 40, 315);
+
+    // İndirme Bağlantısını Tetikle
+    const link = document.createElement("a");
+    link.download = `${kayitliOgrenci.adSoyad.replace(/\s+/g, "_")}_Satranc_Karti.png`;
+    link.href = canvas.toDataURL("image/png");
+    link.click();
   }
 
   return (
     <div
       style={{
-        maxWidth: "840px",
+        maxWidth: "500px",
         width: "100%",
         backgroundColor: "#ffffff",
         padding: "24px",
         borderRadius: "24px",
-        border: "3px solid #8b5cf6",
-        boxShadow: "0 10px 30px rgba(139, 92, 246, 0.1)",
-        margin: "0 auto",
+        border: "4px solid #8b5cf6",
+        boxShadow: "0 15px 30px rgba(139, 92, 246, 0.15)",
+        margin: "20px auto",
       }}
     >
       <div style={{ textAlign: "center", marginBottom: "20px" }}>
-        <span style={{ fontSize: "40px" }}>🌟🎭</span>
-        <h1 style={{ fontSize: "22px", fontWeight: "900", color: "#5b21b6", margin: "6px 0" }}>
-          Sevimli Satranç Kulübü & Karakter Kaydı
+        <span style={{ fontSize: "50px" }}>👑</span>
+        <h1 style={{ fontSize: "22px", fontWeight: "900", color: "#1e293b", margin: "8px 0" }}>
+          Satranç Kulübüne Katıl!
         </h1>
         <p style={{ fontSize: "13px", color: "#64748b", margin: 0 }}>
-          Karakterini seç, PIN kodunu belirle, Lichess / Chess.com hesaplarını bağla!
+          Kendi sporcu kartını oluştur, haftalık ödevleri çöz ve rozetleri topla!
         </p>
       </div>
 
-      {mesaj && (
-        <div
-          style={{
-            backgroundColor: mesaj.tip === "basari" ? "#f0fdf4" : "#fef2f2",
-            border: `2px solid ${mesaj.tip === "basari" ? "#22c55e" : "#ef4444"}`,
-            padding: "12px",
-            borderRadius: "12px",
-            marginBottom: "20px",
-            textAlign: "center",
-            fontWeight: "bold",
-            color: mesaj.tip === "basari" ? "#15803d" : "#b91c1c",
-            fontSize: "13px",
-          }}
-        >
-          {mesaj.text}
-        </div>
-      )}
-
-      {/* Kayıt Formu */}
-      <form
-        onSubmit={handleKayitOl}
-        style={{
-          backgroundColor: "#f5f3ff",
-          padding: "20px",
-          borderRadius: "18px",
-          border: "2px solid #ddd6fe",
-          marginBottom: "28px",
-        }}
-      >
-        <h2 style={{ fontSize: "15px", fontWeight: "900", color: "#4c1d95", margin: "0 0 14px 0" }}>
-          🎨 Karakterini Seç ve Bilgilerini Doldur
-        </h2>
-
-        {/* Karakter Seçimi */}
-        <div style={{ marginBottom: "16px" }}>
-          <label style={{ display: "block", fontSize: "12px", fontWeight: "bold", color: "#5b21b6", marginBottom: "6px" }}>
-            Maskot Karakterini Seç
+      <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
+        {/* İsim Soyisim */}
+        <div>
+          <label style={{ display: "block", fontSize: "12px", fontWeight: "800", color: "#334155", marginBottom: "6px" }}>
+            👤 Öğrencinin Adı Soyadı *
           </label>
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(110px, 1fr))", gap: "8px" }}>
-            {KARAKTERLER.map((k) => {
-              const secili = secilenKarakter.includes(k.ad);
-              return (
-                <button
-                  key={k.id}
-                  type="button"
-                  onClick={() => setSecilenKarakter(`${k.simge} ${k.ad}`)}
-                  style={{
-                    padding: "10px",
-                    borderRadius: "12px",
-                    border: secili ? "2px solid #7c3aed" : "1px solid #cbd5e1",
-                    backgroundColor: secili ? "#ede9fe" : "#ffffff",
-                    cursor: "pointer",
-                    textAlign: "center",
-                    fontWeight: "bold",
-                    fontSize: "12px",
-                    color: "#334155",
-                  }}
-                >
-                  <div style={{ fontSize: "24px" }}>{k.simge}</div>
-                  <div style={{ fontSize: "11px", marginTop: "4px" }}>{k.ad}</div>
-                </button>
-              );
-            })}
+          <input
+            type="text"
+            placeholder="Örn: Efe Yılmaz"
+            value={adSoyad}
+            onChange={(e) => setAdSoyad(e.target.value)}
+            style={{
+              width: "100%",
+              padding: "10px 14px",
+              borderRadius: "12px",
+              border: "2px solid #cbd5e1",
+              fontSize: "14px",
+              outline: "none",
+              boxSizing: "border-box",
+            }}
+          />
+        </div>
+
+        {/* Sınıf / Grup Adı */}
+        <div>
+          <label style={{ display: "block", fontSize: "12px", fontWeight: "800", color: "#334155", marginBottom: "6px" }}>
+            🏫 Sınıf veya Okul / Kulüp Grubu
+          </label>
+          <input
+            type="text"
+            placeholder="Örn: 2-A Sınıfı veya Bolu Grubu"
+            value={sinifGrup}
+            onChange={(e) => setSinifGrup(e.target.value)}
+            style={{
+              width: "100%",
+              padding: "10px 14px",
+              borderRadius: "12px",
+              border: "2px solid #cbd5e1",
+              fontSize: "14px",
+              outline: "none",
+              boxSizing: "border-box",
+            }}
+          />
+        </div>
+
+        {/* Maskot Seçimi */}
+        <div>
+          <label style={{ display: "block", fontSize: "12px", fontWeight: "800", color: "#334155", marginBottom: "8px" }}>
+            🦁 Kulüp Maskotunu Seç:
+          </label>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(6, 1fr)", gap: "8px" }}>
+            {AVATARLAR.map((item) => (
+              <button
+                type="button"
+                key={item}
+                onClick={() => setAvatar(item)}
+                style={{
+                  fontSize: "26px",
+                  padding: "8px 0",
+                  backgroundColor: avatar === item ? "#ede9fe" : "#f8fafc",
+                  border: avatar === item ? "3px solid #8b5cf6" : "1px solid #e2e8f0",
+                  borderRadius: "12px",
+                  cursor: "pointer",
+                  transform: avatar === item ? "scale(1.1)" : "none",
+                  transition: "all 0.15s ease",
+                }}
+              >
+                {item}
+              </button>
+            ))}
           </div>
         </div>
 
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))", gap: "14px", marginBottom: "14px" }}>
-          <div>
-            <label style={{ display: "block", fontSize: "12px", fontWeight: "bold", color: "#5b21b6", marginBottom: "4px" }}>
-              Öğrenci Adı Soyadı *
+        {/* 4 Haneli PIN Kodu */}
+        <div>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "6px" }}>
+            <label style={{ fontSize: "12px", fontWeight: "800", color: "#334155" }}>
+              🔑 4 Haneli Giriş PIN Kodu
             </label>
-            <input
-              type="text"
-              required
-              value={adSoyad}
-              onChange={(e) => setAdSoyad(e.target.value)}
-              placeholder="Örn: Zeynep Demir"
-              style={{ width: "100%", padding: "10px", borderRadius: "10px", border: "1px solid #cbd5e1", fontSize: "13px", boxSizing: "border-box" }}
-            />
+            <span style={{ fontSize: "11px", color: "#64748b" }}>(Boş bırakılırsa 1234 olur)</span>
           </div>
-
-          <div>
-            <label style={{ display: "block", fontSize: "12px", fontWeight: "bold", color: "#5b21b6", marginBottom: "4px" }}>
-              Veli Adı Soyadı *
-            </label>
-            <input
-              type="text"
-              required
-              value={veliAdi}
-              onChange={(e) => setVeliAdi(e.target.value)}
-              placeholder="Örn: Ahmet Demir (Veli)"
-              style={{ width: "100%", padding: "10px", borderRadius: "10px", border: "1px solid #cbd5e1", fontSize: "13px", boxSizing: "border-box" }}
-            />
-          </div>
-
-          <div>
-            <label style={{ display: "block", fontSize: "12px", fontWeight: "bold", color: "#5b21b6", marginBottom: "4px" }}>
-              Gizli PIN Kodu (Örn: 4 haneli şifre) *
-            </label>
-            <input
-              type="password"
-              maxLength={6}
-              required
-              value={pinKodu}
-              onChange={(e) => setPinKodu(e.target.value)}
-              placeholder="****"
-              style={{ width: "100%", padding: "10px", borderRadius: "10px", border: "1px solid #cbd5e1", fontSize: "13px", boxSizing: "border-box" }}
-            />
-          </div>
-
-          <div>
-            <label style={{ display: "block", fontSize: "12px", fontWeight: "bold", color: "#5b21b6", marginBottom: "4px" }}>
-              Satranç Seviyeniz
-            </label>
-            <select
-              value={seviye}
-              onChange={(e) => setSeviye(e.target.value)}
-              style={{ width: "100%", padding: "10px", borderRadius: "10px", border: "1px solid #cbd5e1", fontSize: "13px", backgroundColor: "#ffffff", boxSizing: "border-box" }}
-            >
-              <option value="Başlangıç">Başlangıç Seviyesi</option>
-              <option value="Orta Seviye">Orta Seviye</option>
-              <option value="İleri Seviye">İleri Seviye / Turnuva Oyuncusu</option>
-            </select>
-          </div>
-
-          <div>
-            <label style={{ display: "block", fontSize: "12px", fontWeight: "bold", color: "#5b21b6", marginBottom: "4px" }}>
-              🌐 Lichess Kullanıcı Adı
-            </label>
-            <input
-              type="text"
-              value={lichessKadi}
-              onChange={(e) => setLichessKadi(e.target.value)}
-              placeholder="Lichess kullanıcı adın"
-              style={{ width: "100%", padding: "10px", borderRadius: "10px", border: "1px solid #cbd5e1", fontSize: "13px", boxSizing: "border-box" }}
-            />
-          </div>
-
-          <div>
-            <label style={{ display: "block", fontSize: "12px", fontWeight: "bold", color: "#5b21b6", marginBottom: "4px" }}>
-              🌍 Chess.com Kullanıcı Adı
-            </label>
-            <input
-              type="text"
-              value={chessComKadi}
-              onChange={(e) => setChessComKadi(e.target.value)}
-              placeholder="Chess.com kullanıcı adın"
-              style={{ width: "100%", padding: "10px", borderRadius: "10px", border: "1px solid #cbd5e1", fontSize: "13px", boxSizing: "border-box" }}
-            />
-          </div>
+          <input
+            type="text"
+            maxLength={6}
+            placeholder="Örn: 1234 veya doğum yılı"
+            value={pin}
+            onChange={(e) => setPin(e.target.value)}
+            style={{
+              width: "100%",
+              padding: "10px 14px",
+              borderRadius: "12px",
+              border: "2px solid #cbd5e1",
+              fontSize: "14px",
+              outline: "none",
+              boxSizing: "border-box",
+              letterSpacing: "2px",
+            }}
+          />
         </div>
+
+        {hataMesaji && (
+          <div style={{ color: "#dc2626", fontSize: "12px", fontWeight: "bold", textAlign: "center" }}>
+            {hataMesaji}
+          </div>
+        )}
 
         <button
           type="submit"
+          disabled={yukleniyor}
           style={{
             width: "100%",
             padding: "12px",
             backgroundColor: "#8b5cf6",
             color: "#ffffff",
-            borderRadius: "12px",
-            border: "none",
             fontWeight: "900",
             fontSize: "14px",
-            cursor: "pointer",
-            boxShadow: "0 4px 12px rgba(139, 92, 246, 0.2)",
+            borderRadius: "14px",
+            border: "none",
+            cursor: yukleniyor ? "not-allowed" : "pointer",
+            boxShadow: "0 4px 12px rgba(139, 92, 246, 0.3)",
           }}
         >
-          🚀 Kulübe Kaydol ve Hesapları Bağla
+          {yukleniyor ? "Kaydediliyor... ⏳" : "🌟 Kulübe Katıl ve Kartımı Al"}
         </button>
       </form>
 
-      {/* ÖĞRETMEN OTOMATİK GÖRÜNÜM PANELİ */}
-      <div style={{ backgroundColor: "#faf5ff", padding: "20px", borderRadius: "18px", border: "2px solid #e9d5ff" }}>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "14px", flexWrap: "wrap", gap: "8px" }}>
-          <h2 style={{ fontSize: "16px", fontWeight: "900", color: "#5b21b6", margin: 0 }}>
-            👨‍🏫 Öğretmen Otomatik Gözükme Paneli ({kayitliOgrenciler.length} Kayıtlı Öğrenci)
-          </h2>
-          {kayitliOgrenciler.length > 0 && (
-            <button
-              type="button"
-              onClick={handleTemizle}
-              style={{ padding: "6px 12px", backgroundColor: "#fee2e2", color: "#b91c1c", border: "none", borderRadius: "8px", fontWeight: "bold", fontSize: "11px", cursor: "pointer" }}
-            >
-              Listeyi Temizle
-            </button>
-          )}
-        </div>
+      {/* BAŞARILI KAYIT SONRASI AÇILAN SPORCU LİSANS KARTI MODALI */}
+      {kayitTamamlandi && kayitliOgrenci && (
+        <div
+          style={{
+            position: "fixed",
+            inset: 0,
+            backgroundColor: "rgba(15, 23, 42, 0.75)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            padding: "16px",
+            zIndex: 100,
+          }}
+        >
+          <div
+            style={{
+              backgroundColor: "#ffffff",
+              padding: "24px",
+              borderRadius: "24px",
+              maxWidth: "460px",
+              width: "100%",
+              boxShadow: "0 25px 50px -12px rgba(0, 0, 0, 0.25)",
+              textAlign: "center",
+            }}
+          >
+            <div style={{ fontSize: "40px", marginBottom: "4px" }}>🎉</div>
+            <h2 style={{ fontSize: "18px", fontWeight: "900", color: "#1e293b", margin: "0 0 6px 0" }}>
+              Kulübe Hoş Geldin, Şampiyon!
+            </h2>
+            <p style={{ fontSize: "12px", color: "#64748b", marginBottom: "16px" }}>
+              Sevgili velimiz; lütfen aşağıdaki sporcu kartının ekran görüntüsünü alın veya indirin.
+            </p>
 
-        {kayitliOgrenciler.length === 0 ? (
-          <p style={{ fontSize: "13px", color: "#64748b", textAlign: "center", margin: "20px 0" }}>
-            Henüz sisteme kayıtlı öğrenci bulunmuyor.
-          </p>
-        ) : (
-          <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
-            {kayitliOgrenciler.map((ogrenci, index) => (
+            {/* SEVİMLİ SPORCU KARTI ÖNİZLEMESİ */}
+            <div
+              style={{
+                background: "linear-gradient(135deg, #312e81 0%, #4338ca 50%, #1e1b4b 100%)",
+                borderRadius: "20px",
+                border: "4px solid #fbbf24",
+                padding: "18px",
+                color: "#ffffff",
+                textAlign: "left",
+                position: "relative",
+                boxShadow: "0 10px 25px rgba(67, 56, 202, 0.4)",
+                marginBottom: "20px",
+              }}
+            >
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", borderBottom: "1px solid rgba(255,255,255,0.2)", paddingBottom: "10px", marginBottom: "12px" }}>
+                <div>
+                  <div style={{ fontSize: "11px", fontWeight: "900", color: "#fbbf24", letterSpacing: "1px" }}>
+                    ♟️ SATRANÇ KULÜBÜ
+                  </div>
+                  <div style={{ fontSize: "9px", color: "#c7d2fe" }}>
+                    Resmi Sporcu Kartı
+                  </div>
+                </div>
+                <div style={{ fontSize: "10px", color: "#fbbf24", fontWeight: "bold" }}>
+                  #{kayitliOgrenci.id.slice(-6)}
+                </div>
+              </div>
+
+              <div style={{ display: "flex", alignItems: "center", gap: "14px" }}>
+                <div
+                  style={{
+                    fontSize: "44px",
+                    backgroundColor: "rgba(255,255,255,0.1)",
+                    borderRadius: "16px",
+                    padding: "6px 10px",
+                    border: "2px solid rgba(251, 191, 36, 0.4)",
+                  }}
+                >
+                  {kayitliOgrenci.avatar}
+                </div>
+
+                <div style={{ flex: 1 }}>
+                  <div style={{ fontSize: "10px", color: "#93c5fd", fontWeight: "bold" }}>SPORCU ADI</div>
+                  <div style={{ fontSize: "16px", fontWeight: "900", color: "#ffffff", marginBottom: "6px" }}>
+                    {kayitliOgrenci.adSoyad}
+                  </div>
+
+                  <div style={{ fontSize: "10px", color: "#93c5fd", fontWeight: "bold" }}>KULÜP / SINIF</div>
+                  <div style={{ fontSize: "12px", fontWeight: "bold", color: "#e0e7ff" }}>
+                    {kayitliOgrenci.sinifGrup}
+                  </div>
+                </div>
+              </div>
+
+              {/* PIN KODU ROZETİ */}
               <div
-                key={ogrenci.id || index}
                 style={{
-                  backgroundColor: "#ffffff",
-                  padding: "12px 16px",
-                  borderRadius: "12px",
-                  border: "1px solid #ddd6fe",
+                  marginTop: "14px",
+                  padding: "8px 12px",
+                  backgroundColor: "#fef08a",
+                  borderRadius: "10px",
                   display: "flex",
                   justifyContent: "space-between",
                   alignItems: "center",
-                  flexWrap: "wrap",
-                  gap: "10px",
+                  border: "2px solid #ca8a04",
                 }}
               >
-                <div>
-                  <div style={{ fontSize: "14px", fontWeight: "900", color: "#1e293b" }}>
-                    {index + 1}. {ogrenci.karakter} — {ogrenci.adSoyad} <span style={{ fontSize: "11px", color: "#7c3aed", fontWeight: "bold" }}>({ogrenci.seviye})</span>
-                  </div>
-                  <div style={{ fontSize: "11px", color: "#64748b", marginTop: "2px" }}>
-                    Veli: {ogrenci.veliAdi} | PIN: •••• | Tarih: {ogrenci.tarih}
-                  </div>
-                </div>
-
-                <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
-                  <span style={{ fontSize: "11px", padding: "4px 8px", backgroundColor: "#f1f5f9", borderRadius: "8px", fontWeight: "bold", color: "#334155" }}>
-                    Lichess: {ogrenci.lichessKadi !== "-" ? (
-                      <a href={`https://lichess.org/@/${ogrenci.lichessKadi}`} target="_blank" rel="noopener noreferrer" style={{ color: "#2563eb", textDecoration: "underline" }}>
-                        {ogrenci.lichessKadi} ↗
-                      </a>
-                    ) : <span style={{ color: "#94a3b8" }}>Bağlanmadı</span>}
-                  </span>
-                  <span style={{ fontSize: "11px", padding: "4px 8px", backgroundColor: "#f7fee7", borderRadius: "8px", fontWeight: "bold", color: "#3f6212" }}>
-                    Chess.com: {ogrenci.chessComKadi !== "-" ? (
-                      <a href={`https://www.chess.com/member/${ogrenci.chessComKadi}`} target="_blank" rel="noopener noreferrer" style={{ color: "#16a34a", textDecoration: "underline" }}>
-                        {ogrenci.chessComKadi} ↗
-                      </a>
-                    ) : <span style={{ color: "#94a3b8" }}>Bağlanmadı</span>}
-                  </span>
-                </div>
+                <span style={{ fontSize: "11px", fontWeight: "bold", color: "#854d0e" }}>
+                  🔑 Giriş Kodun (PIN):
+                </span>
+                <span style={{ fontSize: "18px", fontWeight: "900", color: "#a16207", letterSpacing: "2px" }}>
+                  {kayitliOgrenci.pin}
+                </span>
               </div>
-            ))}
+            </div>
+
+            {/* BUTONLAR: İNDİR & ÖDEVE BAŞLA */}
+            <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+              <button
+                type="button"
+                onClick={handleKartiIndir}
+                style={{
+                  width: "100%",
+                  padding: "10px",
+                  backgroundColor: "#f59e0b",
+                  color: "#ffffff",
+                  borderRadius: "12px",
+                  border: "none",
+                  fontWeight: "900",
+                  fontSize: "13px",
+                  cursor: "pointer",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  gap: "6px",
+                }}
+              >
+                📸 Sporcu Kartını Resim Olarak İndir
+              </button>
+
+              <button
+                type="button"
+                onClick={() => router.push("/odev")}
+                style={{
+                  width: "100%",
+                  padding: "10px",
+                  backgroundColor: "#16a34a",
+                  color: "#ffffff",
+                  borderRadius: "12px",
+                  border: "none",
+                  fontWeight: "900",
+                  fontSize: "13px",
+                  cursor: "pointer",
+                }}
+              >
+                🚀 Şimdi Ödevlerime Başla!
+              </button>
+            </div>
           </div>
-        )}
-      </div>
+        </div>
+      )}
     </div>
   );
 }
