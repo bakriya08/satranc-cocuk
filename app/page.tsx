@@ -36,7 +36,7 @@ export default function BotOyunuPage() {
     } catch {}
 
     // Manifest - Toz Pembe / Ritmik Müzik Akış Kaynağı
-    audioRef.current = new Audio("https://actions.google.com/sounds/v1/ambiences/coffee_shop.ogg"); 
+    audioRef.current = new Audio("https://youtu.be/0pg0raFMNIU?list=RD0pg0raFMNIU"); 
     if (audioRef.current) {
       audioRef.current.loop = true;
       audioRef.current.volume = 0.5;
